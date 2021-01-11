@@ -1,0 +1,110 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux4Way16.hdl
+
+/**
+ * 4-way 16-bit multiplexor:
+ * out = a if sel == 00
+ *       b if sel == 01
+ *       c if sel == 10
+ *       d if sel == 11
+ */
+
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    Not (in=sel[0], out=notsel0);
+    Not (in=sel[1], out=notsel1);
+    And (a=notsel0, b=notsel1, out=sela);
+    And (a=sel[0], b=notsel1, out=selb);
+    And (a=notsel0, b=sel[1], out=selc);
+    And (a=sel[0], b=sel[1], out=seld);
+
+    And (a=a[0], b=sela, out=outa0);
+    And (a=a[1], b=sela, out=outa1);
+    And (a=a[2], b=sela, out=outa2);
+    And (a=a[3], b=sela, out=outa3);
+    And (a=a[4], b=sela, out=outa4);
+    And (a=a[5], b=sela, out=outa5);
+    And (a=a[6], b=sela, out=outa6);
+    And (a=a[7], b=sela, out=outa7);
+    And (a=a[8], b=sela, out=outa8);
+    And (a=a[9], b=sela, out=outa9);
+    And (a=a[10], b=sela, out=outa10);
+    And (a=a[11], b=sela, out=outa11);
+    And (a=a[12], b=sela, out=outa12);
+    And (a=a[13], b=sela, out=outa13);
+    And (a=a[14], b=sela, out=outa14);
+    And (a=a[15], b=sela, out=outa15);
+
+    And (a=b[0], b=selb, out=outb0);
+    And (a=b[1], b=selb, out=outb1);
+    And (a=b[2], b=selb, out=outb2);
+    And (a=b[3], b=selb, out=outb3);
+    And (a=b[4], b=selb, out=outb4);
+    And (a=b[5], b=selb, out=outb5);
+    And (a=b[6], b=selb, out=outb6);
+    And (a=b[7], b=selb, out=outb7);
+    And (a=b[8], b=selb, out=outb8);
+    And (a=b[9], b=selb, out=outb9);
+    And (a=b[10], b=selb, out=outb10);
+    And (a=b[11], b=selb, out=outb11);
+    And (a=b[12], b=selb, out=outb12);
+    And (a=b[13], b=selb, out=outb13);
+    And (a=b[14], b=selb, out=outb14);
+    And (a=b[15], b=selb, out=outb15);
+
+    And (a=c[0], b=selc, out=outc0);
+    And (a=c[1], b=selc, out=outc1);
+    And (a=c[2], b=selc, out=outc2);
+    And (a=c[3], b=selc, out=outc3);
+    And (a=c[4], b=selc, out=outc4);
+    And (a=c[5], b=selc, out=outc5);
+    And (a=c[6], b=selc, out=outc6);
+    And (a=c[7], b=selc, out=outc7);
+    And (a=c[8], b=selc, out=outc8);
+    And (a=c[9], b=selc, out=outc9);
+    And (a=c[10], b=selc, out=outc10);
+    And (a=c[11], b=selc, out=outc11);
+    And (a=c[12], b=selc, out=outc12);
+    And (a=c[13], b=selc, out=outc13);
+    And (a=c[14], b=selc, out=outc14);
+    And (a=c[15], b=selc, out=outc15);
+
+    And (a=d[0], b=seld, out=outd0);
+    And (a=d[1], b=seld, out=outd1);
+    And (a=d[2], b=seld, out=outd2);
+    And (a=d[3], b=seld, out=outd3);
+    And (a=d[4], b=seld, out=outd4);
+    And (a=d[5], b=seld, out=outd5);
+    And (a=d[6], b=seld, out=outd6);
+    And (a=d[7], b=seld, out=outd7);
+    And (a=d[8], b=seld, out=outd8);
+    And (a=d[9], b=seld, out=outd9);
+    And (a=d[10], b=seld, out=outd10);
+    And (a=d[11], b=seld, out=outd11);
+    And (a=d[12], b=seld, out=outd12);
+    And (a=d[13], b=seld, out=outd13);
+    And (a=d[14], b=seld, out=outd14);
+    And (a=d[15], b=seld, out=outd15);
+
+    Or4Way (in[0]=outa0, in[1]=outb0, in[2]=outc0, in[3]=outd0, out=out[0]);
+    Or4Way (in[0]=outa1, in[1]=outb1, in[2]=outc1, in[3]=outd1, out=out[1]);
+    Or4Way (in[0]=outa2, in[1]=outb2, in[2]=outc2, in[3]=outd2, out=out[2]);
+    Or4Way (in[0]=outa3, in[1]=outb3, in[2]=outc3, in[3]=outd3, out=out[3]);
+    Or4Way (in[0]=outa4, in[1]=outb4, in[2]=outc4, in[3]=outd4, out=out[4]);
+    Or4Way (in[0]=outa5, in[1]=outb5, in[2]=outc5, in[3]=outd5, out=out[5]);
+    Or4Way (in[0]=outa6, in[1]=outb6, in[2]=outc6, in[3]=outd6, out=out[6]);
+    Or4Way (in[0]=outa7, in[1]=outb7, in[2]=outc7, in[3]=outd7, out=out[7]);
+    Or4Way (in[0]=outa8, in[1]=outb8, in[2]=outc8, in[3]=outd8, out=out[8]);
+    Or4Way (in[0]=outa9, in[1]=outb9, in[2]=outc9, in[3]=outd9, out=out[9]);
+    Or4Way (in[0]=outa10, in[1]=outb10, in[2]=outc10, in[3]=outd10, out=out[10]);
+    Or4Way (in[0]=outa11, in[1]=outb11, in[2]=outc11, in[3]=outd11, out=out[11]);
+    Or4Way (in[0]=outa12, in[1]=outb12, in[2]=outc12, in[3]=outd12, out=out[12]);
+    Or4Way (in[0]=outa13, in[1]=outb13, in[2]=outc13, in[3]=outd13, out=out[13]);
+    Or4Way (in[0]=outa14, in[1]=outb14, in[2]=outc14, in[3]=outd14, out=out[14]);
+    Or4Way (in[0]=outa15, in[1]=outb15, in[2]=outc15, in[3]=outd15, out=out[15]);
+}
