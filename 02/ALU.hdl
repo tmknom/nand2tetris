@@ -42,5 +42,23 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // 入力値の算出
+    Input16(in=x, ze=zx, ne=nx, out=ix);
+    Input16(in=y, ze=zy, ne=ny, out=iy);
+
+    // xとyの計算
+    InputFunction16(a=ix, b=iy, f=f, out=if);
+
+    // 必要なら出力値の反転
+    Negate16(in=if, ne=no, out=result);
+
+    // 負判定
+    IsNegative16(in=result, out=ng);
+
+    // 等号判定
+    IsZero16(in=result, out=zr);
+
+    // 出力値
+    Not16(in=result, out=notresult);
+    Not16(in=notresult, out=out);
 }
