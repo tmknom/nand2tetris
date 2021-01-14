@@ -1,0 +1,7 @@
+CHIP Zero16 {
+    IN in[16], ze;
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=in, b[0..15]=false, sel=ze, out=out);
+}
