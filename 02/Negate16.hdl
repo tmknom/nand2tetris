@@ -1,0 +1,8 @@
+CHIP Negate16 {
+    IN in[16], ne;
+    OUT out[16];
+
+    PARTS:
+    Not16(in=in, out=notin);
+    Mux16(a=in, b=notin, sel=ne, out=out);
+}
