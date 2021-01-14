@@ -1,0 +1,8 @@
+CHIP Input16 {
+    IN in[16], ze, ne;
+    OUT out[16];
+
+    PARTS:
+    Zero16(in=in, ze=ze, out=zeroout);
+    Negate16(in=zeroout, ne=ne, out=out);
+}
