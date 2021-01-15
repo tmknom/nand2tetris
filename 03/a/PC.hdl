@@ -16,5 +16,19 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // loadフラグが立っていたらinを設定、そうでなければ直前のRegisterの値を設定
+    Mux16(a=outinc, b=in, sel=load, out=outin);
+
+    // resetフラグが立っていたら、ゼロを設定
+    Mux16(a=outin, b=false, sel=reset, out=outreset);
+
+    // レジスタの値を更新
+    Register(in=outreset, load=true, out=current);
+
+    // レジスタの値をインクリメント
+    Inc16(in=current, out=incremented);
+    Mux16(a=current, b=incremented, sel=inc, out=outinc);
+
+    // 出力
+    Buf16(in=current, out=out);
 }
