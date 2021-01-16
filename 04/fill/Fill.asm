@@ -11,9 +11,17 @@
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
 
+// RAM[0]に初期値「32767」をセット
+@32767 // Aレジスタに定数「32767」をセット
+D=A // Aレジスタの値(=32767)をDレジスタに格納
+@0 // Aレジスタにアドレス0をセット
+M=D // R0=RAM[0]にDレジスタの値をセット
+
 (FILL)
+    @R0 // AレジスタにR0シンボルをセット
+    D=M // R0の値をDレジスタに格納
     @SCREEN // AレジスタにSCREENシンボルをセット
-    M=1 // RAM[SCREEN]に1をセットして黒く塗りつぶす
+    M=D // RAM[SCREEN]にレジスタD(=R0)をセットし、1ワードぶん黒く塗りつぶす
 
     // 処理が完了したら、LOOPに戻る
     @LOOP // AレジスタにLOOPラベルをセット
