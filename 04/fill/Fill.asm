@@ -11,4 +11,12 @@
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
 
-// Put your code here.
+@SCREEN // AレジスタにSCREENシンボルをセット
+M=1 // RAM[SCREEN]に1をセットして黒く塗りつぶす
+
+@END // AレジスタにENDラベルをセット
+0;JMP // goto END
+
+(END)
+    @END
+    0;JMP
