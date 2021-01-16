@@ -11,12 +11,31 @@
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
 
-@SCREEN // AレジスタにSCREENシンボルをセット
-M=1 // RAM[SCREEN]に1をセットして黒く塗りつぶす
+(FILL)
+    @SCREEN // AレジスタにSCREENシンボルをセット
+    M=1 // RAM[SCREEN]に1をセットして黒く塗りつぶす
 
-@END // AレジスタにENDラベルをセット
-0;JMP // goto END
+    // 処理が完了したら、LOOPに戻る
+    @LOOP // AレジスタにLOOPラベルをセット
+    0;JMP // LOOPへ移動
 
-(END)
-    @END
-    0;JMP
+(CLEAR)
+    @SCREEN // AレジスタにSCREENシンボルをセット
+    M=0 // RAM[SCREEN]に0をセットしてクリア
+
+    // 処理が完了したら、LOOPに戻る
+    @LOOP // AレジスタにLOOPラベルをセット
+    0;JMP // LOOPへ移動
+
+(LOOP)
+    // キーボードの値をDレジスタにセット
+    @KBD // AレジスタにKBDシンボルをセット
+    D=M // DレジスタにRAM[KBD]の値をセット
+
+    // キーボード入力があればFILLへジャンプ
+    @FILL // AレジスタにFILLラベルをセット
+    D;JNE // Dレジスタがゼロ以外ならFILLへジャンプ
+
+    // キーボード入力がなければCLEARへジャンプ
+    @CLEAR // AレジスタにCLEARラベルをセット
+    0;JMP // 問答無用でCLEARへジャンプ
