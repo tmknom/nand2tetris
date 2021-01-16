@@ -23,8 +23,12 @@ D=A // Aレジスタ(=2)の値をDレジスタに格納
 M=D // RAM[A]=RAM[1]にDレジスタの値をセット
 
 (LOOP)
-    @END
-    D;JEQ // if D=0 goto END
+    // while文の終了条件をチェック
+    // R1の値をDレジスタにロードし、Dレジスタの値が0以下ならENDへ
+    @1 // Aレジスタにアドレス1をセット
+    D=M // DレジスタにRAM[A]=RAM[1]の値をセット
+    @END // AレジスタにENDラベルをセット
+    D;JLE // if D=<0 goto END
 
 (END)
     @END
