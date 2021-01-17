@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,9 +14,8 @@ func run() error {
 		return err
 	}
 
-	for _ ,line := range lines  {
-		fmt.Println(*line)
-	}
+	parser := NewParser(lines)
+	parser.Parse()
 
 	hack := newHack(asm.filenameWithoutExt())
 	err = hack.write(lines)
