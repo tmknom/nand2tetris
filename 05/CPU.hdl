@@ -40,8 +40,8 @@ CHIP CPU {
 
     PARTS:
     // instructionをデコードして、制御ビットを生成する
-    Decode(in=instruction, addressInstruction=addressInstruction, value=value,
-           computeInstruction=computeInstruction, dest=dest, jump=jump,
+    Decode(in=instruction, addressInstruction=addressInstruction,
+           value=value, computeInstruction=computeInstruction,
            a=a, c1=c1, c2=c2, c3=c3, c4=c4, c5=c5, c6=c6,
            d1=d1, d2=d2, d3=d3, j1=j1, j2=j2, j3=j3);
 
