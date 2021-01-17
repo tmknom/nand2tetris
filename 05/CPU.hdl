@@ -80,4 +80,10 @@ CHIP CPU {
     Buf(in=false, out=dummyPCload);
     Buf(in=true, out=dummyInc);
     PC(in=outARegister, load=dummyPCload, inc=dummyInc, reset=reset, out[0..14]=pc);
+
+    // addressMの出力
+    Buf15(in=outARegister[0..14], out=addressM);
+
+    // writeMの出力
+    Buf(in=d3, out=writeM);
 }
