@@ -1,0 +1,41 @@
+// instructionをデコードして、制御ビットを生成する
+CHIP Decode {
+    IN in[16]; // Instruction for execution
+
+    OUT addressInstruction, // A命令を実行するならtrue
+        value[16], // Aレジスタに格納する値
+        computeInstruction, // C命令を実行するならtrue
+        dest[3], // dest領域：ddd
+        jump[3], // jump領域：jjj
+        a, c1, c2, c3, c4, c5, c6,
+        d1, d2, d3, j1, j2, j3;
+
+    PARTS:
+    // A命令のパース
+    Not(in=in[15], out=addressInstruction);
+    Buf16(in=in, out=value);
+
+    // C命令のパース
+    Buf(in=in[15], out=computeInstruction);
+
+    // jump領域
+    Buf(in=in[0], out=j3);
+    Buf(in=in[1], out=j2);
+    Buf(in=in[2], out=j1);
+    Buf3(in=in[0..2], out=jump);
+
+    // dest領域
+    Buf(in=in[3], out=d3);
+    Buf(in=in[4], out=d2);
+    Buf(in=in[5], out=d1);
+    Buf3(in=in[3..5], out=dest);
+
+    // comp領域
+    Buf(in=in[6], out=c6);
+    Buf(in=in[7], out=c5);
+    Buf(in=in[8], out=c4);
+    Buf(in=in[9], out=c3);
+    Buf(in=in[10], out=c2);
+    Buf(in=in[11], out=c1);
+    Buf(in=in[12], out=a);
+}
