@@ -63,8 +63,12 @@ CHIP CPU {
     // C命令を実行する場合、ALUの出力結果から値を取得
     Mux16(a=outALU, b=value, sel=addressInstruction, out=inARegister);
 
+    // Aレジスタを更新するか判定
+    And(a=c1, b=d1, out=cload);
+    Or(a=addressInstruction, b=cload, out=loadARegister);
+
     // Aレジスタの値を更新して現在のAレジスタの値を取得
-    ARegister(in=inARegister, load=d1, out=outARegister);
+    ARegister(in=inARegister, load=loadARegister, out=outARegister);
 
     // プログラムカウンタ
     // TODO dummyPCload：ジャンプ命令があったらtrueにする
