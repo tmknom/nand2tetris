@@ -70,12 +70,23 @@ CHIP CPU {
     // Aレジスタの値を更新して現在のAレジスタの値を取得
     ARegister(in=inARegister, load=loadARegister, out=outARegister);
 
+    // ジャンプするか判定
+    Not(in=ng, out=notng);
+    Not(in=zr, out=notzr);
+    And(a=notng, b=notzr, out=positive);
+    And(a=j1, b=ng, out=jump1);
+    And(a=j2, b=zr, out=jump2);
+    And(a=j3, b=positive, out=jump3);
+    Or(a=jump1, b=jump2, out=jump12);
+    Or(a=jump12, b=jump3, out=pcload);
+
+    // インクリメントするか判定
+    Not(in=pcload, out=notpcload);
+    Not(in=reset, out=notreset);
+    And(a=notpcload, b=notreset, out=pcinc);
+
     // プログラムカウンタ
-    // TODO dummyPCload：ジャンプ命令があったらtrueにする
-    // TODO dummyInc：ジャンプ命令がなかったらtrueにする
-    Buf(in=false, out=dummyPCload);
-    Buf(in=true, out=dummyInc);
-    PC(in=outARegister, load=dummyPCload, inc=dummyInc, reset=reset, out[0..14]=pc);
+    PC(in=outARegister, load=pcload, inc=pcinc, reset=reset, out[0..14]=pc);
 
     // addressMの出力
     Buf16To15(in=outARegister, out=addressM);
