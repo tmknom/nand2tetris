@@ -1,0 +1,41 @@
+// instructionをデコードして、制御ビットを生成する
+CHIP Decode {
+    IN in[16]; // Instruction for execution
+
+    OUT addressInstruction, // A命令を実行するならtrue
+        value[16], // Aレジスタに格納する値：A命令じゃない場合は「1」埋めされる
+        computeInstruction, // C命令を実行するならtrue
+        a, c1, c2, c3, c4, c5, c6, // comp領域：C命令じゃない場合は「1」埋めされる（=未定義演算）
+        d1, d2, d3, // dest領域：C命令じゃない場合は「0」埋めされる（=保存しない）
+        j1, j2, j3; // jump領域：C命令じゃない場合は「0」埋めされる（=ジャンプしない）
+
+    PARTS:
+    // A命令のパース
+    Not(in=in[15], out=ai);
+    Mux16(a=true, b=in, sel=ai, out=value); // A命令じゃない場合は1埋め
+    Buf(in=ai, out=addressInstruction);
+
+    // C命令のパース
+    Buf(in=in[15], out=ci);
+    Buf(in=ci, out=computeInstruction);
+
+    // jump領域
+    Mux(a=false, b=in[0], sel=ci, out=j3);
+    Mux(a=false, b=in[1], sel=ci, out=j2);
+    Mux(a=false, b=in[2], sel=ci, out=j1);
+    Buf3(in=in[0..2], out=jump);
+
+    // dest領域
+    Mux(a=false, b=in[3], sel=ci, out=d3);
+    Mux(a=false, b=in[4], sel=ci, out=d2);
+    Mux(a=false, b=in[5], sel=ci, out=d1);
+
+    // comp領域
+    Mux(a=true, b=in[6], sel=ci, out=c6);
+    Mux(a=true, b=in[7], sel=ci, out=c5);
+    Mux(a=true, b=in[8], sel=ci, out=c4);
+    Mux(a=true, b=in[9], sel=ci, out=c3);
+    Mux(a=true, b=in[10], sel=ci, out=c2);
+    Mux(a=true, b=in[11], sel=ci, out=c1);
+    Mux(a=true, b=in[12], sel=ci, out=a);
+}

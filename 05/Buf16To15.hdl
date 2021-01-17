@@ -1,0 +1,7 @@
+CHIP Buf16To15 {
+    IN in[16];
+    OUT out[15];
+
+    PARTS:
+    Buf15(in=in[0..14], out=out);
+}

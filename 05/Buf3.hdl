@@ -1,0 +1,9 @@
+CHIP Buf3 {
+    IN in[3];
+    OUT out[3];
+
+    PARTS:
+    Buf(in=in[0], out=out[0]);
+    Buf(in=in[1], out=out[1]);
+    Buf(in=in[2], out=out[2]);
+}
