@@ -56,4 +56,11 @@ CHIP CPU {
     // TODO dummyLoadARegisterを正しく実装
     Buf(in=true, out=dummyLoadARegister);
     ARegister(in=inARegister, load=dummyLoadARegister, out=outARegister);
+
+    // プログラムカウンタ
+    // TODO dummyPCload：ジャンプ命令があったらtrueにする
+    // TODO dummyInc：ジャンプ命令がなかったらtrueにする
+    Buf(in=false, out=dummyPCload);
+    Buf(in=true, out=dummyInc);
+    PC(in=outARegister, load=dummyPCload, inc=dummyInc, reset=reset, out[0..14]=pc);
 }
