@@ -15,10 +15,19 @@ func run() error {
 	}
 
 	parser := NewParser(lines)
-	parser.Parse()
+	commands := parser.Parse()
+
+	var assembledLines []*string
+	for _, command := range commands {
+		assembled, err := command.assemble()
+		if err != nil {
+			return err
+		}
+		assembledLines = append(assembledLines, &assembled)
+	}
 
 	hack := newHack(asm.filenameWithoutExt())
-	err = hack.write(lines)
+	err = hack.write(assembledLines)
 	if err != nil {
 		return err
 	}
@@ -82,7 +91,7 @@ func (a *Asm) read() ([]*string, error) {
 
 func newAsm() *Asm {
 	filename := "add/Add.asm"
-	if len(os.Args) > 2 {
+	if len(os.Args) >= 2 {
 		filename = os.Args[1]
 	}
 	return &Asm{filename: filename}
