@@ -44,4 +44,16 @@ CHIP CPU {
            computeInstruction=computeInstruction, dest=dest, jump=jump,
            a=a, c1=c1, c2=c2, c3=c3, c4=c4, c5=c5, c6=c6,
            d1=d1, d2=d2, d3=d3, j1=j1, j2=j2, j3=j3);
+
+    // Aレジスタの入力値を生成
+    // A命令を実行する場合は、instruction[16]から値を取得
+    // C命令を実行する場合、ALUの出力結果から値を取得
+    // TODO dummyInMux16ForARegisterを正しく実装
+    Buf16(in=true, out=dummyInMux16ForARegister);
+    Mux16(a=dummyInMux16ForARegister, b=value, sel=addressInstruction, out=inARegister);
+
+    // Aレジスタの値を更新して現在のAレジスタの値を取得
+    // TODO dummyLoadARegisterを正しく実装
+    Buf(in=true, out=dummyLoadARegister);
+    ARegister(in=inARegister, load=dummyLoadARegister, out=outARegister);
 }
