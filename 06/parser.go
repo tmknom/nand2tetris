@@ -49,7 +49,7 @@ func (p *Parser) parseLine(line *string) Command {
 }
 
 type CCommand struct {
-	raw string
+	raw  string
 	dest string
 	comp string
 	jump string
@@ -68,18 +68,18 @@ func (c *CCommand) assemble() (string, error) {
 
 func (c *CCommand) assembleComp() string {
 	compMap := map[string]string{
-		"0": "0101010",
-		"1": "0111111",
-		"-1": "0111010",
-		"D": "0001100",
-		"A": "0110000",
-		"M": "1110000",
-		"!D": "0001101",
-		"!A": "0110001",
-		"!M": "1110001",
-		"-D": "0001111",
-		"-A": "0110011",
-		"-M": "1110011",
+		"0":   "0101010",
+		"1":   "0111111",
+		"-1":  "0111010",
+		"D":   "0001100",
+		"A":   "0110000",
+		"M":   "1110000",
+		"!D":  "0001101",
+		"!A":  "0110001",
+		"!M":  "1110001",
+		"-D":  "0001111",
+		"-A":  "0110011",
+		"-M":  "1110011",
 		"D+1": "0011111",
 		"A+1": "0110111",
 		"M+1": "1110111",
@@ -102,7 +102,7 @@ func (c *CCommand) assembleComp() string {
 
 func (c *CCommand) assembleJump() string {
 	jumpMap := map[string]string{
-		"": "000",
+		"":    "000",
 		"JGT": "001",
 		"JEQ": "010",
 		"JGE": "011",
@@ -116,13 +116,13 @@ func (c *CCommand) assembleJump() string {
 
 func (c *CCommand) assembleDest() string {
 	destMap := map[string]string{
-		"": "000",
-		"M": "001",
-		"D": "010",
-		"MD": "011",
-		"A": "100",
-		"AM": "101",
-		"AD": "110",
+		"":    "000",
+		"M":   "001",
+		"D":   "010",
+		"MD":  "011",
+		"A":   "100",
+		"AM":  "101",
+		"AD":  "110",
 		"AMD": "111",
 	}
 	return destMap[c.dest]
@@ -158,7 +158,7 @@ func (c *CCommand) parseComp() {
 	if strings.Contains(compAndJump, ";") {
 		split := strings.Split(compAndJump, ";")
 		c.comp = split[0]
-	}else{
+	} else {
 		c.comp = compAndJump
 	}
 }

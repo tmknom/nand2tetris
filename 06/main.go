@@ -51,7 +51,7 @@ func (h *Hack) write(lines []*string) error {
 
 	writer := bufio.NewWriter(file)
 	for _, line := range lines {
-		_, err := writer.Write([]byte(*line+"\n"))
+		_, err := writer.Write([]byte(*line + "\n"))
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ type Asm struct {
 	filename string
 }
 
-func (a *Asm) filenameWithoutExt() string{
+func (a *Asm) filenameWithoutExt() string {
 	return filepath.Base(a.filename[:len(a.filename)-len(filepath.Ext(a.filename))])
 }
 
