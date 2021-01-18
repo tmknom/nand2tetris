@@ -20,7 +20,7 @@ func (p *Parser) Parse() []Command {
 	var commands []Command
 	for _, line := range p.raw {
 		// 有効なコマンドのみ取得
-		command := p.parseLine(line)
+		command := p.parseLine(*line)
 		if command == nil {
 			continue
 		}
@@ -34,15 +34,16 @@ func (p *Parser) incrementAddress() {
 	p.nextAddress += 1
 }
 
-func (p *Parser) parseLine(line *string) Command {
-	// 空白を除去
-	trimmed := strings.TrimSpace(*line)
-	if len(trimmed) == 0 {
-		return nil
+func (p *Parser) parseLine(line string) Command {
+	// コメントを除外
+	deletedComment := line
+	if strings.Contains(line, "//") {
+		deletedComment = line[:strings.Index(line, "//")]
 	}
 
-	// コメントを除外
-	if len(trimmed) >= 2 && trimmed[:2] == "//" {
+	// 空白を除去
+	trimmed := strings.TrimSpace(deletedComment)
+	if len(trimmed) == 0 {
 		return nil
 	}
 
@@ -61,20 +62,20 @@ func (p *Parser) parseLine(line *string) Command {
 	if prefix == '@' {
 		fmt.Printf("parse ACommand[%d]: %s\n", address, trimmed)
 		p.incrementAddress()
-		return &ACommand{raw: trimmed, address: address}
+		return &ACommand{mnemonic: trimmed, address: address}
 	} else {
 		fmt.Printf("parse CCommand[%d]: %s\n", address, trimmed)
 		p.incrementAddress()
-		return &CCommand{raw: trimmed, dest: "", comp: "", jump: "", address: address}
+		return &CCommand{mnemonic: trimmed, dest: "", comp: "", jump: "", address: address}
 	}
 }
 
 type CCommand struct {
-	raw     string
-	dest    string
-	comp    string
-	jump    string
-	address int
+	mnemonic string
+	dest     string
+	comp     string
+	jump     string
+	address  int
 }
 
 func (c *CCommand) assemble() (string, error) {
@@ -84,7 +85,7 @@ func (c *CCommand) assemble() (string, error) {
 	jump := c.assembleJump()
 	comp := c.assembleComp()
 	result := fmt.Sprintf("111%s%s%s", comp, dest, jump)
-	// fmt.Printf("C Command: before: %s comp: %s, dest: %s, jump: %s, after: %s\n", c.raw, c.comp, c.dest, c.jump, result)
+	// fmt.Printf("C Command: before: %s comp: %s, dest: %s, jump: %s, after: %s\n", c.mnemonic, c.comp, c.dest, c.jump, result)
 	return result, nil
 }
 
@@ -157,23 +158,23 @@ func (c *CCommand) parseMnemonic() {
 }
 
 func (c *CCommand) parseDest() {
-	if strings.Contains(c.raw, "=") {
-		split := strings.Split(c.raw, "=")
+	if strings.Contains(c.mnemonic, "=") {
+		split := strings.Split(c.mnemonic, "=")
 		c.dest = split[0]
 	}
 }
 
 func (c *CCommand) parseJump() {
-	if strings.Contains(c.raw, ";") {
-		split := strings.Split(c.raw, ";")
+	if strings.Contains(c.mnemonic, ";") {
+		split := strings.Split(c.mnemonic, ";")
 		c.jump = split[1]
 	}
 }
 
 func (c *CCommand) parseComp() {
-	compAndJump := c.raw
-	if strings.Contains(c.raw, "=") {
-		split := strings.Split(c.raw, "=")
+	compAndJump := c.mnemonic
+	if strings.Contains(c.mnemonic, "=") {
+		split := strings.Split(c.mnemonic, "=")
 		compAndJump = split[1]
 	}
 
@@ -186,12 +187,12 @@ func (c *CCommand) parseComp() {
 }
 
 type ACommand struct {
-	raw     string
-	address int
+	mnemonic string
+	address  int
 }
 
 func (a *ACommand) assemble() (string, error) {
-	withoutPrefix := a.raw[1:]
+	withoutPrefix := a.mnemonic[1:]
 	num, err := strconv.Atoi(withoutPrefix)
 	if err != nil {
 		return "", err
