@@ -62,7 +62,7 @@ func (p *Parser) parseLine(line string) Command {
 	if prefix == '@' {
 		fmt.Printf("parse ACommand[%d]: %s\n", address, trimmed)
 		p.incrementAddress()
-		return &ACommand{mnemonic: trimmed, address: address}
+		return &ACommand{mnemonic: trimmed, address: address, symbolTable: p.symbolTable}
 	} else {
 		fmt.Printf("parse CCommand[%d]: %s\n", address, trimmed)
 		p.incrementAddress()
@@ -187,17 +187,21 @@ func (c *CCommand) parseComp() {
 }
 
 type ACommand struct {
-	mnemonic string
-	address  int
+	mnemonic    string
+	address     int
+	symbolTable *SymbolTable
 }
 
 func (a *ACommand) assemble() (string, error) {
 	withoutPrefix := a.mnemonic[1:]
+
+	// 数値か判定し、数値じゃなければ変数シンボルなのでアドレスに変換
 	num, err := strconv.Atoi(withoutPrefix)
 	if err != nil {
-		return "", err
+		num = a.symbolTable.Address(withoutPrefix)
 	}
 
+	// 2進数に変換
 	result := fmt.Sprintf("0%015b", num)
 	// fmt.Printf("A Command: before: %s, after: %s\n", withoutPrefix, result)
 	return result, nil
