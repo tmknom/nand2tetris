@@ -7,11 +7,13 @@ import (
 )
 
 type Parser struct {
-	raw []*string
+	raw         []*string
+	symbolTable *SymbolTable
+	nextAddress int
 }
 
-func NewParser(raw []*string) *Parser {
-	return &Parser{raw: raw}
+func NewParser(raw []*string, symbolTable *SymbolTable) *Parser {
+	return &Parser{raw: raw, symbolTable: symbolTable, nextAddress: 0}
 }
 
 func (p *Parser) Parse() []Command {
@@ -28,6 +30,10 @@ func (p *Parser) Parse() []Command {
 	return commands
 }
 
+func (p *Parser) incrementAddress() {
+	p.nextAddress += 1
+}
+
 func (p *Parser) parseLine(line *string) Command {
 	// 空白を除去
 	trimmed := strings.TrimSpace(*line)
@@ -41,18 +47,34 @@ func (p *Parser) parseLine(line *string) Command {
 	}
 
 	prefix := trimmed[0]
+
+	// ラベルシンボルを見つけたら、シンボルテーブルに追加
+	if prefix == '(' {
+		symbol := trimmed[1 : len(trimmed)-1]
+		p.symbolTable.AddEntry(symbol, p.nextAddress)
+		fmt.Printf("parse LCommand: %s, symbol: %s, address: %d\n", trimmed, symbol, p.symbolTable.Address(symbol))
+		return nil
+	}
+
+	// AコマンドとCコマンドをパース
+	address := p.nextAddress
 	if prefix == '@' {
-		return &ACommand{raw: trimmed}
+		fmt.Printf("parse ACommand[%d]: %s\n", address, trimmed)
+		p.incrementAddress()
+		return &ACommand{raw: trimmed, address: address}
 	} else {
-		return &CCommand{raw: trimmed, dest: "", comp: "", jump: ""}
+		fmt.Printf("parse CCommand[%d]: %s\n", address, trimmed)
+		p.incrementAddress()
+		return &CCommand{raw: trimmed, dest: "", comp: "", jump: "", address: address}
 	}
 }
 
 type CCommand struct {
-	raw  string
-	dest string
-	comp string
-	jump string
+	raw     string
+	dest    string
+	comp    string
+	jump    string
+	address int
 }
 
 func (c *CCommand) assemble() (string, error) {
@@ -164,7 +186,8 @@ func (c *CCommand) parseComp() {
 }
 
 type ACommand struct {
-	raw string
+	raw     string
+	address int
 }
 
 func (a *ACommand) assemble() (string, error) {

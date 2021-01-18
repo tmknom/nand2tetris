@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,8 +15,11 @@ func run() error {
 		return err
 	}
 
-	parser := NewParser(lines)
+	symbolTable := NewSymbolTable()
+
+	parser := NewParser(lines, symbolTable)
 	commands := parser.Parse()
+	fmt.Printf("%#v\n", symbolTable)
 
 	var assembledLines []*string
 	for _, command := range commands {
