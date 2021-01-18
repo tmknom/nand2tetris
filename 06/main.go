@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,11 +15,23 @@ func run() error {
 		return err
 	}
 
-	parser := NewParser(lines)
-	parser.Parse()
+	symbolTable := NewSymbolTable()
+
+	parser := NewParser(lines, symbolTable)
+	commands := parser.Parse()
+	fmt.Printf("%#v\n", symbolTable)
+
+	var assembledLines []*string
+	for _, command := range commands {
+		assembled, err := command.assemble()
+		if err != nil {
+			return err
+		}
+		assembledLines = append(assembledLines, &assembled)
+	}
 
 	hack := newHack(asm.filenameWithoutExt())
-	err = hack.write(lines)
+	err = hack.write(assembledLines)
 	if err != nil {
 		return err
 	}
@@ -42,7 +55,7 @@ func (h *Hack) write(lines []*string) error {
 
 	writer := bufio.NewWriter(file)
 	for _, line := range lines {
-		_, err := writer.Write([]byte(*line+"\n"))
+		_, err := writer.Write([]byte(*line + "\n"))
 		if err != nil {
 			return err
 		}
@@ -55,7 +68,7 @@ type Asm struct {
 	filename string
 }
 
-func (a *Asm) filenameWithoutExt() string{
+func (a *Asm) filenameWithoutExt() string {
 	return filepath.Base(a.filename[:len(a.filename)-len(filepath.Ext(a.filename))])
 }
 
@@ -82,7 +95,7 @@ func (a *Asm) read() ([]*string, error) {
 
 func newAsm() *Asm {
 	filename := "add/Add.asm"
-	if len(os.Args) > 2 {
+	if len(os.Args) >= 2 {
 		filename = os.Args[1]
 	}
 	return &Asm{filename: filename}

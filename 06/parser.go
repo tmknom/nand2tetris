@@ -7,58 +7,75 @@ import (
 )
 
 type Parser struct {
-	raw []*string
-	commands []Command
+	raw         []*string
+	symbolTable *SymbolTable
+	nextAddress int
 }
 
-func NewParser(raw []*string) *Parser {
-	return &Parser{raw: raw}
+func NewParser(raw []*string, symbolTable *SymbolTable) *Parser {
+	return &Parser{raw: raw, symbolTable: symbolTable, nextAddress: 0}
 }
 
-func (p *Parser) Parse() error{
+func (p *Parser) Parse() []Command {
+	var commands []Command
 	for _, line := range p.raw {
 		// 有効なコマンドのみ取得
-		command := p.parseLine(line)
+		command := p.parseLine(*line)
 		if command == nil {
 			continue
 		}
 
-		// アセンブル
-		p.commands = append(p.commands, command)
-		assembled, err := command.assemble()
-		if err != nil {
-			return err
-		}
-		fmt.Printf("assembled: before: %s, after: %s\n", *line, assembled)
+		commands = append(commands, command)
 	}
-	return nil
+	return commands
 }
 
-func (p *Parser) parseLine(line *string) Command {
+func (p *Parser) incrementAddress() {
+	p.nextAddress += 1
+}
+
+func (p *Parser) parseLine(line string) Command {
+	// コメントを除外
+	deletedComment := line
+	if strings.Contains(line, "//") {
+		deletedComment = line[:strings.Index(line, "//")]
+	}
+
 	// 空白を除去
-	trimmed := strings.TrimSpace(*line)
+	trimmed := strings.TrimSpace(deletedComment)
 	if len(trimmed) == 0 {
 		return nil
 	}
 
-	// コメントを除外
-	if len(trimmed) >= 2 && trimmed[:2] == "//" {
+	prefix := trimmed[0]
+
+	// ラベルシンボルを見つけたら、シンボルテーブルに追加
+	if prefix == '(' {
+		symbol := trimmed[1 : len(trimmed)-1]
+		p.symbolTable.AddEntry(symbol, p.nextAddress)
+		fmt.Printf("parse LCommand: %s, symbol: %s, address: %d\n", trimmed, symbol, p.symbolTable.Address(symbol))
 		return nil
 	}
 
-	prefix := trimmed[0]
+	// AコマンドとCコマンドをパース
+	address := p.nextAddress
 	if prefix == '@' {
-		return &ACommand{raw: trimmed}
+		fmt.Printf("parse ACommand[%d]: %s\n", address, trimmed)
+		p.incrementAddress()
+		return &ACommand{mnemonic: trimmed, address: address, symbolTable: p.symbolTable}
 	} else {
-		return &CCommand{raw: trimmed, dest: "", comp: "", jump: ""}
+		fmt.Printf("parse CCommand[%d]: %s\n", address, trimmed)
+		p.incrementAddress()
+		return &CCommand{mnemonic: trimmed, dest: "", comp: "", jump: "", address: address}
 	}
 }
 
 type CCommand struct {
-	raw string
-	dest string
-	comp string
-	jump string
+	mnemonic string
+	dest     string
+	comp     string
+	jump     string
+	address  int
 }
 
 func (c *CCommand) assemble() (string, error) {
@@ -66,14 +83,49 @@ func (c *CCommand) assemble() (string, error) {
 
 	dest := c.assembleDest()
 	jump := c.assembleJump()
-	result := fmt.Sprintf("111 %s %s", dest, jump)
-	fmt.Printf("C Command: before: %s comp: %s, dest: %s, jump: %s, after: %s\n", c.raw, c.comp, c.dest, c.jump, result)
+	comp := c.assembleComp()
+	result := fmt.Sprintf("111%s%s%s", comp, dest, jump)
+	// fmt.Printf("C Command: before: %s comp: %s, dest: %s, jump: %s, after: %s\n", c.mnemonic, c.comp, c.dest, c.jump, result)
 	return result, nil
+}
+
+func (c *CCommand) assembleComp() string {
+	compMap := map[string]string{
+		"0":   "0101010",
+		"1":   "0111111",
+		"-1":  "0111010",
+		"D":   "0001100",
+		"A":   "0110000",
+		"M":   "1110000",
+		"!D":  "0001101",
+		"!A":  "0110001",
+		"!M":  "1110001",
+		"-D":  "0001111",
+		"-A":  "0110011",
+		"-M":  "1110011",
+		"D+1": "0011111",
+		"A+1": "0110111",
+		"M+1": "1110111",
+		"D-1": "0001110",
+		"A-1": "0110010",
+		"M-1": "1110010",
+		"D+A": "0000010",
+		"D+M": "1000010",
+		"D-A": "0010011",
+		"D-M": "1010011",
+		"A-D": "0000111",
+		"M-D": "1000111",
+		"D&A": "0000000",
+		"D&M": "1000000",
+		"D|A": "0010101",
+		"D|M": "1010101",
+	}
+	return compMap[c.comp]
 }
 
 func (c *CCommand) assembleJump() string {
 	jumpMap := map[string]string{
-		"": "000",
+		"":    "000",
 		"JGT": "001",
 		"JEQ": "010",
 		"JGE": "011",
@@ -87,13 +139,13 @@ func (c *CCommand) assembleJump() string {
 
 func (c *CCommand) assembleDest() string {
 	destMap := map[string]string{
-		"": "000",
-		"M": "001",
-		"D": "010",
-		"MD": "011",
-		"A": "100",
-		"AM": "101",
-		"AD": "110",
+		"":    "000",
+		"M":   "001",
+		"D":   "010",
+		"MD":  "011",
+		"A":   "100",
+		"AM":  "101",
+		"AD":  "110",
 		"AMD": "111",
 	}
 	return destMap[c.dest]
@@ -106,45 +158,50 @@ func (c *CCommand) parseMnemonic() {
 }
 
 func (c *CCommand) parseDest() {
-	if strings.Contains(c.raw, "=") {
-		split := strings.Split(c.raw, "=")
+	if strings.Contains(c.mnemonic, "=") {
+		split := strings.Split(c.mnemonic, "=")
 		c.dest = split[0]
 	}
 }
 
 func (c *CCommand) parseJump() {
-	if strings.Contains(c.raw, ";") {
-		split := strings.Split(c.raw, ";")
+	if strings.Contains(c.mnemonic, ";") {
+		split := strings.Split(c.mnemonic, ";")
 		c.jump = split[1]
 	}
 }
 
 func (c *CCommand) parseComp() {
-	compAndJump := c.raw
-	if strings.Contains(c.raw, "=") {
-		split := strings.Split(c.raw, "=")
+	compAndJump := c.mnemonic
+	if strings.Contains(c.mnemonic, "=") {
+		split := strings.Split(c.mnemonic, "=")
 		compAndJump = split[1]
 	}
 
 	if strings.Contains(compAndJump, ";") {
 		split := strings.Split(compAndJump, ";")
 		c.comp = split[0]
-	}else{
+	} else {
 		c.comp = compAndJump
 	}
 }
 
 type ACommand struct {
-	raw string
+	mnemonic    string
+	address     int
+	symbolTable *SymbolTable
 }
 
 func (a *ACommand) assemble() (string, error) {
-	withoutPrefix := a.raw[1:]
+	withoutPrefix := a.mnemonic[1:]
+
+	// 数値か判定し、数値じゃなければ変数シンボルなのでアドレスに変換
 	num, err := strconv.Atoi(withoutPrefix)
 	if err != nil {
-		return "", err
+		num = a.symbolTable.Address(withoutPrefix)
 	}
 
+	// 2進数に変換
 	result := fmt.Sprintf("0%015b", num)
 	// fmt.Printf("A Command: before: %s, after: %s\n", withoutPrefix, result)
 	return result, nil
