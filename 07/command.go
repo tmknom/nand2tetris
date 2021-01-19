@@ -28,6 +28,16 @@ func (cs *Commands) ParseAll() error {
 	return nil
 }
 
+func (cs *Commands) ConvertAll() []string {
+	result := []string{}
+	for _, command := range cs.commands {
+		converter := NewConverter(command.commandType, command.arg1, command.arg2)
+		assembler := converter.Convert()
+		result = append(result, assembler...)
+	}
+	return result
+}
+
 // デバッグ用：コマンドのダンプ
 func (cs *Commands) dump() {
 	for i, command := range cs.commands {

@@ -39,6 +39,13 @@ func convert(file string) error {
 		return err
 	}
 	commands.dump()
+	assembler := commands.ConvertAll()
+
+	dest := NewDest(file)
+	err = dest.Write(assembler)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
