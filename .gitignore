@@ -3,5 +3,6 @@
 *.cmp
 *.hack
 *.asm
+*.vm
 
 suite/
