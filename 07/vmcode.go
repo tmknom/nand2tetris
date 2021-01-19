@@ -10,7 +10,7 @@ import (
 // 読み込んだvmファイルのコードを保持
 type VmCode struct {
 	org      []string
-	commands []string
+	Commands *Commands
 }
 
 func ReadVmCode(filename string) (*VmCode, error) {
@@ -22,15 +22,8 @@ func ReadVmCode(filename string) (*VmCode, error) {
 	return newVmCode(lines, commands), nil
 }
 
-func newVmCode(org []string, commands []string) *VmCode {
-	return &VmCode{org: org, commands: commands}
-}
-
-// デバッグ用：コマンドのみをダンプ
-func (vc *VmCode) dumpCommands() {
-	for i, line := range vc.commands {
-		fmt.Printf("Command[%d]: %s\n", i, line)
-	}
+func newVmCode(org []string, commands *Commands) *VmCode {
+	return &VmCode{org: org, Commands: commands}
 }
 
 // デバッグ用：オリジナルのVMファイルのコードをダンプ
@@ -42,7 +35,7 @@ func (vc *VmCode) dumpOrg() {
 
 type vmCodeReader struct{}
 
-func (r *vmCodeReader) read(filename string) ([]string, []string, error) {
+func (r *vmCodeReader) read(filename string) ([]string, *Commands, error) {
 	lines, err := r.readLines(filename)
 	if err != nil {
 		return nil, nil, err
@@ -52,12 +45,13 @@ func (r *vmCodeReader) read(filename string) ([]string, []string, error) {
 	return lines, commands, nil
 }
 
-func (r *vmCodeReader) createCommands(lines []string) []string {
-	commands := []string{}
+func (r *vmCodeReader) createCommands(lines []string) *Commands {
+	commands := NewCommands()
 	for _, line := range lines {
 		withoutComment := r.deleteCommentAndWhitespace(line)
 		if withoutComment != "" {
-			commands = append(commands, withoutComment)
+			command := NewCommand(withoutComment)
+			commands.Add(command)
 		}
 	}
 	return commands

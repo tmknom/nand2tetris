@@ -33,6 +33,7 @@ func convert(file string) error {
 		return err
 	}
 
-	vmCode.dumpCommands()
+	commands := vmCode.Commands
+	commands.dump()
 	return nil
 }
