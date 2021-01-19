@@ -34,6 +34,11 @@ func convert(file string) error {
 	}
 
 	commands := vmCode.Commands
+	err = commands.ParseAll()
+	if err != nil {
+		return err
+	}
 	commands.dump()
+
 	return nil
 }

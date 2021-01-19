@@ -18,10 +18,20 @@ func (cs *Commands) Add(command *Command) {
 	cs.commands = append(cs.commands, command)
 }
 
-// デバッグ用：コマンドのみをダンプ
+func (cs *Commands) ParseAll() error {
+	for _, command := range cs.commands {
+		err := command.Parse()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// デバッグ用：コマンドのダンプ
 func (cs *Commands) dump() {
 	for i, command := range cs.commands {
-		fmt.Printf("Command[%d]: %s\n", i, command.raw)
+		fmt.Printf("Command[%d]: %s\n", i, command.tostring())
 	}
 }
 
@@ -98,5 +108,36 @@ func (c *Command) parseLength3(split []string) error {
 }
 
 func (c *Command) parseCommandType(commandTypeString string) (*CommandType, error) {
-	return nil, fmt.Errorf("not implemented: %s\n", commandTypeString)
+	var commandType CommandType
+	if commandTypeString == "push" {
+		commandType = CommandPush
+	} else if commandTypeString == "pop" {
+		commandType = CommandPop
+	} else if commandTypeString == "label" {
+		commandType = CommandLabel
+	} else if commandTypeString == "goto" {
+		commandType = CommandGoto
+	} else if commandTypeString == "if" {
+		commandType = CommandIf
+	} else if commandTypeString == "function" {
+		commandType = CommandFunction
+	} else if commandTypeString == "return" {
+		commandType = CommandReturn
+	} else if commandTypeString == "call" {
+		commandType = CommandCall
+	} else {
+		return nil, fmt.Errorf("not implemented: %s\n", commandTypeString)
+	}
+	return &commandType, nil
+}
+
+func (c *Command) tostring() string {
+	split := strings.Split(c.raw, " ")
+	commandTypeString := split[0]
+
+	arg2 := "nil"
+	if c.arg2 != nil {
+		arg2 = strconv.Itoa(*c.arg2)
+	}
+	return fmt.Sprintf("&{raw: %s, commandType: %s, arg1: %s arg2: %s}", c.raw, commandTypeString, c.arg1, arg2)
 }
