@@ -14,7 +14,7 @@ func TestNewSrc(t *testing.T) {
 		{
 			desc: "引数指定なし",
 			args: []string{"dummy"},
-			want: "StackArithmetic/SimpleAdd/SimpleAdd.vm",
+			want: DefaultArg,
 		},
 		{
 			desc: "引数指定あり",

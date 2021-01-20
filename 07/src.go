@@ -10,7 +10,7 @@ type Src struct {
 	files []string
 }
 
-const DefaultArg = "StackArithmetic/SimpleAdd/SimpleAdd.vm"
+const DefaultArg = "StackArithmetic/StackTest/StackTest.vm"
 
 func NewSrc(args []string) *Src {
 	arg := DefaultArg
