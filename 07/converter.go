@@ -3,13 +3,14 @@ package main
 import "fmt"
 
 type Converter struct {
+	pc          int
 	commandType CommandType
 	arg1        string
 	arg2        *int
 }
 
-func NewConverter(commandType CommandType, arg1 string, arg2 *int) *Converter {
-	return &Converter{commandType: commandType, arg1: arg1, arg2: arg2}
+func NewConverter(pc int, commandType CommandType, arg1 string, arg2 *int) *Converter {
+	return &Converter{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
 }
 
 func (c *Converter) Convert() []string {
@@ -61,5 +62,54 @@ func (c *Converter) convertPushConstant() []string {
 		"M=D",    // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 		"@SP",    // AレジスタにアドレスSPをセット
 		"M=M+1",  // SPの値をインクリメント
+	}
+}
+
+type ConverterInitializer struct{}
+
+func (ci *ConverterInitializer) Initialize() []string {
+	end := ci.initializeEND()
+	eq := ci.initializeEQ()
+	neq := ci.initializeNEQ()
+
+	result := []string{}
+	result = append(result, end...)
+	result = append(result, eq...)
+	result = append(result, neq...)
+
+	return result
+}
+
+func (ci *ConverterInitializer) initializeEND() []string {
+	return []string{
+		"@END",
+		"0;JMP",
+		"(END)",
+		"  @END",  // AレジスタにENDラベルをセット
+		"  0;JMP", // ENDラベルにジャンプ
+	}
+}
+
+func (ci *ConverterInitializer) initializeEQ() []string {
+	return []string{
+		"(EQ)",
+		"  @SP",   // AレジスタにアドレスSPをセット
+		"  A=M",   // AレジスタにSPの値をセット
+		"  M=-1",  // スタックの先頭の値にtrueをセット
+		"  @R15",  // AレジスタにアドレスR15をセット
+		"  A=M",   // Aレジスタにリターンアドレスをセット
+		"  0;JMP", // リターンアドレスにジャンプ
+	}
+}
+
+func (ci *ConverterInitializer) initializeNEQ() []string {
+	return []string{
+		"(NEQ)",
+		"  @SP",   // AレジスタにアドレスSPをセット
+		"  A=M",   // AレジスタにSPの値をセット
+		"  M=0",   // スタックの先頭の値にfalseをセット
+		"  @R15",  // AレジスタにアドレスR15をセット
+		"  A=M",   // Aレジスタにリターンアドレスをセット
+		"  0;JMP", // リターンアドレスにジャンプ
 	}
 }

@@ -31,10 +31,13 @@ func (cs *Commands) ParseAll() error {
 func (cs *Commands) ConvertAll() []string {
 	result := []string{}
 	for _, command := range cs.commands {
-		converter := NewConverter(command.commandType, command.arg1, command.arg2)
+		pc := len(result)
+		converter := NewConverter(pc, command.commandType, command.arg1, command.arg2)
 		assembler := converter.Convert()
 		result = append(result, assembler...)
 	}
+	ci := &ConverterInitializer{}
+	result = append(result, ci.Initialize()...)
 	return result
 }
 
