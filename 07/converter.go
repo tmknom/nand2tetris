@@ -17,9 +17,9 @@ func (c *Converter) Convert() []string {
 	result := []string{}
 	switch c.commandType {
 	case CommandArithmetic:
-		result = c.convertArithmetic()
+		result = c.arithmetic()
 	case CommandPush:
-		result = c.convertPush()
+		result = c.push()
 	default:
 		return result
 		//return fmt.Errorf("convert failed: %s", command.raw)
@@ -28,125 +28,91 @@ func (c *Converter) Convert() []string {
 	return result
 }
 
-func (c *Converter) convertArithmetic() []string {
+func (c *Converter) arithmetic() []string {
 	switch c.arg1 {
 	case "add":
-		return c.convertAdd()
+		return c.add()
 	case "sub":
-		return c.convertSub()
+		return c.sub()
 	case "eq":
-		return c.convertEq()
+		return c.eq()
 	case "lt":
-		return c.convertLt()
+		return c.lt()
 	case "gt":
-		return c.convertGt()
+		return c.gt()
 	default:
 		return []string{}
 	}
 }
 
-func (c *Converter) convertAdd() []string {
+func (c *Converter) add() []string {
+	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を加算
+	return append(c.binaryArithmetic("M=M+D"), c.incrementSP()...)
+}
+
+func (c *Converter) sub() []string {
+	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
+	return append(c.binaryArithmetic("M=M-D"), c.incrementSP()...)
+}
+
+func (c *Converter) eq() []string {
+	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
+	arithmeticStep := c.binaryArithmetic("D=M-D")
+	// 減算結果がゼロよりゼロと等しければtrueをセット、ゼロ以外ならfalseをセット
+	jumpStep := c.jumpTruth("JEQ", "JNE")
+
+	arithmeticStep = append(arithmeticStep, jumpStep...)
+	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
+	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) lt() []string {
+	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
+	arithmeticStep := c.binaryArithmetic("D=M-D")
+	// 減算結果がゼロより小さければtrueをセット、ゼロ以上ならfalseをセット
+	jumpStep := c.jumpTruth("JLT", "JGE")
+
+	arithmeticStep = append(arithmeticStep, jumpStep...)
+	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
+	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) gt() []string {
+	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
+	arithmeticStep := c.binaryArithmetic("D=M-D")
+	// 減算結果がゼロより大きければtrueをセット、ゼロ以下ならfalseをセット
+	jumpStep := c.jumpTruth("JGT", "JLE")
+
+	arithmeticStep = append(arithmeticStep, jumpStep...)
+	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
+	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) binaryArithmetic(arithmeticStep string) []string {
 	return []string{
 		// 第二引数を取得
 		"@SP",    // AレジスタにアドレスSPをセット
 		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
 		"D=M",    // スタック領域の先頭の値（第二引数）をDレジスタにセット
-		// 第一引数を取得＆第二引数を加算してスタック領域の先頭の値を更新
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"M=M+D",  // スタック領域の先頭の値（第一引数）とDレジスタの値を加算
-		// スタック領域の先頭アドレスをインクリメント
-		"@SP",   // AレジスタにアドレスSPをセット
-		"M=M+1", // SPの値をインクリメント
+		// 第一引数を取得＆算術演算
+		"@SP",          // AレジスタにアドレスSPをセット
+		"AM=M-1",       // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		arithmeticStep, // 算術演算
 	}
 }
 
-func (c *Converter) convertSub() []string {
+func (c *Converter) jumpTruth(trueMnemonic string, falseMnemonic string) []string {
+	trueJump := fmt.Sprintf("D;%s", trueMnemonic)
+	falseJump := fmt.Sprintf("D;%s", falseMnemonic)
 	return []string{
-		// 第二引数を取得
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M",    // スタック領域の先頭の値（第二引数）をDレジスタにセット
-		// 第一引数を取得＆第二引数を減算してスタック領域の先頭の値を更新
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"M=M-D",  // スタック領域の先頭の値（第一引数）とDレジスタの値を減算
-		// スタック領域の先頭アドレスをインクリメント
-		"@SP",   // AレジスタにアドレスSPをセット
-		"M=M+1", // SPの値をインクリメント
+		"@TRUE",   // AレジスタにTRUEラベルをセット
+		trueJump,  // trueMnemonicに合致したらTRUEラベルにジャンプ
+		"@FALSE",  // AレジスタにFALSEラベルをセット
+		falseJump, // falseMnemonicに合致したらFALSEラベルにジャンプ
 	}
 }
 
-func (c *Converter) convertEq() []string {
-	arithmeticStep := []string{
-		// eqの第一引数を取得
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M",    // スタック領域の先頭の値をDレジスタにセット
-		// eqの第二引数を取得＆第一引数と減算
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M-D",  // スタック領域の先頭の値から第一引数を減算してDレジスタにセット
-		// true/falseをセット
-		"@EQ",   // AレジスタにEQラベルをセット
-		"D;JEQ", // Dレジスタの値（減算結果）がゼロと等しければEQラベルにジャンプ
-		"@NEQ",  // AレジスタにNEQラベルをセット
-		"D;JNE", // Dレジスタの値（減算結果）がゼロ以外と等しければNEQラベルにジャンプ
-		// スタック領域の先頭アドレスをインクリメント
-		"@SP",   // AレジスタにアドレスSPをセット
-		"M=M+1", // SPの値をインクリメント
-	}
-
-	return append(c.convertReturnAddress(len(arithmeticStep)), arithmeticStep...)
-}
-
-func (c *Converter) convertLt() []string {
-	arithmeticStep := []string{
-		// eqの第一引数を取得
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M",    // スタック領域の先頭の値をDレジスタにセット
-		// eqの第二引数を取得＆第一引数と減算
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M-D",  // スタック領域の先頭の値から第一引数を減算してDレジスタにセット
-		// true/falseをセット
-		"@EQ",   // AレジスタにEQラベルをセット
-		"D;JLT", // Dレジスタの値（減算結果）がゼロより小さければEQラベルにジャンプ
-		"@NEQ",  // AレジスタにNEQラベルをセット
-		"D;JGE", // Dレジスタの値（減算結果）がゼロ以上ならばNEQラベルにジャンプ
-		// スタック領域の先頭アドレスをインクリメント
-		"@SP",   // AレジスタにアドレスSPをセット
-		"M=M+1", // SPの値をインクリメント
-	}
-
-	return append(c.convertReturnAddress(len(arithmeticStep)), arithmeticStep...)
-}
-
-func (c *Converter) convertGt() []string {
-	arithmeticStep := []string{
-		// eqの第一引数を取得
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M",    // スタック領域の先頭の値をDレジスタにセット
-		// eqの第二引数を取得＆第一引数と減算
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M-D",  // スタック領域の先頭の値から第一引数を減算してDレジスタにセット
-		// true/falseをセット
-		"@EQ",   // AレジスタにEQラベルをセット
-		"D;JGT", // Dレジスタの値（減算結果）がゼロより大きければEQラベルにジャンプ
-		"@NEQ",  // AレジスタにNEQラベルをセット
-		"D;JLE", // Dレジスタの値（減算結果）がゼロ以下ならばNEQラベルにジャンプ
-		// スタック領域の先頭アドレスをインクリメント
-		"@SP",   // AレジスタにアドレスSPをセット
-		"M=M+1", // SPの値をインクリメント
-	}
-
-	return append(c.convertReturnAddress(len(arithmeticStep)), arithmeticStep...)
-}
-
-func (c *Converter) convertReturnAddress(afterStepCount int) []string {
+func (c *Converter) returnAddress(afterStepCount int) []string {
 	// ステップ数の微調整
 	const tweakStepCount = 2
 	// リターンアドレスは後続のステップ数を加味して算出
@@ -160,25 +126,35 @@ func (c *Converter) convertReturnAddress(afterStepCount int) []string {
 	}
 }
 
-func (c *Converter) convertPush() []string {
+func (c *Converter) push() []string {
 	if c.arg1 == "constant" {
-		return c.convertPushConstant()
+		return c.pushConstant()
 	}
 
 	return []string{}
 }
 
-func (c *Converter) convertPushConstant() []string {
+func (c *Converter) pushConstant() []string {
 	acommand := fmt.Sprintf("@%d", *c.arg2)
+	incrementSP := c.incrementSP()
 
-	return []string{
+	result := []string{
 		acommand, // Aレジスタに定数をセット
 		"D=A",    // Dレジスタへ、Aレジスタの値（直前でセットした定数）をセット
 		"@SP",    // AレジスタにアドレスSPをセット
 		"A=M",    // AレジスタにSPの値をセット
 		"M=D",    // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
-		"@SP",    // AレジスタにアドレスSPをセット
-		"M=M+1",  // SPの値をインクリメント
+	}
+	result = append(result, incrementSP...)
+	return result
+}
+
+// スタックポインタのインクリメント
+// スタックに値を積んだら忘れずに実施する
+func (c *Converter) incrementSP() []string {
+	return []string{
+		"@SP",   // AレジスタにアドレスSPをセット
+		"M=M+1", // SPの値をインクリメント
 	}
 }
 
@@ -186,17 +162,17 @@ type ConverterInitializer struct{}
 
 func (ci *ConverterInitializer) Initialize() []string {
 	endStep := ci.initializeEndStep()
-	end := ci.initializeEND()
-	eq := ci.initializeEQ()
-	neq := ci.initializeNEQ()
+	endLabel := ci.initializeEND()
+	trueLabel := ci.initializeTRUE()
+	falseLabel := ci.initializeFALSE()
 
 	result := []string{}
 	result = append(result, endStep...)
-	result = append(result, eq...)
-	result = append(result, neq...)
+	result = append(result, trueLabel...)
+	result = append(result, falseLabel...)
 
 	// この処理は最後に追加する
-	result = append(result, end...)
+	result = append(result, endLabel...)
 
 	return result
 }
@@ -214,9 +190,9 @@ func (ci *ConverterInitializer) initializeEND() []string {
 	}
 }
 
-func (ci *ConverterInitializer) initializeEQ() []string {
+func (ci *ConverterInitializer) initializeTRUE() []string {
 	return []string{
-		"(EQ)",
+		"(TRUE)",
 		"  @SP",   // AレジスタにアドレスSPをセット
 		"  A=M",   // AレジスタにSPの値をセット
 		"  M=-1",  // スタックの先頭の値にtrueをセット
@@ -226,9 +202,9 @@ func (ci *ConverterInitializer) initializeEQ() []string {
 	}
 }
 
-func (ci *ConverterInitializer) initializeNEQ() []string {
+func (ci *ConverterInitializer) initializeFALSE() []string {
 	return []string{
-		"(NEQ)",
+		"(FALSE)",
 		"  @SP",   // AレジスタにアドレスSPをセット
 		"  A=M",   // AレジスタにSPの値をセット
 		"  M=0",   // スタックの先頭の値にfalseをセット

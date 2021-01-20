@@ -8,7 +8,7 @@ import (
 
 const testPC = 100
 
-func TestConverterConvertArithmetic(t *testing.T) {
+func TestConverterArithmetic(t *testing.T) {
 	cases := []struct {
 		desc string
 		arg1 string
@@ -56,9 +56,9 @@ func TestConverterConvertArithmetic(t *testing.T) {
 				"@SP",
 				"AM=M-1",
 				"D=M-D",
-				"@EQ",
+				"@TRUE",
 				"D;JEQ",
-				"@NEQ",
+				"@FALSE",
 				"D;JNE",
 				"@SP",
 				"M=M+1",
@@ -78,9 +78,9 @@ func TestConverterConvertArithmetic(t *testing.T) {
 				"@SP",
 				"AM=M-1",
 				"D=M-D",
-				"@EQ",
+				"@TRUE",
 				"D;JLT",
-				"@NEQ",
+				"@FALSE",
 				"D;JGE",
 				"@SP",
 				"M=M+1",
@@ -100,9 +100,9 @@ func TestConverterConvertArithmetic(t *testing.T) {
 				"@SP",
 				"AM=M-1",
 				"D=M-D",
-				"@EQ",
+				"@TRUE",
 				"D;JGT",
-				"@NEQ",
+				"@FALSE",
 				"D;JLE",
 				"@SP",
 				"M=M+1",
@@ -113,7 +113,7 @@ func TestConverterConvertArithmetic(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			converter := NewConverter(testPC, CommandArithmetic, tc.arg1, nil)
-			got := converter.convertArithmetic()
+			got := converter.arithmetic()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
 			}
@@ -121,7 +121,7 @@ func TestConverterConvertArithmetic(t *testing.T) {
 	}
 }
 
-func TestConverterConvertPush(t *testing.T) {
+func TestConverterPush(t *testing.T) {
 	cases := []struct {
 		desc        string
 		commandType CommandType
@@ -149,7 +149,7 @@ func TestConverterConvertPush(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			converter := NewConverter(testPC, tc.commandType, tc.arg1, &tc.arg2)
-			got := converter.convertPush()
+			got := converter.push()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
 			}
