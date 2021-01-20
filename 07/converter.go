@@ -29,6 +29,17 @@ func (c *Converter) Convert() []string {
 }
 
 func (c *Converter) convertArithmetic() []string {
+	switch c.arg1 {
+	case "add":
+		return c.convertAdd()
+	case "eq":
+		return c.convertEq()
+	default:
+		return []string{}
+	}
+}
+
+func (c *Converter) convertAdd() []string {
 	return []string{
 		"@SP",   // AレジスタにアドレスSPをセット
 		"M=M-1", // スタック領域の先頭アドレスをデクリメント
@@ -40,6 +51,43 @@ func (c *Converter) convertArithmetic() []string {
 		"M=D+M", // スタック領域の先頭の値とDレジスタの値を加算
 		"@SP",   // AレジスタにアドレスSPをセット
 		"M=M+1", // スタック領域の先頭アドレスをデクリメント
+	}
+}
+
+func (c *Converter) convertEq() []string {
+	arithmeticStep := []string{
+		// eqの第一引数を取得
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// eqの第二引数を取得＆第一引数と減算
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M-D",  // スタック領域の先頭の値から第一引数減算してDレジスタにセット
+		// true/falseをセット
+		"@EQ",   // AレジスタにEQラベルをセット
+		"D;JEQ", // Dレジスタの値（減算結果）がゼロと等しければEQラベルにジャンプ
+		"@NEQ",  // AレジスタにNEQラベルをセット
+		"D;JNE", // Dレジスタの値（減算結果）がゼロ以外と等しければEQラベルにジャンプ
+		// スタック領域の先頭アドレスをインクリメント
+		"@SP",   // AレジスタにアドレスSPをセット
+		"M=M+1", // SPの値をインクリメント
+	}
+
+	return append(c.convertReturnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) convertReturnAddress(afterStepCount int) []string {
+	// ステップ数の微調整
+	const tweakStepCount = 2
+	// リターンアドレスは後続のステップ数を加味して算出
+	returnAddressInt := tweakStepCount + afterStepCount + c.pc
+	returnAddress := fmt.Sprintf("@%d", returnAddressInt)
+	return []string{
+		returnAddress, // Aレジスタにリターンアドレスをセット
+		"D=A",         // Dレジスタにリターンアドレスをセット
+		"@R15",        // AレジスタにアドレスR15をセット
+		"M=D",         // R15にリターンアドレスをセット
 	}
 }
 
@@ -68,25 +116,32 @@ func (c *Converter) convertPushConstant() []string {
 type ConverterInitializer struct{}
 
 func (ci *ConverterInitializer) Initialize() []string {
+	endStep := ci.initializeEndStep()
 	end := ci.initializeEND()
 	eq := ci.initializeEQ()
 	neq := ci.initializeNEQ()
 
 	result := []string{}
-	result = append(result, end...)
+	result = append(result, endStep...)
 	result = append(result, eq...)
 	result = append(result, neq...)
+
+	// この処理は最後に追加する
+	result = append(result, end...)
 
 	return result
 }
 
-func (ci *ConverterInitializer) initializeEND() []string {
+func (ci *ConverterInitializer) initializeEndStep() []string {
 	return []string{
 		"@END",
 		"0;JMP",
-		"(END)",
-		"  @END",  // AレジスタにENDラベルをセット
-		"  0;JMP", // ENDラベルにジャンプ
+	}
+}
+
+func (ci *ConverterInitializer) initializeEND() []string {
+	return []string{
+		"(END)", // ENDラベル以降は何もしない
 	}
 }
 

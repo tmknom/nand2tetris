@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+const testPC = 100
+
 func TestConverterConvertArithmetic(t *testing.T) {
 	cases := []struct {
 		desc string
@@ -28,11 +30,33 @@ func TestConverterConvertArithmetic(t *testing.T) {
 				"M=M+1",
 			},
 		},
+		{
+			desc: "eq",
+			arg1: "eq",
+			want: []string{
+				"@114",
+				"D=A",
+				"@R15",
+				"M=D",
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@SP",
+				"AM=M-1",
+				"D=M-D",
+				"@EQ",
+				"D;JEQ",
+				"@NEQ",
+				"D;JNE",
+				"@SP",
+				"M=M+1",
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			converter := NewConverter(CommandArithmetic, tc.arg1, nil)
+			converter := NewConverter(testPC, CommandArithmetic, tc.arg1, nil)
 			got := converter.convertArithmetic()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
@@ -68,7 +92,7 @@ func TestConverterConvertPush(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			converter := NewConverter(tc.commandType, tc.arg1, &tc.arg2)
+			converter := NewConverter(testPC, tc.commandType, tc.arg1, &tc.arg2)
 			got := converter.convertPush()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
