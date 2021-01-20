@@ -34,6 +34,10 @@ func (c *Converter) convertArithmetic() []string {
 		return c.convertAdd()
 	case "eq":
 		return c.convertEq()
+	case "lt":
+		return c.convertLt()
+	case "gt":
+		return c.convertGt()
 	default:
 		return []string{}
 	}
@@ -69,7 +73,53 @@ func (c *Converter) convertEq() []string {
 		"@EQ",   // AレジスタにEQラベルをセット
 		"D;JEQ", // Dレジスタの値（減算結果）がゼロと等しければEQラベルにジャンプ
 		"@NEQ",  // AレジスタにNEQラベルをセット
-		"D;JNE", // Dレジスタの値（減算結果）がゼロ以外と等しければEQラベルにジャンプ
+		"D;JNE", // Dレジスタの値（減算結果）がゼロ以外と等しければNEQラベルにジャンプ
+		// スタック領域の先頭アドレスをインクリメント
+		"@SP",   // AレジスタにアドレスSPをセット
+		"M=M+1", // SPの値をインクリメント
+	}
+
+	return append(c.convertReturnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) convertLt() []string {
+	arithmeticStep := []string{
+		// eqの第一引数を取得
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// eqの第二引数を取得＆第一引数と減算
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M-D",  // スタック領域の先頭の値から第一引数を減算してDレジスタにセット
+		// true/falseをセット
+		"@EQ",   // AレジスタにEQラベルをセット
+		"D;JLT", // Dレジスタの値（減算結果）がゼロより小さければEQラベルにジャンプ
+		"@NEQ",  // AレジスタにNEQラベルをセット
+		"D;JGE", // Dレジスタの値（減算結果）がゼロ以上ならばNEQラベルにジャンプ
+		// スタック領域の先頭アドレスをインクリメント
+		"@SP",   // AレジスタにアドレスSPをセット
+		"M=M+1", // SPの値をインクリメント
+	}
+
+	return append(c.convertReturnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) convertGt() []string {
+	arithmeticStep := []string{
+		// eqの第一引数を取得
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// eqの第二引数を取得＆第一引数と減算
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M-D",  // スタック領域の先頭の値から第一引数を減算してDレジスタにセット
+		// true/falseをセット
+		"@EQ",   // AレジスタにEQラベルをセット
+		"D;JGT", // Dレジスタの値（減算結果）がゼロより大きければEQラベルにジャンプ
+		"@NEQ",  // AレジスタにNEQラベルをセット
+		"D;JLE", // Dレジスタの値（減算結果）がゼロ以下ならばNEQラベルにジャンプ
 		// スタック領域の先頭アドレスをインクリメント
 		"@SP",   // AレジスタにアドレスSPをセット
 		"M=M+1", // SPの値をインクリメント
