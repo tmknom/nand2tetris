@@ -39,7 +39,10 @@ type Converter struct {
 	arg2        *int
 }
 
-const baseTempAddress = 5
+const (
+	basePointerAddress = 3
+	baseTempAddress    = 5
+)
 
 func NewConverter(pc int, commandType CommandType, arg1 string, arg2 *int) *Converter {
 	return &Converter{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
@@ -306,6 +309,8 @@ func (c *Converter) pop() []string {
 		return c.popThat()
 	case "temp":
 		return c.popTemp()
+	case "pointer":
+		return c.popPointer()
 	default:
 		return []string{}
 	}
@@ -338,6 +343,21 @@ func (c *Converter) popTemp() []string {
 		// Tempアドレスにスタック領域の先頭の値をセット
 		tempAddress, // AレジスタにTempアドレスをセット
 		"M=D",       // 保存先アドレスにDレジスタの値（スタック領域の先頭の値）をセット
+	}
+	return result
+}
+
+func (c *Converter) popPointer() []string {
+	address := fmt.Sprintf("@%d", *c.arg2+basePointerAddress)
+
+	result := []string{
+		// スタック領域の先頭の値をDレジスタにセット
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// 指定アドレスにスタック領域の先頭の値をセット
+		address, // Aレジスタにアドレスをセット
+		"M=D",   // 保存先アドレスにDレジスタの値（スタック領域の先頭の値）をセット
 	}
 	return result
 }

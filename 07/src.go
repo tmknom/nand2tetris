@@ -10,7 +10,7 @@ type Src struct {
 	files []string
 }
 
-const DefaultArg = "MemoryAccess/BasicTest/"
+const DefaultArg = "MemoryAccess/PointerTest/"
 
 func NewSrc(args []string) *Src {
 	arg := DefaultArg
