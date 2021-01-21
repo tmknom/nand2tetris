@@ -42,6 +42,7 @@ type Converter struct {
 const (
 	basePointerAddress = 3
 	baseTempAddress    = 5
+	baseStaticAddress  = 16
 )
 
 func NewConverter(pc int, commandType CommandType, arg1 string, arg2 *int) *Converter {
@@ -311,6 +312,8 @@ func (c *Converter) pop() []string {
 		return c.popTemp()
 	case "pointer":
 		return c.popPointer()
+	case "static":
+		return c.popStatic()
 	default:
 		return []string{}
 	}
@@ -338,6 +341,10 @@ func (c *Converter) popTemp() []string {
 
 func (c *Converter) popPointer() []string {
 	return c.popAddress(basePointerAddress)
+}
+
+func (c *Converter) popStatic() []string {
+	return c.popAddress(baseStaticAddress)
 }
 
 func (c *Converter) popAddress(baseAddress int) []string {

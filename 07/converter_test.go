@@ -423,6 +423,19 @@ func TestConverterPop(t *testing.T) {
 				"M=D",
 			},
 		},
+		{
+			desc:        "pop static 14",
+			commandType: CommandPop,
+			arg1:        "static",
+			arg2:        14,
+			want: []string{
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@30",
+				"M=D",
+			},
+		},
 	}
 
 	for _, tc := range cases {
