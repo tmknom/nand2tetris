@@ -201,11 +201,14 @@ func (c *Converter) returnAddress(afterStepCount int) []string {
 }
 
 func (c *Converter) push() []string {
-	if c.arg1 == "constant" {
+	switch c.arg1 {
+	case "constant":
 		return c.pushConstant()
+	case "local":
+		return c.pushLocal()
+	default:
+		return []string{}
 	}
-
-	return []string{}
 }
 
 func (c *Converter) pushConstant() []string {
@@ -220,6 +223,30 @@ func (c *Converter) pushConstant() []string {
 		"M=D",    // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
 	result = append(result, incrementSP...)
+	return result
+}
+
+func (c *Converter) pushLocal() []string {
+	return c.pushBaseAddress("LCL")
+}
+
+func (c *Converter) pushBaseAddress(label string) []string {
+	index := fmt.Sprintf("@%d", *c.arg2)
+	baseAddress := fmt.Sprintf("@%s", label)
+
+	result := []string{
+		// 取得先アドレスを算出して、取得した値をDレジスタにセット
+		index,       // インデックスをAレジスタにセット
+		"D=A",       // Dレジスタへ、Aレジスタの値（インデックス）をセット
+		baseAddress, // Aレジスタにベースアドレスをセット
+		"A=D+M",     // 取得先アドレス（インデックス+ベースアドレス）を算出してAレジスタにセット
+		"D=M",       // 取得した値をDレジスタにセット
+		// スタックにDレジスタの値を積む
+		"@SP", // AレジスタにアドレスSPをセット
+		"A=M", // AレジスタにSPの値をセット
+		"M=D", // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
+	}
+	result = append(result, c.incrementSP()...)
 	return result
 }
 
