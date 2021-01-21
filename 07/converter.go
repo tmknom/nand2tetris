@@ -206,6 +206,8 @@ func (c *Converter) push() []string {
 		return c.pushConstant()
 	case "local":
 		return c.pushLocal()
+	case "argument":
+		return c.pushArgument()
 	default:
 		return []string{}
 	}
@@ -228,6 +230,10 @@ func (c *Converter) pushConstant() []string {
 
 func (c *Converter) pushLocal() []string {
 	return c.pushBaseAddress("LCL")
+}
+
+func (c *Converter) pushArgument() []string {
+	return c.pushBaseAddress("ARG")
 }
 
 func (c *Converter) pushBaseAddress(label string) []string {
