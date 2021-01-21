@@ -42,6 +42,12 @@ func (c *Converter) arithmetic() []string {
 		return c.lt()
 	case "gt":
 		return c.gt()
+	case "and":
+		return c.and()
+	case "or":
+		return c.or()
+	case "not":
+		return c.not()
 	default:
 		return []string{}
 	}
@@ -97,6 +103,25 @@ func (c *Converter) gt() []string {
 	arithmeticStep = append(arithmeticStep, jumpStep...)
 	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
 	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+}
+
+func (c *Converter) and() []string {
+	// スタック領域の先頭の値（第一引数）とDレジスタの値（第二引数）の論理積
+	return append(c.binaryArithmetic("M=D&M"), c.incrementSP()...)
+}
+
+func (c *Converter) or() []string {
+	// スタック領域の先頭の値（第一引数）とDレジスタの値（第二引数）の論理和
+	return append(c.binaryArithmetic("M=D|M"), c.incrementSP()...)
+}
+
+func (c *Converter) not() []string {
+	result := []string{
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"M=!M",   // スタック領域の先頭の値（第一引数）の否定
+	}
+	return append(result, c.incrementSP()...)
 }
 
 func (c *Converter) binaryArithmetic(arithmeticStep string) []string {

@@ -119,6 +119,45 @@ func TestConverterArithmetic(t *testing.T) {
 				"M=M+1",
 			},
 		},
+		{
+			desc: "and",
+			arg1: "and",
+			want: []string{
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@SP",
+				"AM=M-1",
+				"M=D&M",
+				"@SP",
+				"M=M+1",
+			},
+		},
+		{
+			desc: "or",
+			arg1: "or",
+			want: []string{
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@SP",
+				"AM=M-1",
+				"M=D|M",
+				"@SP",
+				"M=M+1",
+			},
+		},
+		{
+			desc: "not",
+			arg1: "not",
+			want: []string{
+				"@SP",
+				"AM=M-1",
+				"M=!M",
+				"@SP",
+				"M=M+1",
+			},
+		},
 	}
 
 	for _, tc := range cases {
