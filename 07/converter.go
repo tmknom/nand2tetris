@@ -51,6 +51,8 @@ func (c *Converter) Convert() []string {
 		result = c.arithmetic()
 	case CommandPush:
 		result = c.push()
+	case CommandPop:
+		result = c.pop()
 	default:
 		return result
 		//return fmt.Errorf("convert failed: %s", command.raw)
@@ -215,6 +217,37 @@ func (c *Converter) pushConstant() []string {
 		"M=D",    // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
 	result = append(result, incrementSP...)
+	return result
+}
+
+func (c *Converter) pop() []string {
+	if c.arg1 == "local" {
+		return c.popLocal()
+	}
+
+	return []string{}
+}
+
+func (c *Converter) popLocal() []string {
+	index := fmt.Sprintf("@%d", *c.arg2)
+
+	result := []string{
+		// 保存先アドレスを算出して、R14に一時的にセット
+		index,   // インデックスをAレジスタにセット
+		"D=A",   // Dレジスタへ、Aレジスタの値（インデックス）をセット
+		"@LCL",  // AレジスタにアドレスLCLをセット
+		"D=D+M", // 保存先アドレス（インデックス+ベースアドレス）を算出してDレジスタにセット
+		"@R14",  // AレジスタにアドレスR14をセット
+		"M=D",   // R14に一時的に保存先アドレスをセット
+		// スタック領域の先頭の値をDレジスタにセット
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// 保存先アドレスにスタック領域の先頭の値をセット
+		"@R14", // AレジスタにアドレスR14をセット
+		"A=M",  // Aレジスタに保存先アドレスをセット
+		"M=D",  // 保存先アドレスにDレジスタの値（スタック領域の先頭の値）をセット
+	}
 	return result
 }
 
