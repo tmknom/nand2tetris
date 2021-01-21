@@ -248,6 +248,24 @@ func TestConverterPush(t *testing.T) {
 				"M=M+1",
 			},
 		},
+		{
+			desc:        "push that 13",
+			commandType: CommandPush,
+			arg1:        "that",
+			arg2:        13,
+			want: []string{
+				"@13",
+				"D=A",
+				"@THAT",
+				"A=D+M",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+			},
+		},
 	}
 
 	for _, tc := range cases {

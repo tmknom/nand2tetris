@@ -210,6 +210,8 @@ func (c *Converter) push() []string {
 		return c.pushArgument()
 	case "this":
 		return c.pushThis()
+	case "that":
+		return c.pushThat()
 	default:
 		return []string{}
 	}
@@ -240,6 +242,10 @@ func (c *Converter) pushArgument() []string {
 
 func (c *Converter) pushThis() []string {
 	return c.pushBaseAddress("THIS")
+}
+
+func (c *Converter) pushThat() []string {
+	return c.pushBaseAddress("THAT")
 }
 
 func (c *Converter) pushBaseAddress(label string) []string {
