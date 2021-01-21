@@ -20,8 +20,8 @@ func (i *Integrator) Integrate() error {
 		return err
 	}
 
-	converters := i.factoryConverters(commands)
-	assembler := converters.ConvertAll()
+	translators := i.factoryTranslators(commands)
+	assembler := translators.TranslatorAll()
 
 	dest := NewDest(i.filename)
 	err = dest.Write(assembler)
@@ -32,10 +32,10 @@ func (i *Integrator) Integrate() error {
 	return nil
 }
 
-func (i *Integrator) factoryConverters(commands *Commands) *Converters {
-	converters := NewConverters()
+func (i *Integrator) factoryTranslators(commands *Commands) *Translators {
+	translators := NewTranslators()
 	for _, command := range commands.commands {
-		converters.Add(command)
+		translators.Add(command)
 	}
-	return converters
+	return translators
 }
