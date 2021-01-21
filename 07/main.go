@@ -14,9 +14,8 @@ func main() {
 }
 
 func run() error {
-	src := NewSrc(os.Args)
-	src.Parse()
-	for _, file := range src.files {
+	arg := NewArg(os.Args)
+	for _, file := range arg.files {
 		fmt.Printf("vmファイルの変換開始：%s\n", file)
 		integrator := NewIntegrator(file)
 		err := integrator.Integrate()
