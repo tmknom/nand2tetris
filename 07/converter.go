@@ -39,6 +39,8 @@ type Converter struct {
 	arg2        *int
 }
 
+const baseTempAddress = 5
+
 func NewConverter(pc int, commandType CommandType, arg1 string, arg2 *int) *Converter {
 	return &Converter{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
 }
@@ -212,6 +214,8 @@ func (c *Converter) push() []string {
 		return c.pushThis()
 	case "that":
 		return c.pushThat()
+	case "temp":
+		return c.pushTemp()
 	default:
 		return []string{}
 	}
@@ -219,7 +223,6 @@ func (c *Converter) push() []string {
 
 func (c *Converter) pushConstant() []string {
 	acommand := fmt.Sprintf("@%d", *c.arg2)
-	incrementSP := c.incrementSP()
 
 	result := []string{
 		acommand, // Aレジスタに定数をセット
@@ -228,7 +231,7 @@ func (c *Converter) pushConstant() []string {
 		"A=M",    // AレジスタにSPの値をセット
 		"M=D",    // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
-	result = append(result, incrementSP...)
+	result = append(result, c.incrementSP()...)
 	return result
 }
 
@@ -246,6 +249,22 @@ func (c *Converter) pushThis() []string {
 
 func (c *Converter) pushThat() []string {
 	return c.pushBaseAddress("THAT")
+}
+
+func (c *Converter) pushTemp() []string {
+	tempAddress := fmt.Sprintf("@%d", *c.arg2+baseTempAddress)
+
+	result := []string{
+		// Tempアドレスを算出して、取得した値をDレジスタにセット
+		tempAddress, // AレジスタにTempアドレスをセット
+		"D=M",       // 取得した値をDレジスタにセット
+		// スタックにDレジスタの値を積む
+		"@SP", // AレジスタにアドレスSPをセット
+		"A=M", // AレジスタにSPの値をセット
+		"M=D", // スタック領域へ、Dレジスタの値（Tempアドレスから取得した値）をセット
+	}
+	result = append(result, c.incrementSP()...)
+	return result
 }
 
 func (c *Converter) pushBaseAddress(label string) []string {
@@ -302,7 +321,6 @@ func (c *Converter) popThat() []string {
 }
 
 func (c *Converter) popTemp() []string {
-	const baseTempAddress = 5
 	tempAddress := fmt.Sprintf("@%d", *c.arg2+baseTempAddress)
 
 	result := []string{
