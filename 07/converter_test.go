@@ -165,7 +165,7 @@ func TestConverterArithmetic(t *testing.T) {
 			converter := NewConverter(testPC, CommandArithmetic, tc.arg1, nil)
 			got := converter.Convert()
 			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
+				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
 			}
 		})
 	}
@@ -201,7 +201,7 @@ func TestConverterPush(t *testing.T) {
 			converter := NewConverter(testPC, tc.commandType, tc.arg1, &tc.arg2)
 			got := converter.Convert()
 			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
+				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
 			}
 		})
 	}
@@ -275,6 +275,26 @@ func TestConverterPop(t *testing.T) {
 				"M=D",
 			},
 		},
+		{
+			desc:        "pop that 13",
+			commandType: CommandPop,
+			arg1:        "that",
+			arg2:        13,
+			want: []string{
+				"@13",
+				"D=A",
+				"@THAT",
+				"D=D+M",
+				"@R14",
+				"M=D",
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@R14",
+				"A=M",
+				"M=D",
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -282,7 +302,7 @@ func TestConverterPop(t *testing.T) {
 			converter := NewConverter(testPC, tc.commandType, tc.arg1, &tc.arg2)
 			got := converter.Convert()
 			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed:\ngot = %s,\nwant = %s", prettySlice(got), prettySlice(tc.want))
+				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
 			}
 		})
 	}

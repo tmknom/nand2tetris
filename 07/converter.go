@@ -231,6 +231,8 @@ func (c *Converter) pop() []string {
 		return c.popArgument()
 	case "this":
 		return c.popThis()
+	case "that":
+		return c.popThat()
 	default:
 		return []string{}
 	}
@@ -246,6 +248,10 @@ func (c *Converter) popArgument() []string {
 
 func (c *Converter) popThis() []string {
 	return c.popBaseAddress("THIS")
+}
+
+func (c *Converter) popThat() []string {
+	return c.popBaseAddress("THAT")
 }
 
 func (c *Converter) popBaseAddress(label string) []string {
