@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Converters struct {
 	converters []*Converter
@@ -267,17 +270,24 @@ func (ci *ConverterInitializer) initializeHeader() []string {
 }
 
 func (ci *ConverterInitializer) initializeLabels() []string {
-	labels := map[string]int{
-		"SP":   256,
-		"LCL":  300,
-		"ARG":  400,
-		"THIS": 3000,
-		"THAT": 3010,
+	labels := map[int]string{
+		256:  "SP",
+		300:  "LCL",
+		400:  "ARG",
+		3000: "THIS",
+		3010: "THAT",
 	}
 
+	// テストコードの実行を安定させるため、意図的にmapに順序概念を追加
+	addresses := []int{}
+	for address := range labels {
+		addresses = append(addresses, address)
+	}
+	sort.Ints(addresses)
+
 	result := []string{}
-	for name, address := range labels {
-		result = append(result, ci.initializeLabel(name, address)...)
+	for _, address := range addresses {
+		result = append(result, ci.initializeLabel(labels[address], address)...)
 	}
 	return result
 }

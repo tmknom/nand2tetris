@@ -1,11 +1,3 @@
-@3000
-D=A
-@THIS
-M=D
-@3010
-D=A
-@THAT
-M=D
 @256
 D=A
 @SP
@@ -17,6 +9,14 @@ M=D
 @400
 D=A
 @ARG
+M=D
+@3000
+D=A
+@THIS
+M=D
+@3010
+D=A
+@THAT
 M=D
 @17
 D=A

@@ -30,6 +30,7 @@ func TestIntegratorIntegrate(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		os.Remove(tc.destFile)
 		t.Run(tc.desc, func(t *testing.T) {
 			integrator := NewIntegrator(tc.srcFile)
 			integrator.Integrate()
