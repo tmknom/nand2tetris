@@ -2,6 +2,32 @@ package main
 
 import "fmt"
 
+type Converters struct {
+	converters []*Converter
+}
+
+func NewConverters() *Converters {
+	return &Converters{converters: []*Converter{}}
+}
+
+func (cs *Converters) Add(command *Command) {
+	const uninitializedPC = -1
+	converter := NewConverter(uninitializedPC, command.commandType, command.arg1, command.arg2)
+	cs.converters = append(cs.converters, converter)
+}
+
+func (cs *Converters) ConvertAll() []string {
+	result := []string{}
+	for _, converter := range cs.converters {
+		converter.setPC(len(result))
+		assembler := converter.Convert()
+		result = append(result, assembler...)
+	}
+	ci := &ConverterInitializer{}
+	result = append(result, ci.Initialize()...)
+	return result
+}
+
 type Converter struct {
 	pc          int
 	commandType CommandType
@@ -11,6 +37,10 @@ type Converter struct {
 
 func NewConverter(pc int, commandType CommandType, arg1 string, arg2 *int) *Converter {
 	return &Converter{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
+}
+
+func (c *Converter) setPC(pc int) {
+	c.pc = pc
 }
 
 func (c *Converter) Convert() []string {

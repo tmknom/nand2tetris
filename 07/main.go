@@ -39,7 +39,9 @@ func convert(file string) error {
 		return err
 	}
 	commands.dump()
-	assembler := commands.ConvertAll()
+
+	converters := factoryConverters(commands)
+	assembler := converters.ConvertAll()
 
 	dest := NewDest(file)
 	err = dest.Write(assembler)
@@ -48,4 +50,12 @@ func convert(file string) error {
 	}
 
 	return nil
+}
+
+func factoryConverters(commands *Commands) *Converters {
+	converters := NewConverters()
+	for _, command := range commands.commands {
+		converters.Add(command)
+	}
+	return converters
 }
