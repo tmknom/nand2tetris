@@ -40,6 +40,8 @@ func TestIntegratorIntegrate(t *testing.T) {
 			if !reflect.DeepEqual(got, want) {
 				diff, _ := exec.Command("diff", tc.wantFile, tc.destFile).Output()
 				t.Errorf("failed Integrate: diff = \n%s", diff)
+			} else {
+				os.Remove(tc.destFile)
 			}
 		})
 	}
