@@ -41,14 +41,14 @@ func TestSrcParse(t *testing.T) {
 		want []string
 	}{
 		{
-			desc: "vmファイル",
+			desc: "vmファイルの指定",
 			arg:  "foo.vm",
 			want: []string{"foo.vm"},
 		},
 		{
-			desc: "vmファイル以外",
-			arg:  "foo.go",
-			want: []string{},
+			desc: "ディレクトリの指定",
+			arg:  "StackArithmetic/SimpleAdd/",
+			want: []string{"StackArithmetic/SimpleAdd/SimpleAdd.vm"},
 		},
 	}
 

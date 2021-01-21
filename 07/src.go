@@ -10,7 +10,7 @@ type Src struct {
 	files []string
 }
 
-const DefaultArg = "MemoryAccess/BasicTest/BasicTest.vm"
+const DefaultArg = "MemoryAccess/BasicTest/"
 
 func NewSrc(args []string) *Src {
 	arg := DefaultArg
@@ -26,5 +26,6 @@ func (s *Src) Parse() {
 		return
 	}
 
-	// TODO ディレクトリの読み取りはまだ未実装だよ
+	// vmファイルを指定していない場合は、ディレクトリが指定されたとみなす
+	s.files, _ = filepath.Glob(s.arg + "/*.vm")
 }
