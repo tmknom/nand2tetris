@@ -222,15 +222,15 @@ func (c *Converter) push() []string {
 }
 
 func (c *Converter) pushConstant() []string {
-	acommand := fmt.Sprintf("@%d", *c.arg2)
-
+	constant := fmt.Sprintf("@%d", *c.arg2)
 	result := []string{
-		acommand, // Aレジスタに定数をセット
+		constant, // Aレジスタに定数をセット
 		"D=A",    // Dレジスタへ、Aレジスタの値（直前でセットした定数）をセット
-		"@SP",    // AレジスタにアドレスSPをセット
-		"A=M",    // AレジスタにSPの値をセット
-		"M=D",    // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
+
+	// スタックにDレジスタの値を積む
+	result = append(result, c.dRegisterToStack()...)
+	// スタックポインタのインクリメント
 	result = append(result, c.incrementSP()...)
 	return result
 }
@@ -252,39 +252,46 @@ func (c *Converter) pushThat() []string {
 }
 
 func (c *Converter) pushTemp() []string {
+	// Tempアドレスを算出して、取得した値をDレジスタにセット
 	tempAddress := fmt.Sprintf("@%d", *c.arg2+baseTempAddress)
-
 	result := []string{
-		// Tempアドレスを算出して、取得した値をDレジスタにセット
 		tempAddress, // AレジスタにTempアドレスをセット
 		"D=M",       // 取得した値をDレジスタにセット
-		// スタックにDレジスタの値を積む
-		"@SP", // AレジスタにアドレスSPをセット
-		"A=M", // AレジスタにSPの値をセット
-		"M=D", // スタック領域へ、Dレジスタの値（Tempアドレスから取得した値）をセット
 	}
+
+	// スタックにDレジスタの値を積む
+	result = append(result, c.dRegisterToStack()...)
+	// スタックポインタのインクリメント
 	result = append(result, c.incrementSP()...)
 	return result
 }
 
 func (c *Converter) pushBaseAddress(label string) []string {
+	// 取得先アドレスを算出して、取得した値をDレジスタにセット
 	index := fmt.Sprintf("@%d", *c.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
-
 	result := []string{
-		// 取得先アドレスを算出して、取得した値をDレジスタにセット
 		index,       // インデックスをAレジスタにセット
 		"D=A",       // Dレジスタへ、Aレジスタの値（インデックス）をセット
 		baseAddress, // Aレジスタにベースアドレスをセット
 		"A=D+M",     // 取得先アドレス（インデックス+ベースアドレス）を算出してAレジスタにセット
 		"D=M",       // 取得した値をDレジスタにセット
-		// スタックにDレジスタの値を積む
+	}
+
+	// スタックにDレジスタの値を積む
+	result = append(result, c.dRegisterToStack()...)
+	// スタックポインタのインクリメント
+	result = append(result, c.incrementSP()...)
+	return result
+}
+
+// スタックにDレジスタの値を積む
+func (c *Converter) dRegisterToStack() []string {
+	return []string{
 		"@SP", // AレジスタにアドレスSPをセット
 		"A=M", // AレジスタにSPの値をセット
 		"M=D", // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
-	result = append(result, c.incrementSP()...)
-	return result
 }
 
 func (c *Converter) pop() []string {
