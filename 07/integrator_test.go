@@ -27,6 +27,12 @@ func TestIntegratorIntegrate(t *testing.T) {
 			destFile: "StackArithmetic/StackTest/StackTest.asm",
 			wantFile: "StackArithmetic/StackTest/StackTest.asm.cmp",
 		},
+		{
+			desc:     "BasicTest",
+			srcFile:  "MemoryAccess/BasicTest/BasicTest.vm",
+			destFile: "MemoryAccess/BasicTest/BasicTest.asm",
+			wantFile: "MemoryAccess/BasicTest/BasicTest.asm.cmp",
+		},
 	}
 
 	for _, tc := range cases {
@@ -40,7 +46,7 @@ func TestIntegratorIntegrate(t *testing.T) {
 
 			if !reflect.DeepEqual(got, want) {
 				diff, _ := exec.Command("diff", tc.wantFile, tc.destFile).Output()
-				t.Errorf("failed Integrate: diff = \n%s", diff)
+				t.Errorf("failed %s: diff = \n%s", tc.desc, diff)
 			} else {
 				os.Remove(tc.destFile)
 			}
