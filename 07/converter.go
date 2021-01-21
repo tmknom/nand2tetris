@@ -229,6 +229,8 @@ func (c *Converter) pop() []string {
 		return c.popLocal()
 	case "argument":
 		return c.popArgument()
+	case "this":
+		return c.popThis()
 	default:
 		return []string{}
 	}
@@ -240,6 +242,10 @@ func (c *Converter) popLocal() []string {
 
 func (c *Converter) popArgument() []string {
 	return c.popBaseAddress("ARG")
+}
+
+func (c *Converter) popThis() []string {
+	return c.popBaseAddress("THIS")
 }
 
 func (c *Converter) popBaseAddress(label string) []string {

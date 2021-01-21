@@ -255,6 +255,26 @@ func TestConverterPop(t *testing.T) {
 				"M=D",
 			},
 		},
+		{
+			desc:        "pop this 12",
+			commandType: CommandPop,
+			arg1:        "this",
+			arg2:        12,
+			want: []string{
+				"@12",
+				"D=A",
+				"@THIS",
+				"D=D+M",
+				"@R14",
+				"M=D",
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@R14",
+				"A=M",
+				"M=D",
+			},
+		},
 	}
 
 	for _, tc := range cases {
