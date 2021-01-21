@@ -55,26 +55,22 @@ func (c *Converter) arithmetic() []string {
 
 func (c *Converter) add() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を加算
-	return append(c.binaryArithmetic("M=M+D"), c.incrementSP()...)
+	return append(c.binaryFunction("M=M+D"), c.incrementSP()...)
 }
 
 func (c *Converter) sub() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	return append(c.binaryArithmetic("M=M-D"), c.incrementSP()...)
+	return append(c.binaryFunction("M=M-D"), c.incrementSP()...)
 }
 
 func (c *Converter) neg() []string {
-	result := []string{
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"M=-M",   // スタック領域の先頭の値（第一引数）を反転
-	}
-	return append(result, c.incrementSP()...)
+	// スタック領域の先頭の値（第一引数）の反転
+	return append(c.unaryFunction("M=-M"), c.incrementSP()...)
 }
 
 func (c *Converter) eq() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := c.binaryArithmetic("D=M-D")
+	arithmeticStep := c.binaryFunction("D=M-D")
 	// 減算結果がゼロよりゼロと等しければtrueをセット、ゼロ以外ならfalseをセット
 	jumpStep := c.jumpTruth("JEQ", "JNE")
 
@@ -85,7 +81,7 @@ func (c *Converter) eq() []string {
 
 func (c *Converter) lt() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := c.binaryArithmetic("D=M-D")
+	arithmeticStep := c.binaryFunction("D=M-D")
 	// 減算結果がゼロより小さければtrueをセット、ゼロ以上ならfalseをセット
 	jumpStep := c.jumpTruth("JLT", "JGE")
 
@@ -96,7 +92,7 @@ func (c *Converter) lt() []string {
 
 func (c *Converter) gt() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := c.binaryArithmetic("D=M-D")
+	arithmeticStep := c.binaryFunction("D=M-D")
 	// 減算結果がゼロより大きければtrueをセット、ゼロ以下ならfalseをセット
 	jumpStep := c.jumpTruth("JGT", "JLE")
 
@@ -107,33 +103,39 @@ func (c *Converter) gt() []string {
 
 func (c *Converter) and() []string {
 	// スタック領域の先頭の値（第一引数）とDレジスタの値（第二引数）の論理積
-	return append(c.binaryArithmetic("M=D&M"), c.incrementSP()...)
+	return append(c.binaryFunction("M=D&M"), c.incrementSP()...)
 }
 
 func (c *Converter) or() []string {
 	// スタック領域の先頭の値（第一引数）とDレジスタの値（第二引数）の論理和
-	return append(c.binaryArithmetic("M=D|M"), c.incrementSP()...)
+	return append(c.binaryFunction("M=D|M"), c.incrementSP()...)
 }
 
 func (c *Converter) not() []string {
-	result := []string{
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"M=!M",   // スタック領域の先頭の値（第一引数）の否定
-	}
-	return append(result, c.incrementSP()...)
+	// スタック領域の先頭の値（第一引数）の否定
+	return append(c.unaryFunction("M=!M"), c.incrementSP()...)
 }
 
-func (c *Converter) binaryArithmetic(arithmeticStep string) []string {
+// 2変数関数
+func (c *Converter) binaryFunction(step string) []string {
 	return []string{
 		// 第二引数を取得
 		"@SP",    // AレジスタにアドレスSPをセット
 		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
 		"D=M",    // スタック領域の先頭の値（第二引数）をDレジスタにセット
 		// 第一引数を取得＆算術演算
-		"@SP",          // AレジスタにアドレスSPをセット
-		"AM=M-1",       // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		arithmeticStep, // 算術演算
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		step,     // 演算
+	}
+}
+
+// 1変数関数
+func (c *Converter) unaryFunction(step string) []string {
+	return []string{
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		step,     // 演算
 	}
 }
 
