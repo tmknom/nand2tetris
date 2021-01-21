@@ -17,15 +17,16 @@ func (cs *Converters) Add(command *Command) {
 }
 
 func (cs *Converters) ConvertAll() []string {
-	result := []string{}
+	ci := &ConverterInitializer{}
+	result := ci.initializeHeader()
+
 	for _, converter := range cs.converters {
 		converter.setPC(len(result))
 		assembler := converter.Convert()
 		result = append(result, assembler...)
 	}
-	ci := &ConverterInitializer{}
-	result = append(result, ci.Initialize()...)
-	return result
+
+	return append(result, ci.initializeFooter()...)
 }
 
 type Converter struct {
@@ -228,7 +229,35 @@ func (c *Converter) incrementSP() []string {
 
 type ConverterInitializer struct{}
 
-func (ci *ConverterInitializer) Initialize() []string {
+func (ci *ConverterInitializer) initializeHeader() []string {
+	return ci.initializeLabels()
+}
+
+func (ci *ConverterInitializer) initializeLabels() []string {
+	labels := map[string]int{
+		"SP":  256,
+		"LCL": 300,
+	}
+
+	result := []string{}
+	for name, address := range labels {
+		result = append(result, ci.initializeLabel(name, address)...)
+	}
+	return result
+}
+
+func (ci *ConverterInitializer) initializeLabel(name string, address int) []string {
+	constant := fmt.Sprintf("@%d", address)
+	label := fmt.Sprintf("@%s", name)
+	return []string{
+		constant, // Aレジスタにアドレスを定数としてセット
+		"D=A",    // Aレジスタの値をDレジスタにセット
+		label,    // Aレジスタにラベルをセット
+		"M=D",    // 指定したラベルにDレジスタの値（アドレス）をセット
+	}
+}
+
+func (ci *ConverterInitializer) initializeFooter() []string {
 	endStep := ci.initializeEndStep()
 	endLabel := ci.initializeEND()
 	trueLabel := ci.initializeTRUE()
