@@ -222,6 +222,8 @@ func (c *Converter) push() []string {
 		return c.pushTemp()
 	case "pointer":
 		return c.pushPointer()
+	case "static":
+		return c.pushStatic()
 	default:
 		return []string{}
 	}
@@ -263,6 +265,10 @@ func (c *Converter) pushTemp() []string {
 
 func (c *Converter) pushPointer() []string {
 	return c.pushAddress(basePointerAddress)
+}
+
+func (c *Converter) pushStatic() []string {
+	return c.pushAddress(baseStaticAddress)
 }
 
 func (c *Converter) pushAddress(baseAddress int) []string {
