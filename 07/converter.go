@@ -241,41 +241,34 @@ func (c *Converter) pushConstant() []string {
 }
 
 func (c *Converter) pushLocal() []string {
-	return c.pushBaseAddress("LCL")
+	return c.pushLabel("LCL")
 }
 
 func (c *Converter) pushArgument() []string {
-	return c.pushBaseAddress("ARG")
+	return c.pushLabel("ARG")
 }
 
 func (c *Converter) pushThis() []string {
-	return c.pushBaseAddress("THIS")
+	return c.pushLabel("THIS")
 }
 
 func (c *Converter) pushThat() []string {
-	return c.pushBaseAddress("THAT")
+	return c.pushLabel("THAT")
 }
 
 func (c *Converter) pushTemp() []string {
-	// Tempアドレスを算出して、取得した値をDレジスタにセット
-	tempAddress := fmt.Sprintf("@%d", *c.arg2+baseTempAddress)
-	result := []string{
-		tempAddress, // AレジスタにTempアドレスをセット
-		"D=M",       // 取得した値をDレジスタにセット
-	}
-
-	// スタックにDレジスタの値を積む
-	result = append(result, c.dRegisterToStack()...)
-	// スタックポインタのインクリメント
-	result = append(result, c.incrementSP()...)
-	return result
+	return c.pushAddress(baseTempAddress)
 }
 
 func (c *Converter) pushPointer() []string {
-	address := fmt.Sprintf("@%d", *c.arg2+basePointerAddress)
+	return c.pushAddress(basePointerAddress)
+}
+
+func (c *Converter) pushAddress(baseAddress int) []string {
+	address := fmt.Sprintf("@%d", *c.arg2+baseAddress)
 	result := []string{
-		address, // Aレジスタに指定アドレスをセット
-		"D=M",   // 取得した値をDレジスタにセット
+		address, // Aレジスタにアドレスをセット
+		"D=M",   // 指定したアドレスから取得した値をDレジスタにセット
 	}
 
 	// スタックにDレジスタの値を積む
@@ -285,7 +278,7 @@ func (c *Converter) pushPointer() []string {
 	return result
 }
 
-func (c *Converter) pushBaseAddress(label string) []string {
+func (c *Converter) pushLabel(label string) []string {
 	// 取得先アドレスを算出して、取得した値をDレジスタにセット
 	index := fmt.Sprintf("@%d", *c.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
@@ -302,15 +295,6 @@ func (c *Converter) pushBaseAddress(label string) []string {
 	// スタックポインタのインクリメント
 	result = append(result, c.incrementSP()...)
 	return result
-}
-
-// スタックにDレジスタの値を積む
-func (c *Converter) dRegisterToStack() []string {
-	return []string{
-		"@SP", // AレジスタにアドレスSPをセット
-		"A=M", // AレジスタにSPの値をセット
-		"M=D", // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
-	}
 }
 
 func (c *Converter) pop() []string {
@@ -333,38 +317,31 @@ func (c *Converter) pop() []string {
 }
 
 func (c *Converter) popLocal() []string {
-	return c.popBaseAddress("LCL")
+	return c.popLabel("LCL")
 }
 
 func (c *Converter) popArgument() []string {
-	return c.popBaseAddress("ARG")
+	return c.popLabel("ARG")
 }
 
 func (c *Converter) popThis() []string {
-	return c.popBaseAddress("THIS")
+	return c.popLabel("THIS")
 }
 
 func (c *Converter) popThat() []string {
-	return c.popBaseAddress("THAT")
+	return c.popLabel("THAT")
 }
 
 func (c *Converter) popTemp() []string {
-	tempAddress := fmt.Sprintf("@%d", *c.arg2+baseTempAddress)
-
-	result := []string{
-		// スタック領域の先頭の値をDレジスタにセット
-		"@SP",    // AレジスタにアドレスSPをセット
-		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
-		"D=M",    // スタック領域の先頭の値をDレジスタにセット
-		// Tempアドレスにスタック領域の先頭の値をセット
-		tempAddress, // AレジスタにTempアドレスをセット
-		"M=D",       // 保存先アドレスにDレジスタの値（スタック領域の先頭の値）をセット
-	}
-	return result
+	return c.popAddress(baseTempAddress)
 }
 
 func (c *Converter) popPointer() []string {
-	address := fmt.Sprintf("@%d", *c.arg2+basePointerAddress)
+	return c.popAddress(basePointerAddress)
+}
+
+func (c *Converter) popAddress(baseAddress int) []string {
+	address := fmt.Sprintf("@%d", *c.arg2+baseAddress)
 
 	result := []string{
 		// スタック領域の先頭の値をDレジスタにセット
@@ -378,7 +355,7 @@ func (c *Converter) popPointer() []string {
 	return result
 }
 
-func (c *Converter) popBaseAddress(label string) []string {
+func (c *Converter) popLabel(label string) []string {
 	index := fmt.Sprintf("@%d", *c.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
 
@@ -408,6 +385,15 @@ func (c *Converter) incrementSP() []string {
 	return []string{
 		"@SP",   // AレジスタにアドレスSPをセット
 		"M=M+1", // SPの値をインクリメント
+	}
+}
+
+// スタックにDレジスタの値を積む
+func (c *Converter) dRegisterToStack() []string {
+	return []string{
+		"@SP", // AレジスタにアドレスSPをセット
+		"A=M", // AレジスタにSPの値をセット
+		"M=D", // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
 }
 
