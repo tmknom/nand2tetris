@@ -43,6 +43,17 @@ func TestConverterArithmetic(t *testing.T) {
 			},
 		},
 		{
+			desc: "neg",
+			arg1: "neg",
+			want: []string{
+				"@SP",
+				"AM=M-1",
+				"M=-M",
+				"@SP",
+				"M=M+1",
+			},
+		},
+		{
 			desc: "eq",
 			arg1: "eq",
 			want: []string{

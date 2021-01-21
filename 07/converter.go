@@ -34,6 +34,8 @@ func (c *Converter) arithmetic() []string {
 		return c.add()
 	case "sub":
 		return c.sub()
+	case "neg":
+		return c.neg()
 	case "eq":
 		return c.eq()
 	case "lt":
@@ -53,6 +55,15 @@ func (c *Converter) add() []string {
 func (c *Converter) sub() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
 	return append(c.binaryArithmetic("M=M-D"), c.incrementSP()...)
+}
+
+func (c *Converter) neg() []string {
+	result := []string{
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"M=-M",   // スタック領域の先頭の値（第一引数）を反転
+	}
+	return append(result, c.incrementSP()...)
 }
 
 func (c *Converter) eq() []string {
