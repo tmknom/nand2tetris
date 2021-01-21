@@ -233,6 +233,8 @@ func (c *Converter) pop() []string {
 		return c.popThis()
 	case "that":
 		return c.popThat()
+	case "temp":
+		return c.popTemp()
 	default:
 		return []string{}
 	}
@@ -252,6 +254,22 @@ func (c *Converter) popThis() []string {
 
 func (c *Converter) popThat() []string {
 	return c.popBaseAddress("THAT")
+}
+
+func (c *Converter) popTemp() []string {
+	const baseTempAddress = 5
+	tempAddress := fmt.Sprintf("@%d", *c.arg2+baseTempAddress)
+
+	result := []string{
+		// スタック領域の先頭の値をDレジスタにセット
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// Tempアドレスにスタック領域の先頭の値をセット
+		tempAddress, // AレジスタにTempアドレスをセット
+		"M=D",       // 保存先アドレスにDレジスタの値（スタック領域の先頭の値）をセット
+	}
+	return result
 }
 
 func (c *Converter) popBaseAddress(label string) []string {
