@@ -224,24 +224,36 @@ func (c *Converter) pushConstant() []string {
 }
 
 func (c *Converter) pop() []string {
-	if c.arg1 == "local" {
+	switch c.arg1 {
+	case "local":
 		return c.popLocal()
+	case "argument":
+		return c.popArgument()
+	default:
+		return []string{}
 	}
-
-	return []string{}
 }
 
 func (c *Converter) popLocal() []string {
+	return c.popBaseAddress("LCL")
+}
+
+func (c *Converter) popArgument() []string {
+	return c.popBaseAddress("ARG")
+}
+
+func (c *Converter) popBaseAddress(label string) []string {
 	index := fmt.Sprintf("@%d", *c.arg2)
+	baseAddress := fmt.Sprintf("@%s", label)
 
 	result := []string{
 		// 保存先アドレスを算出して、R14に一時的にセット
-		index,   // インデックスをAレジスタにセット
-		"D=A",   // Dレジスタへ、Aレジスタの値（インデックス）をセット
-		"@LCL",  // AレジスタにアドレスLCLをセット
-		"D=D+M", // 保存先アドレス（インデックス+ベースアドレス）を算出してDレジスタにセット
-		"@R14",  // AレジスタにアドレスR14をセット
-		"M=D",   // R14に一時的に保存先アドレスをセット
+		index,       // インデックスをAレジスタにセット
+		"D=A",       // Dレジスタへ、Aレジスタの値（インデックス）をセット
+		baseAddress, // Aレジスタにベースアドレスをセット
+		"D=D+M",     // 保存先アドレス（インデックス+ベースアドレス）を算出してDレジスタにセット
+		"@R14",      // AレジスタにアドレスR14をセット
+		"M=D",       // R14に一時的に保存先アドレスをセット
 		// スタック領域の先頭の値をDレジスタにセット
 		"@SP",    // AレジスタにアドレスSPをセット
 		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット

@@ -216,7 +216,7 @@ func TestConverterPop(t *testing.T) {
 		want        []string
 	}{
 		{
-			desc:        "pop local 20",
+			desc:        "pop local 10",
 			commandType: CommandPop,
 			arg1:        "local",
 			arg2:        10,
@@ -224,6 +224,26 @@ func TestConverterPop(t *testing.T) {
 				"@10",
 				"D=A",
 				"@LCL",
+				"D=D+M",
+				"@R14",
+				"M=D",
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@R14",
+				"A=M",
+				"M=D",
+			},
+		},
+		{
+			desc:        "pop argument 11",
+			commandType: CommandPop,
+			arg1:        "argument",
+			arg2:        11,
+			want: []string{
+				"@11",
+				"D=A",
+				"@ARG",
 				"D=D+M",
 				"@R14",
 				"M=D",
