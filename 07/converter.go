@@ -268,8 +268,11 @@ func (ci *ConverterInitializer) initializeHeader() []string {
 
 func (ci *ConverterInitializer) initializeLabels() []string {
 	labels := map[string]int{
-		"SP":  256,
-		"LCL": 300,
+		"SP":   256,
+		"LCL":  300,
+		"ARG":  400,
+		"THIS": 3000,
+		"THAT": 3010,
 	}
 
 	result := []string{}
