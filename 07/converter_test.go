@@ -281,6 +281,21 @@ func TestConverterPush(t *testing.T) {
 				"M=M+1",
 			},
 		},
+		{
+			desc:        "push pointer 1",
+			commandType: CommandPush,
+			arg1:        "pointer",
+			arg2:        1,
+			want: []string{
+				"@4",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+			},
+		},
 	}
 
 	for _, tc := range cases {

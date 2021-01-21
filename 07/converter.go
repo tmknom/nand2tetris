@@ -219,6 +219,8 @@ func (c *Converter) push() []string {
 		return c.pushThat()
 	case "temp":
 		return c.pushTemp()
+	case "pointer":
+		return c.pushPointer()
 	default:
 		return []string{}
 	}
@@ -260,6 +262,20 @@ func (c *Converter) pushTemp() []string {
 	result := []string{
 		tempAddress, // AレジスタにTempアドレスをセット
 		"D=M",       // 取得した値をDレジスタにセット
+	}
+
+	// スタックにDレジスタの値を積む
+	result = append(result, c.dRegisterToStack()...)
+	// スタックポインタのインクリメント
+	result = append(result, c.incrementSP()...)
+	return result
+}
+
+func (c *Converter) pushPointer() []string {
+	address := fmt.Sprintf("@%d", *c.arg2+basePointerAddress)
+	result := []string{
+		address, // Aレジスタに指定アドレスをセット
+		"D=M",   // 取得した値をDレジスタにセット
 	}
 
 	// スタックにDレジスタの値を積む
