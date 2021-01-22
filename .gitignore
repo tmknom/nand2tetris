@@ -1,8 +1,9 @@
 *.tst
 *.out
-*.cmp
 *.hack
 *.asm
+*.cmp
 *.vm
+*.html
 
 suite/
