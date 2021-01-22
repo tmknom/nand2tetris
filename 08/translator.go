@@ -68,7 +68,9 @@ func (t *Translator) Translate() []string {
 	case CommandLabel:
 		return t.label()
 	case CommandGoto:
-		return t.gotoLabel()
+		return t.labelGoto()
+	case CommandIf:
+		return t.ifGoto()
 	default:
 		return []string{}
 	}
@@ -419,11 +421,24 @@ func (t *Translator) label() []string {
 	return []string{label}
 }
 
-func (t *Translator) gotoLabel() []string {
+func (t *Translator) labelGoto() []string {
 	label := fmt.Sprintf("@%s$%s", *t.moduleName, t.arg1)
 	return []string{
 		label,
 		"0;JMP",
+	}
+}
+
+func (t *Translator) ifGoto() []string {
+	label := fmt.Sprintf("@%s$%s", *t.moduleName, t.arg1)
+	return []string{
+		// スタック領域の先頭の値をDレジスタにセット
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// スタックの先頭の値を使って分岐
+		label, // Aレジスタにラベルをセット
+		"D;JNE", // Dレジスタの値（スタックの先頭の値）がゼロ以外ならラベルにジャンプ
 	}
 }
 
