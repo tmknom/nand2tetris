@@ -10,7 +10,7 @@ type Arg struct {
 	files []string
 }
 
-const DefaultArg = "FunctionCalls/SimpleFunction/"
+const DefaultArg = "FunctionCalls/FibonacciElement/"
 
 func NewArg(args []string) *Arg {
 	arg := DefaultArg
