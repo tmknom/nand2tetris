@@ -117,7 +117,7 @@ func (c *Command) parseCommandType(commandTypeString string) (*CommandType, erro
 		commandType = CommandLabel
 	} else if commandTypeString == "goto" {
 		commandType = CommandGoto
-	} else if commandTypeString == "if" {
+	} else if commandTypeString == "if-goto" {
 		commandType = CommandIf
 	} else if commandTypeString == "function" {
 		commandType = CommandFunction
