@@ -5,27 +5,24 @@ import (
 )
 
 // コマンドの入力パラメータをパースして、変換対象のvmファイル名を管理
-type Src struct {
-	arg   string
+type Arg struct {
+	raw   string
 	files []string
 }
 
-const DefaultArg = "MemoryAccess/PointerTest/"
+const DefaultArg = "MemoryAccess/StaticTest/"
 
-func NewSrc(args []string) *Src {
+func NewArg(args []string) *Arg {
 	arg := DefaultArg
 	if len(args) >= 2 {
 		arg = args[1]
 	}
-	return &Src{arg: arg, files: []string{}}
-}
 
-func (s *Src) Parse() {
-	if filepath.Ext(s.arg) == ".vm" {
-		s.files = append(s.files, s.arg)
-		return
+	if filepath.Ext(arg) == ".vm" {
+		return &Arg{raw: arg, files: []string{arg}}
 	}
 
 	// vmファイルを指定していない場合は、ディレクトリが指定されたとみなす
-	s.files, _ = filepath.Glob(s.arg + "/*.vm")
+	files, _ := filepath.Glob(arg + "/*.vm")
+	return &Arg{raw: arg, files: files}
 }

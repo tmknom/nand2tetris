@@ -8,7 +8,7 @@ import (
 
 const testPC = 100
 
-func TestConverterArithmetic(t *testing.T) {
+func TestTranslatorArithmetic(t *testing.T) {
 	cases := []struct {
 		desc string
 		arg1 string
@@ -162,8 +162,8 @@ func TestConverterArithmetic(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			converter := NewConverter(testPC, CommandArithmetic, tc.arg1, nil)
-			got := converter.Convert()
+			translator := NewTranslator(testPC, CommandArithmetic, tc.arg1, nil)
+			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
 			}
@@ -171,7 +171,7 @@ func TestConverterArithmetic(t *testing.T) {
 	}
 }
 
-func TestConverterPush(t *testing.T) {
+func TestTranslatorPush(t *testing.T) {
 	cases := []struct {
 		desc        string
 		commandType CommandType
@@ -296,12 +296,27 @@ func TestConverterPush(t *testing.T) {
 				"M=M+1",
 			},
 		},
+		{
+			desc:        "push static 14",
+			commandType: CommandPush,
+			arg1:        "static",
+			arg2:        14,
+			want: []string{
+				"@30",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			converter := NewConverter(testPC, tc.commandType, tc.arg1, &tc.arg2)
-			got := converter.Convert()
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2)
+			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
 			}
@@ -309,7 +324,7 @@ func TestConverterPush(t *testing.T) {
 	}
 }
 
-func TestConverterPop(t *testing.T) {
+func TestTranslatorPop(t *testing.T) {
 	cases := []struct {
 		desc        string
 		commandType CommandType
@@ -423,12 +438,25 @@ func TestConverterPop(t *testing.T) {
 				"M=D",
 			},
 		},
+		{
+			desc:        "pop static 14",
+			commandType: CommandPop,
+			arg1:        "static",
+			arg2:        14,
+			want: []string{
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@30",
+				"M=D",
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			converter := NewConverter(testPC, tc.commandType, tc.arg1, &tc.arg2)
-			got := converter.Convert()
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2)
+			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
 			}

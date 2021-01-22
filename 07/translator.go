@@ -5,34 +5,34 @@ import (
 	"sort"
 )
 
-type Converters struct {
-	converters []*Converter
+type Translators struct {
+	translators []*Translator
 }
 
-func NewConverters() *Converters {
-	return &Converters{converters: []*Converter{}}
+func NewTranslators() *Translators {
+	return &Translators{translators: []*Translator{}}
 }
 
-func (cs *Converters) Add(command *Command) {
+func (ts *Translators) Add(command *Command) {
 	const uninitializedPC = -1
-	converter := NewConverter(uninitializedPC, command.commandType, command.arg1, command.arg2)
-	cs.converters = append(cs.converters, converter)
+	translator := NewTranslator(uninitializedPC, command.commandType, command.arg1, command.arg2)
+	ts.translators = append(ts.translators, translator)
 }
 
-func (cs *Converters) ConvertAll() []string {
-	ci := &ConverterInitializer{}
-	result := ci.initializeHeader()
+func (ts *Translators) TranslatorAll() []string {
+	ti := &TranslatorInitializer{}
+	result := ti.initializeHeader()
 
-	for _, converter := range cs.converters {
-		converter.setPC(len(result))
-		assembler := converter.Convert()
+	for _, translator := range ts.translators {
+		translator.setPC(len(result))
+		assembler := translator.Translate()
 		result = append(result, assembler...)
 	}
 
-	return append(result, ci.initializeFooter()...)
+	return append(result, ti.initializeFooter()...)
 }
 
-type Converter struct {
+type Translator struct {
 	pc          int
 	commandType CommandType
 	arg1        string
@@ -42,25 +42,26 @@ type Converter struct {
 const (
 	basePointerAddress = 3
 	baseTempAddress    = 5
+	baseStaticAddress  = 16
 )
 
-func NewConverter(pc int, commandType CommandType, arg1 string, arg2 *int) *Converter {
-	return &Converter{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
+func NewTranslator(pc int, commandType CommandType, arg1 string, arg2 *int) *Translator {
+	return &Translator{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
 }
 
-func (c *Converter) setPC(pc int) {
-	c.pc = pc
+func (t *Translator) setPC(pc int) {
+	t.pc = pc
 }
 
-func (c *Converter) Convert() []string {
+func (t *Translator) Translate() []string {
 	result := []string{}
-	switch c.commandType {
+	switch t.commandType {
 	case CommandArithmetic:
-		result = c.arithmetic()
+		result = t.arithmetic()
 	case CommandPush:
-		result = c.push()
+		result = t.push()
 	case CommandPop:
-		result = c.pop()
+		result = t.pop()
 	default:
 		return result
 		//return fmt.Errorf("convert failed: %s", command.raw)
@@ -69,96 +70,96 @@ func (c *Converter) Convert() []string {
 	return result
 }
 
-func (c *Converter) arithmetic() []string {
-	switch c.arg1 {
+func (t *Translator) arithmetic() []string {
+	switch t.arg1 {
 	case "add":
-		return c.add()
+		return t.add()
 	case "sub":
-		return c.sub()
+		return t.sub()
 	case "neg":
-		return c.neg()
+		return t.neg()
 	case "eq":
-		return c.eq()
+		return t.eq()
 	case "lt":
-		return c.lt()
+		return t.lt()
 	case "gt":
-		return c.gt()
+		return t.gt()
 	case "and":
-		return c.and()
+		return t.and()
 	case "or":
-		return c.or()
+		return t.or()
 	case "not":
-		return c.not()
+		return t.not()
 	default:
 		return []string{}
 	}
 }
 
-func (c *Converter) add() []string {
+func (t *Translator) add() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を加算
-	return append(c.binaryFunction("M=M+D"), c.incrementSP()...)
+	return append(t.binaryFunction("M=M+D"), t.incrementSP()...)
 }
 
-func (c *Converter) sub() []string {
+func (t *Translator) sub() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	return append(c.binaryFunction("M=M-D"), c.incrementSP()...)
+	return append(t.binaryFunction("M=M-D"), t.incrementSP()...)
 }
 
-func (c *Converter) neg() []string {
+func (t *Translator) neg() []string {
 	// スタック領域の先頭の値（第一引数）の反転
-	return append(c.unaryFunction("M=-M"), c.incrementSP()...)
+	return append(t.unaryFunction("M=-M"), t.incrementSP()...)
 }
 
-func (c *Converter) eq() []string {
+func (t *Translator) eq() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := c.binaryFunction("D=M-D")
+	arithmeticStep := t.binaryFunction("D=M-D")
 	// 減算結果がゼロよりゼロと等しければtrueをセット、ゼロ以外ならfalseをセット
-	jumpStep := c.jumpTruth("JEQ", "JNE")
+	jumpStep := t.jumpTruth("JEQ", "JNE")
 
 	arithmeticStep = append(arithmeticStep, jumpStep...)
-	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
-	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
+	return append(t.returnAddress(len(arithmeticStep)), arithmeticStep...)
 }
 
-func (c *Converter) lt() []string {
+func (t *Translator) lt() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := c.binaryFunction("D=M-D")
+	arithmeticStep := t.binaryFunction("D=M-D")
 	// 減算結果がゼロより小さければtrueをセット、ゼロ以上ならfalseをセット
-	jumpStep := c.jumpTruth("JLT", "JGE")
+	jumpStep := t.jumpTruth("JLT", "JGE")
 
 	arithmeticStep = append(arithmeticStep, jumpStep...)
-	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
-	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
+	return append(t.returnAddress(len(arithmeticStep)), arithmeticStep...)
 }
 
-func (c *Converter) gt() []string {
+func (t *Translator) gt() []string {
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := c.binaryFunction("D=M-D")
+	arithmeticStep := t.binaryFunction("D=M-D")
 	// 減算結果がゼロより大きければtrueをセット、ゼロ以下ならfalseをセット
-	jumpStep := c.jumpTruth("JGT", "JLE")
+	jumpStep := t.jumpTruth("JGT", "JLE")
 
 	arithmeticStep = append(arithmeticStep, jumpStep...)
-	arithmeticStep = append(arithmeticStep, c.incrementSP()...)
-	return append(c.returnAddress(len(arithmeticStep)), arithmeticStep...)
+	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
+	return append(t.returnAddress(len(arithmeticStep)), arithmeticStep...)
 }
 
-func (c *Converter) and() []string {
+func (t *Translator) and() []string {
 	// スタック領域の先頭の値（第一引数）とDレジスタの値（第二引数）の論理積
-	return append(c.binaryFunction("M=D&M"), c.incrementSP()...)
+	return append(t.binaryFunction("M=D&M"), t.incrementSP()...)
 }
 
-func (c *Converter) or() []string {
+func (t *Translator) or() []string {
 	// スタック領域の先頭の値（第一引数）とDレジスタの値（第二引数）の論理和
-	return append(c.binaryFunction("M=D|M"), c.incrementSP()...)
+	return append(t.binaryFunction("M=D|M"), t.incrementSP()...)
 }
 
-func (c *Converter) not() []string {
+func (t *Translator) not() []string {
 	// スタック領域の先頭の値（第一引数）の否定
-	return append(c.unaryFunction("M=!M"), c.incrementSP()...)
+	return append(t.unaryFunction("M=!M"), t.incrementSP()...)
 }
 
 // 2変数関数
-func (c *Converter) binaryFunction(step string) []string {
+func (t *Translator) binaryFunction(step string) []string {
 	return []string{
 		// 第二引数を取得
 		"@SP",    // AレジスタにアドレスSPをセット
@@ -172,7 +173,7 @@ func (c *Converter) binaryFunction(step string) []string {
 }
 
 // 1変数関数
-func (c *Converter) unaryFunction(step string) []string {
+func (t *Translator) unaryFunction(step string) []string {
 	return []string{
 		"@SP",    // AレジスタにアドレスSPをセット
 		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
@@ -180,7 +181,7 @@ func (c *Converter) unaryFunction(step string) []string {
 	}
 }
 
-func (c *Converter) jumpTruth(trueMnemonic string, falseMnemonic string) []string {
+func (t *Translator) jumpTruth(trueMnemonic string, falseMnemonic string) []string {
 	trueJump := fmt.Sprintf("D;%s", trueMnemonic)
 	falseJump := fmt.Sprintf("D;%s", falseMnemonic)
 	return []string{
@@ -191,11 +192,11 @@ func (c *Converter) jumpTruth(trueMnemonic string, falseMnemonic string) []strin
 	}
 }
 
-func (c *Converter) returnAddress(afterStepCount int) []string {
+func (t *Translator) returnAddress(afterStepCount int) []string {
 	// ステップ数の微調整
 	const tweakStepCount = 2
 	// リターンアドレスは後続のステップ数を加味して算出
-	returnAddressInt := tweakStepCount + afterStepCount + c.pc
+	returnAddressInt := tweakStepCount + afterStepCount + t.pc
 	returnAddress := fmt.Sprintf("@%d", returnAddressInt)
 	return []string{
 		returnAddress, // Aレジスタにリターンアドレスをセット
@@ -205,82 +206,88 @@ func (c *Converter) returnAddress(afterStepCount int) []string {
 	}
 }
 
-func (c *Converter) push() []string {
-	switch c.arg1 {
+func (t *Translator) push() []string {
+	switch t.arg1 {
 	case "constant":
-		return c.pushConstant()
+		return t.pushConstant()
 	case "local":
-		return c.pushLocal()
+		return t.pushLocal()
 	case "argument":
-		return c.pushArgument()
+		return t.pushArgument()
 	case "this":
-		return c.pushThis()
+		return t.pushThis()
 	case "that":
-		return c.pushThat()
+		return t.pushThat()
 	case "temp":
-		return c.pushTemp()
+		return t.pushTemp()
 	case "pointer":
-		return c.pushPointer()
+		return t.pushPointer()
+	case "static":
+		return t.pushStatic()
 	default:
 		return []string{}
 	}
 }
 
-func (c *Converter) pushConstant() []string {
-	constant := fmt.Sprintf("@%d", *c.arg2)
+func (t *Translator) pushConstant() []string {
+	constant := fmt.Sprintf("@%d", *t.arg2)
 	result := []string{
 		constant, // Aレジスタに定数をセット
 		"D=A",    // Dレジスタへ、Aレジスタの値（直前でセットした定数）をセット
 	}
 
 	// スタックにDレジスタの値を積む
-	result = append(result, c.dRegisterToStack()...)
+	result = append(result, t.dRegisterToStack()...)
 	// スタックポインタのインクリメント
-	result = append(result, c.incrementSP()...)
+	result = append(result, t.incrementSP()...)
 	return result
 }
 
-func (c *Converter) pushLocal() []string {
-	return c.pushLabel("LCL")
+func (t *Translator) pushLocal() []string {
+	return t.pushLabel("LCL")
 }
 
-func (c *Converter) pushArgument() []string {
-	return c.pushLabel("ARG")
+func (t *Translator) pushArgument() []string {
+	return t.pushLabel("ARG")
 }
 
-func (c *Converter) pushThis() []string {
-	return c.pushLabel("THIS")
+func (t *Translator) pushThis() []string {
+	return t.pushLabel("THIS")
 }
 
-func (c *Converter) pushThat() []string {
-	return c.pushLabel("THAT")
+func (t *Translator) pushThat() []string {
+	return t.pushLabel("THAT")
 }
 
-func (c *Converter) pushTemp() []string {
-	return c.pushAddress(baseTempAddress)
+func (t *Translator) pushTemp() []string {
+	return t.pushAddress(baseTempAddress)
 }
 
-func (c *Converter) pushPointer() []string {
-	return c.pushAddress(basePointerAddress)
+func (t *Translator) pushPointer() []string {
+	return t.pushAddress(basePointerAddress)
 }
 
-func (c *Converter) pushAddress(baseAddress int) []string {
-	address := fmt.Sprintf("@%d", *c.arg2+baseAddress)
+func (t *Translator) pushStatic() []string {
+	return t.pushAddress(baseStaticAddress)
+}
+
+func (t *Translator) pushAddress(baseAddress int) []string {
+	address := fmt.Sprintf("@%d", *t.arg2+baseAddress)
 	result := []string{
 		address, // Aレジスタにアドレスをセット
 		"D=M",   // 指定したアドレスから取得した値をDレジスタにセット
 	}
 
 	// スタックにDレジスタの値を積む
-	result = append(result, c.dRegisterToStack()...)
+	result = append(result, t.dRegisterToStack()...)
 	// スタックポインタのインクリメント
-	result = append(result, c.incrementSP()...)
+	result = append(result, t.incrementSP()...)
 	return result
 }
 
-func (c *Converter) pushLabel(label string) []string {
+func (t *Translator) pushLabel(label string) []string {
 	// 取得先アドレスを算出して、取得した値をDレジスタにセット
-	index := fmt.Sprintf("@%d", *c.arg2)
+	index := fmt.Sprintf("@%d", *t.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
 	result := []string{
 		index,       // インデックスをAレジスタにセット
@@ -291,57 +298,63 @@ func (c *Converter) pushLabel(label string) []string {
 	}
 
 	// スタックにDレジスタの値を積む
-	result = append(result, c.dRegisterToStack()...)
+	result = append(result, t.dRegisterToStack()...)
 	// スタックポインタのインクリメント
-	result = append(result, c.incrementSP()...)
+	result = append(result, t.incrementSP()...)
 	return result
 }
 
-func (c *Converter) pop() []string {
-	switch c.arg1 {
+func (t *Translator) pop() []string {
+	switch t.arg1 {
 	case "local":
-		return c.popLocal()
+		return t.popLocal()
 	case "argument":
-		return c.popArgument()
+		return t.popArgument()
 	case "this":
-		return c.popThis()
+		return t.popThis()
 	case "that":
-		return c.popThat()
+		return t.popThat()
 	case "temp":
-		return c.popTemp()
+		return t.popTemp()
 	case "pointer":
-		return c.popPointer()
+		return t.popPointer()
+	case "static":
+		return t.popStatic()
 	default:
 		return []string{}
 	}
 }
 
-func (c *Converter) popLocal() []string {
-	return c.popLabel("LCL")
+func (t *Translator) popLocal() []string {
+	return t.popLabel("LCL")
 }
 
-func (c *Converter) popArgument() []string {
-	return c.popLabel("ARG")
+func (t *Translator) popArgument() []string {
+	return t.popLabel("ARG")
 }
 
-func (c *Converter) popThis() []string {
-	return c.popLabel("THIS")
+func (t *Translator) popThis() []string {
+	return t.popLabel("THIS")
 }
 
-func (c *Converter) popThat() []string {
-	return c.popLabel("THAT")
+func (t *Translator) popThat() []string {
+	return t.popLabel("THAT")
 }
 
-func (c *Converter) popTemp() []string {
-	return c.popAddress(baseTempAddress)
+func (t *Translator) popTemp() []string {
+	return t.popAddress(baseTempAddress)
 }
 
-func (c *Converter) popPointer() []string {
-	return c.popAddress(basePointerAddress)
+func (t *Translator) popPointer() []string {
+	return t.popAddress(basePointerAddress)
 }
 
-func (c *Converter) popAddress(baseAddress int) []string {
-	address := fmt.Sprintf("@%d", *c.arg2+baseAddress)
+func (t *Translator) popStatic() []string {
+	return t.popAddress(baseStaticAddress)
+}
+
+func (t *Translator) popAddress(baseAddress int) []string {
+	address := fmt.Sprintf("@%d", *t.arg2+baseAddress)
 
 	result := []string{
 		// スタック領域の先頭の値をDレジスタにセット
@@ -355,8 +368,8 @@ func (c *Converter) popAddress(baseAddress int) []string {
 	return result
 }
 
-func (c *Converter) popLabel(label string) []string {
-	index := fmt.Sprintf("@%d", *c.arg2)
+func (t *Translator) popLabel(label string) []string {
+	index := fmt.Sprintf("@%d", *t.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
 
 	result := []string{
@@ -381,7 +394,7 @@ func (c *Converter) popLabel(label string) []string {
 
 // スタックポインタのインクリメント
 // スタックに値を積んだら忘れずに実施する
-func (c *Converter) incrementSP() []string {
+func (t *Translator) incrementSP() []string {
 	return []string{
 		"@SP",   // AレジスタにアドレスSPをセット
 		"M=M+1", // SPの値をインクリメント
@@ -389,7 +402,7 @@ func (c *Converter) incrementSP() []string {
 }
 
 // スタックにDレジスタの値を積む
-func (c *Converter) dRegisterToStack() []string {
+func (t *Translator) dRegisterToStack() []string {
 	return []string{
 		"@SP", // AレジスタにアドレスSPをセット
 		"A=M", // AレジスタにSPの値をセット
@@ -397,13 +410,13 @@ func (c *Converter) dRegisterToStack() []string {
 	}
 }
 
-type ConverterInitializer struct{}
+type TranslatorInitializer struct{}
 
-func (ci *ConverterInitializer) initializeHeader() []string {
-	return ci.initializeLabels()
+func (ti *TranslatorInitializer) initializeHeader() []string {
+	return ti.initializeLabels()
 }
 
-func (ci *ConverterInitializer) initializeLabels() []string {
+func (ti *TranslatorInitializer) initializeLabels() []string {
 	labels := map[int]string{
 		256:  "SP",
 		300:  "LCL",
@@ -421,12 +434,12 @@ func (ci *ConverterInitializer) initializeLabels() []string {
 
 	result := []string{}
 	for _, address := range addresses {
-		result = append(result, ci.initializeLabel(labels[address], address)...)
+		result = append(result, ti.initializeLabel(labels[address], address)...)
 	}
 	return result
 }
 
-func (ci *ConverterInitializer) initializeLabel(name string, address int) []string {
+func (ti *TranslatorInitializer) initializeLabel(name string, address int) []string {
 	constant := fmt.Sprintf("@%d", address)
 	label := fmt.Sprintf("@%s", name)
 	return []string{
@@ -437,11 +450,11 @@ func (ci *ConverterInitializer) initializeLabel(name string, address int) []stri
 	}
 }
 
-func (ci *ConverterInitializer) initializeFooter() []string {
-	endStep := ci.initializeEndStep()
-	endLabel := ci.initializeEND()
-	trueLabel := ci.initializeTRUE()
-	falseLabel := ci.initializeFALSE()
+func (ti *TranslatorInitializer) initializeFooter() []string {
+	endStep := ti.initializeEndStep()
+	endLabel := ti.initializeEND()
+	trueLabel := ti.initializeTRUE()
+	falseLabel := ti.initializeFALSE()
 
 	result := []string{}
 	result = append(result, endStep...)
@@ -454,20 +467,20 @@ func (ci *ConverterInitializer) initializeFooter() []string {
 	return result
 }
 
-func (ci *ConverterInitializer) initializeEndStep() []string {
+func (ti *TranslatorInitializer) initializeEndStep() []string {
 	return []string{
 		"@END",
 		"0;JMP",
 	}
 }
 
-func (ci *ConverterInitializer) initializeEND() []string {
+func (ti *TranslatorInitializer) initializeEND() []string {
 	return []string{
 		"(END)", // ENDラベル以降は何もしない
 	}
 }
 
-func (ci *ConverterInitializer) initializeTRUE() []string {
+func (ti *TranslatorInitializer) initializeTRUE() []string {
 	return []string{
 		"(TRUE)",
 		"  @SP",   // AレジスタにアドレスSPをセット
@@ -479,7 +492,7 @@ func (ci *ConverterInitializer) initializeTRUE() []string {
 	}
 }
 
-func (ci *ConverterInitializer) initializeFALSE() []string {
+func (ti *TranslatorInitializer) initializeFALSE() []string {
 	return []string{
 		"(FALSE)",
 		"  @SP",   // AレジスタにアドレスSPをセット
