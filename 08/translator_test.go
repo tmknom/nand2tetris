@@ -6,7 +6,35 @@ import (
 	"testing"
 )
 
-const testPC = 100
+const (
+	testPC = 100
+)
+
+var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義
+
+func TestNewTranslators(t *testing.T) {
+	cases := []struct {
+		desc     string
+		filename string
+		want     string
+	}{
+		{
+			desc:     "TODO",
+			filename: "StackArithmetic/SimpleAdd/Test.vm",
+			want:     "Test",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			dest := NewTranslators(tc.filename)
+			got := dest.moduleName
+			if got != tc.want {
+				t.Errorf("failed: got = %s, want %s", got, tc.want)
+			}
+		})
+	}
+}
 
 func TestTranslatorArithmetic(t *testing.T) {
 	cases := []struct {
@@ -162,7 +190,7 @@ func TestTranslatorArithmetic(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, CommandArithmetic, tc.arg1, nil)
+			translator := NewTranslator(testPC, CommandArithmetic, tc.arg1, nil, &testModuleName)
 			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
@@ -315,7 +343,7 @@ func TestTranslatorPush(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2)
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
@@ -455,7 +483,7 @@ func TestTranslatorPop(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2)
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))

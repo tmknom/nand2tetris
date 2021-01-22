@@ -2,20 +2,23 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 )
 
 type Translators struct {
 	translators []*Translator
+	moduleName  string
 }
 
-func NewTranslators() *Translators {
-	return &Translators{translators: []*Translator{}}
+func NewTranslators(filename string) *Translators {
+	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
+	return &Translators{translators: []*Translator{}, moduleName: moduleName}
 }
 
 func (ts *Translators) Add(command *Command) {
 	const uninitializedPC = -1
-	translator := NewTranslator(uninitializedPC, command.commandType, command.arg1, command.arg2)
+	translator := NewTranslator(uninitializedPC, command.commandType, command.arg1, command.arg2, &ts.moduleName)
 	ts.translators = append(ts.translators, translator)
 }
 
@@ -37,6 +40,7 @@ type Translator struct {
 	commandType CommandType
 	arg1        string
 	arg2        *int
+	moduleName  *string
 }
 
 const (
@@ -45,8 +49,8 @@ const (
 	baseStaticAddress  = 16
 )
 
-func NewTranslator(pc int, commandType CommandType, arg1 string, arg2 *int) *Translator {
-	return &Translator{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2}
+func NewTranslator(pc int, commandType CommandType, arg1 string, arg2 *int, moduleName *string) *Translator {
+	return &Translator{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2, moduleName: moduleName}
 }
 
 func (t *Translator) setPC(pc int) {
@@ -62,6 +66,8 @@ func (t *Translator) Translate() []string {
 		result = t.push()
 	case CommandPop:
 		result = t.pop()
+	case CommandLabel:
+		result = t.label()
 	default:
 		return result
 		//return fmt.Errorf("convert failed: %s", command.raw)
@@ -408,6 +414,10 @@ func (t *Translator) dRegisterToStack() []string {
 		"A=M", // AレジスタにSPの値をセット
 		"M=D", // スタック領域へ、Dレジスタの値（最初にセットした定数）をセット
 	}
+}
+
+func (t *Translator) label() []string {
+	return []string{t.arg1}
 }
 
 type TranslatorInitializer struct{}

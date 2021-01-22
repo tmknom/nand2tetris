@@ -20,7 +20,7 @@ func (i *Integrator) Integrate() error {
 		return err
 	}
 
-	translators := i.factoryTranslators(commands)
+	translators := i.factoryTranslators(commands, i.filename)
 	assembler := translators.TranslatorAll()
 
 	dest := NewDest(i.filename)
@@ -32,8 +32,8 @@ func (i *Integrator) Integrate() error {
 	return nil
 }
 
-func (i *Integrator) factoryTranslators(commands *Commands) *Translators {
-	translators := NewTranslators()
+func (i *Integrator) factoryTranslators(commands *Commands, filename string) *Translators {
+	translators := NewTranslators(filename)
 	for _, command := range commands.commands {
 		translators.Add(command)
 	}
