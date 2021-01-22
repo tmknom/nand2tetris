@@ -10,7 +10,7 @@ type Arg struct {
 	files []string
 }
 
-const DefaultArg = "ProgramFlow/BasicLoop/"
+const DefaultArg = "FunctionCalls/SimpleFunction/"
 
 func NewArg(args []string) *Arg {
 	arg := DefaultArg

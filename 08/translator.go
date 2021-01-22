@@ -71,6 +71,8 @@ func (t *Translator) Translate() []string {
 		return t.labelGoto()
 	case CommandIf:
 		return t.ifGoto()
+	case CommandFunction:
+		return t.function()
 	default:
 		return []string{}
 	}
@@ -437,9 +439,28 @@ func (t *Translator) ifGoto() []string {
 		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
 		"D=M",    // スタック領域の先頭の値をDレジスタにセット
 		// スタックの先頭の値を使って分岐
-		label, // Aレジスタにラベルをセット
+		label,   // Aレジスタにラベルをセット
 		"D;JNE", // Dレジスタの値（スタックの先頭の値）がゼロ以外ならラベルにジャンプ
 	}
+}
+
+func (t *Translator) function() []string {
+	// 関数名のラベルを定義
+	label := fmt.Sprintf("(%s)", t.arg1)
+	result := []string{label}
+
+	// 指定されたローカル変数の数だけ領域を確保して初期化
+	for i := 0; i < *t.arg2; i++ {
+		initLocal := []string{
+			"@SP",    // AレジスタにアドレスSPをセット
+			"A=M", // // AレジスタにSPの値をセット
+			"M=0",    // スタックの先頭の値に0をセット
+		}
+		result = append(result, initLocal...)
+		result = append(result, t.incrementSP()...)
+	}
+
+	return result
 }
 
 type TranslatorInitializer struct{}

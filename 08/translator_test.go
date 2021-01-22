@@ -587,6 +587,47 @@ func TestTranslatorIfGoto(t *testing.T) {
 	}
 }
 
+func TestTranslatorFunction(t *testing.T) {
+	cases := []struct {
+		desc        string
+		commandType CommandType
+		arg1        string
+		arg2        int
+		moduleName  string
+		want        []string
+	}{
+		{
+			desc:        "function Math.max 2",
+			commandType: CommandFunction,
+			arg1:        "Math.max",
+			arg2:        2,
+			want: []string{
+				"(Math.max)",
+				"@SP",
+				"A=M",
+				"M=0",
+				"@SP",
+				"M=M+1",
+				"@SP",
+				"A=M",
+				"M=0",
+				"@SP",
+				"M=M+1",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
+			got := translator.Translate()
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+			}
+		})
+	}
+}
+
 func prettySlice(list []string) string {
 	contents := []string{}
 	for i, element := range list {
