@@ -417,7 +417,8 @@ func (t *Translator) dRegisterToStack() []string {
 }
 
 func (t *Translator) label() []string {
-	return []string{t.arg1}
+	label := fmt.Sprintf("(%s$%s)", *t.moduleName, t.arg1)
+	return []string{label}
 }
 
 type TranslatorInitializer struct{}
