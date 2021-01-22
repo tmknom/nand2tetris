@@ -76,6 +76,8 @@ func (t *Translator) Translate() []string {
 		return t.function()
 	case CommandReturn:
 		return t.returnFunction()
+	case CommandCall:
+		return t.call()
 	default:
 		return []string{}
 	}
@@ -540,6 +542,87 @@ func (t *Translator) returnFunction() []string {
 	result = append(result, lcl...)
 	result = append(result, gotoRet...)
 
+	return result
+}
+
+// call <func-name> <arg-count>
+// call Main.add 1
+func (t *Translator) call() []string {
+	functionName := t.arg1
+
+	// push return-address
+	label := fmt.Sprintf("RETURN-ADDRESS$%s$%s$%d", *t.moduleName, functionName, t.pc)
+	returnAddress := fmt.Sprintf("@%s", label)
+	ret := []string{
+		returnAddress, // リターンアドレスをAレジスタにセット
+		"D=A",         // リターンアドレスを取得してDレジスタにセット
+	}
+	ret = append(ret, t.dRegisterToStack()...)
+	ret = append(ret, t.incrementSP()...)
+
+	// push LCL
+	callerLCL := t.storeCallerState("LCL")
+	// push ARG
+	callerARG := t.storeCallerState("ARG")
+	// push THIS
+	callerTHIS := t.storeCallerState("THIS")
+	// push THAT
+	callerTHAT := t.storeCallerState("THAT")
+
+	// @ARG = SP-n-5
+	argCount := fmt.Sprintf("@%d", *t.arg2)
+	const callerStateCount = "@5" // 呼び出し元の関数の状態の数=RTN+LCL+ARG+THIS+THAT=5
+	arg := []string{
+		argCount,         // 関数の引数の数(n)をAレジスタにセット
+		"D=A",            // 関数の引数の数(n)をAレジスタから取得してDレジスタにセット
+		callerStateCount, // 呼び出し元の関数の状態の数(=5)をAレジスタにセット
+		"D=D+A",          // 「n+5」を算出してDレジスタにセット
+		"@SP",            // AレジスタにアドレスSPをセット
+		"D=M-D",          // 「SP-n-5」を算出してDレジスタにセット
+		"@ARG",           // AレジスタにアドレスARGをセット
+		"M=D",            // 「SP-n-5」をARGにセット
+	}
+
+	// @LCL=SP
+	lcl := []string{
+		"@SP",  // AレジスタにアドレスSPをセット
+		"D=M",  // SPの値をDレジスタにセット
+		"@LCL", // AレジスタにアドレスARGをセット
+		"M=D",  // SPの値をARGにセット
+	}
+
+	// goto f
+	functionLabel := fmt.Sprintf("@%s", functionName)
+	gotoFunction := []string{
+		functionLabel,
+		"0;JMP",
+	}
+
+	// (return-address)
+	returnAddressLabel := []string{fmt.Sprintf("(%s)", label)}
+
+	result := []string{}
+	result = append(result, ret...)
+	result = append(result, callerLCL...)
+	result = append(result, callerARG...)
+	result = append(result, callerTHIS...)
+	result = append(result, callerTHAT...)
+	result = append(result, arg...)
+	result = append(result, lcl...)
+	result = append(result, gotoFunction...)
+	result = append(result, returnAddressLabel...)
+
+	return result
+}
+
+func (t *Translator) storeCallerState(label string) []string {
+	labelAddress := fmt.Sprintf("@%s", label)
+	result := []string{
+		labelAddress, // 指定したラベルのアドレスをAレジスタにセット
+		"D=M",        // 取得した値をDレジスタにセット
+	}
+	result = append(result, t.dRegisterToStack()...)
+	result = append(result, t.incrementSP()...)
 	return result
 }
 
