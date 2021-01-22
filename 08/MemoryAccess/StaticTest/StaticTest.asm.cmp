@@ -1,0 +1,110 @@
+@256
+D=A
+@SP
+M=D
+@300
+D=A
+@LCL
+M=D
+@400
+D=A
+@ARG
+M=D
+@3000
+D=A
+@THIS
+M=D
+@3010
+D=A
+@THAT
+M=D
+@111
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@333
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@888
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@SP
+AM=M-1
+D=M
+@24
+M=D
+@SP
+AM=M-1
+D=M
+@19
+M=D
+@SP
+AM=M-1
+D=M
+@17
+M=D
+@19
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@17
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+M=M-D
+@SP
+M=M+1
+@24
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+M=M+D
+@SP
+M=M+1
+@END
+0;JMP
+(TRUE)
+  @SP
+  A=M
+  M=-1
+  @R15
+  A=M
+  0;JMP
+(FALSE)
+  @SP
+  A=M
+  M=0
+  @R15
+  A=M
+  0;JMP
+(END)
