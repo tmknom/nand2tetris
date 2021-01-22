@@ -75,8 +75,14 @@ func (c *Command) Parse() error {
 }
 
 func (c *Command) parseLength1(split []string) {
-	c.commandType = CommandArithmetic
-	c.arg1 = split[0]
+	commandTypeString := split[0]
+	switch commandTypeString {
+	case "return":
+		c.commandType = CommandReturn
+	default:
+		c.commandType = CommandArithmetic
+	}
+	c.arg1 = commandTypeString
 }
 
 func (c *Command) parseLength2(split []string) error {
@@ -121,8 +127,6 @@ func (c *Command) parseCommandType(commandTypeString string) (*CommandType, erro
 		commandType = CommandIf
 	} else if commandTypeString == "function" {
 		commandType = CommandFunction
-	} else if commandTypeString == "return" {
-		commandType = CommandReturn
 	} else if commandTypeString == "call" {
 		commandType = CommandCall
 	} else {

@@ -73,6 +73,8 @@ func (t *Translator) Translate() []string {
 		return t.ifGoto()
 	case CommandFunction:
 		return t.function()
+	case CommandReturn:
+		return t.returnFunction()
 	default:
 		return []string{}
 	}
@@ -452,9 +454,9 @@ func (t *Translator) function() []string {
 	// 指定されたローカル変数の数だけ領域を確保して初期化
 	for i := 0; i < *t.arg2; i++ {
 		initLocal := []string{
-			"@SP",    // AレジスタにアドレスSPをセット
+			"@SP", // AレジスタにアドレスSPをセット
 			"A=M", // // AレジスタにSPの値をセット
-			"M=0",    // スタックの先頭の値に0をセット
+			"M=0", // スタックの先頭の値に0をセット
 		}
 		result = append(result, initLocal...)
 		result = append(result, t.incrementSP()...)
@@ -463,9 +465,88 @@ func (t *Translator) function() []string {
 	return result
 }
 
+func (t *Translator) returnFunction() []string {
+	// FRAME=LCL
+	// R14にFRAMEの値を格納して参照できるようにしておく
+	frame := []string{
+		"@LCL", // AレジスタにアドレスLCLをセット
+		"D=M",  // LCLの値をDレジスタにセット
+		"@R13", // AレジスタにアドレスR13をセット
+		"M=D",  // Dレジスタ（LCLの値）をR13にセット
+	}
+
+	// RET = *(FRAME-5)
+	// R14にリターンアドレスを格納して最後に使う
+	ret := t.restoreByFrame("R14", 5)
+
+	// *ARG = pop()
+	retValue := []string{
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		"@ARG",   // AレジスタにアドレスARGをセット
+		"A=M",    // AレジスタにARGの値をセット
+		"M=D",    // 返り値（スタック領域の先頭の値）をARGにセット
+	}
+
+	// SP = ARG+1 : 呼び出すもとのSPを戻り値の直後のアドレスに変更
+	sp := []string{
+		"D=A",   // ARGのアドレスをDレジスタにセット
+		"@SP",   // AレジスタにアドレスSPをセット
+		"M=D+1", // 「ARG+1」を計算してSPにセット
+	}
+
+	// THAT = *(FRAME-1)
+	that := t.restoreByFrame("THAT", 1)
+
+	// THIS = *(FRAME-2)
+	this := t.restoreByFrame("THIS", 2)
+
+	// ARG = *(FRAME-3)
+	arg := t.restoreByFrame("ARG", 3)
+
+	// LCL = *(FRAME-4)
+	lcl := t.restoreByFrame("LCL", 4)
+
+	// goto RET
+	gotoRet := []string{
+		"@R14",  // AレジスタにアドレスR14をセット
+		"A=M",   // Aレジスタにリターンアドレスをセット
+		"0;JMP", // リターンアドレスにジャンプ
+	}
+
+	result := []string{}
+	result = append(result, frame...)
+	result = append(result, ret...)
+	result = append(result, retValue...)
+	result = append(result, sp...)
+	result = append(result, that...)
+	result = append(result, this...)
+	result = append(result, arg...)
+	result = append(result, lcl...)
+	result = append(result, gotoRet...)
+
+	return result
+}
+
+func (t *Translator) restoreByFrame(definedLabel string, frameIndex int) []string {
+	index := fmt.Sprintf("@%d", frameIndex)
+	label := fmt.Sprintf("@%s", definedLabel)
+	return []string{
+		"@R13",  // AレジスタにアドレスR13（FRAMEのアドレス）をセット
+		"D=M",   // FRAMEの値をDレジスタにセット
+		index,   // Aレジスタに定数をセット
+		"A=D-A", // 「FRAME-frameIndex」を計算してAレジスタにセット
+		"D=M",   // *(FRAME-frameIndex)の値をDレジスタにセット
+		label,   // Aレジスタに定義済みラベルをセット
+		"M=D",   // Dレジスタの値をTHATにセット
+	}
+}
+
 type TranslatorInitializer struct{}
 
 func (ti *TranslatorInitializer) initializeHeader() []string {
+	//return []string{}
 	return ti.initializeLabels()
 }
 

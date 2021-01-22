@@ -593,7 +593,6 @@ func TestTranslatorFunction(t *testing.T) {
 		commandType CommandType
 		arg1        string
 		arg2        int
-		moduleName  string
 		want        []string
 	}{
 		{
@@ -620,6 +619,101 @@ func TestTranslatorFunction(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
+			got := translator.Translate()
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+			}
+		})
+	}
+}
+
+func TestTranslatorReturnFunction(t *testing.T) {
+	cases := []struct {
+		desc        string
+		commandType CommandType
+		arg1        string
+		want        []string
+	}{
+		{
+			desc:        "return",
+			commandType: CommandReturn,
+			arg1:        "return",
+			want: []string{
+				// FRAME=LCL
+				"@LCL",
+				"D=M",
+				"@R13",
+				"M=D",
+
+				// RET = *(FRAME-5)
+				"@R13",
+				"D=M",
+				"@5",
+				"A=D-A",
+				"D=M",
+				"@R14",
+				"M=D",
+
+				// *ARG = pop()
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@ARG",
+				"A=M",
+				"M=D",
+
+				// SP = ARG+1
+				"D=A",
+				"@SP",
+				"M=D+1",
+
+				// THAT = *(FRAME-1)
+				"@R13",
+				"D=M",
+				"@1",
+				"A=D-A",
+				"D=M",
+				"@THAT",
+				"M=D",
+
+				// THIS = *(FRAME-2)
+				"@R13",
+				"D=M",
+				"@2",
+				"A=D-A",
+				"D=M",
+				"@THIS",
+				"M=D",
+
+				// ARG = *(FRAME-3)
+				"@R13",
+				"D=M",
+				"@3",
+				"A=D-A",
+				"D=M",
+				"@ARG",
+				"M=D",
+
+				// LCL = *(FRAME-4)
+				"@R13",
+				"D=M",
+				"@4",
+				"A=D-A",
+				"D=M",
+				"@LCL",
+				"M=D",
+
+				// goto RET
+				"@R14",
+				"A=M",
+				"0;JMP",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &testModuleName)
 			got := translator.Translate()
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
