@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"reflect"
+	"github.com/google/go-cmp/cmp"
+
 	"strings"
 	"testing"
 )
@@ -237,8 +237,9 @@ func TestTranslatorArithmetic(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, CommandArithmetic, tc.arg1, nil, &testModuleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -390,8 +391,9 @@ func TestTranslatorPush(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -530,8 +532,9 @@ func TestTranslatorPop(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -560,8 +563,9 @@ func TestTranslatorLabel(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -591,8 +595,9 @@ func TestTranslatorLabelGoto(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -625,8 +630,9 @@ func TestTranslatorIfGoto(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -665,8 +671,9 @@ func TestTranslatorFunction(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -760,18 +767,10 @@ func TestTranslatorReturnFunction(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &testModuleName)
 			got := translator.Translate()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
-}
-
-func prettySlice(list []string) string {
-	contents := []string{}
-	for i, element := range list {
-		pretty := fmt.Sprintf("  %d: %s,\n", i, element)
-		contents = append(contents, pretty)
-	}
-	return fmt.Sprintf("\n%s", contents)
 }
