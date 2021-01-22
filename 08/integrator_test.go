@@ -45,6 +45,12 @@ func TestIntegratorIntegrate(t *testing.T) {
 			destFile: "MemoryAccess/StaticTest/StaticTest.asm",
 			wantFile: "MemoryAccess/StaticTest/StaticTest.asm.cmp",
 		},
+		{
+			desc:     "BasicLoop",
+			srcFile:  "ProgramFlow/BasicLoop/BasicLoop.vm",
+			destFile: "ProgramFlow/BasicLoop/BasicLoop.asm",
+			wantFile: "ProgramFlow/BasicLoop/BasicLoop.asm.cmp",
+		},
 	}
 
 	for _, tc := range cases {
