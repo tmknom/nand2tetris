@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
 const (
-	testPC = 100
+	testFilename = "Dummy.vm"
+	testPC       = 100
 )
 
 var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義
@@ -27,10 +29,53 @@ func TestNewTranslators(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			dest := NewTranslators(tc.filename)
+			dest := NewTranslators(tc.filename, false)
 			got := dest.moduleName
 			if got != tc.want {
 				t.Errorf("failed: got = %s, want %s", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestTranslatorsTranslateAll(t *testing.T) {
+	cases := []struct {
+		desc    string
+		hasInit HasInit
+		want    int
+	}{
+		{
+			desc:    "hasInitがtrue",
+			hasInit: true,
+			want:    38,
+		},
+		{
+			desc:    "hasInitがfalse",
+			hasInit: false,
+			want:    37,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translators := NewTranslators(testFilename, tc.hasInit)
+			assembler := translators.TranslateAll()
+
+			var containInit HasInit = false
+			for _, line := range assembler {
+				if strings.Contains(line, "@Sys.init") {
+					containInit = true
+					break
+				}
+			}
+
+			if containInit != tc.hasInit {
+				t.Errorf("failed hasInit: got = %t, want = %t", containInit, tc.hasInit)
+			}
+
+			length := len(assembler)
+			if length != tc.want {
+				t.Errorf("failed assembler length: got = %d, hasInit = %d", length, tc.want)
 			}
 		})
 	}

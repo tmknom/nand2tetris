@@ -9,11 +9,12 @@ import (
 type Translators struct {
 	translators []*Translator
 	moduleName  string
+	hasInit     HasInit
 }
 
-func NewTranslators(filename string) *Translators {
+func NewTranslators(filename string, hasInit HasInit) *Translators {
 	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
-	return &Translators{translators: []*Translator{}, moduleName: moduleName}
+	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit}
 }
 
 func (ts *Translators) Add(command *Command) {
@@ -22,8 +23,8 @@ func (ts *Translators) Add(command *Command) {
 	ts.translators = append(ts.translators, translator)
 }
 
-func (ts *Translators) TranslatorAll() []string {
-	ti := &TranslatorInitializer{}
+func (ts *Translators) TranslateAll() []string {
+	ti := &TranslatorInitializer{hasInit: ts.hasInit}
 	result := ti.initializeHeader()
 
 	for _, translator := range ts.translators {
@@ -543,11 +544,16 @@ func (t *Translator) restoreByFrame(definedLabel string, frameIndex int) []strin
 	}
 }
 
-type TranslatorInitializer struct{}
+type TranslatorInitializer struct {
+	hasInit HasInit
+}
 
 func (ti *TranslatorInitializer) initializeHeader() []string {
 	//return []string{}
-	return ti.initializeLabels()
+	result := []string{}
+	result = append(result, ti.initializeLabels()...)
+	result = append(result, ti.initializeSysInit()...) // これは必ず最後に追加する
+	return result
 }
 
 func (ti *TranslatorInitializer) initializeLabels() []string {
@@ -571,6 +577,15 @@ func (ti *TranslatorInitializer) initializeLabels() []string {
 		result = append(result, ti.initializeLabel(labels[address], address)...)
 	}
 	return result
+}
+
+// 初期化処理が終わったら最後にSys.initを実行する
+func (ti *TranslatorInitializer) initializeSysInit() []string {
+	// 以前のテストケースも動くように「function Sys.init 0」が定義されてるときだけSys.initを呼ぶ
+	if ti.hasInit {
+		return []string{"@Sys.init"}
+	}
+	return []string{}
 }
 
 func (ti *TranslatorInitializer) initializeLabel(name string, address int) []string {
