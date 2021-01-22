@@ -522,6 +522,37 @@ func TestTranslatorLabel(t *testing.T) {
 	}
 }
 
+func TestTranslatorGotoLabel(t *testing.T) {
+	cases := []struct {
+		desc        string
+		commandType CommandType
+		arg1        string
+		moduleName  string
+		want        []string
+	}{
+		{
+			desc:        "goto Bar",
+			commandType: CommandGoto,
+			arg1:        "Bar",
+			moduleName:  "FooModule",
+			want: []string{
+				"@FooModule$Bar",
+				"0;JMP",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
+			got := translator.Translate()
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("failed %s:\ngot = %s,\nwant = %s", tc.desc, prettySlice(got), prettySlice(tc.want))
+			}
+		})
+	}
+}
+
 func prettySlice(list []string) string {
 	contents := []string{}
 	for i, element := range list {

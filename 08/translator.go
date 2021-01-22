@@ -58,22 +58,20 @@ func (t *Translator) setPC(pc int) {
 }
 
 func (t *Translator) Translate() []string {
-	result := []string{}
 	switch t.commandType {
 	case CommandArithmetic:
-		result = t.arithmetic()
+		return t.arithmetic()
 	case CommandPush:
-		result = t.push()
+		return t.push()
 	case CommandPop:
-		result = t.pop()
+		return t.pop()
 	case CommandLabel:
-		result = t.label()
+		return t.label()
+	case CommandGoto:
+		return t.gotoLabel()
 	default:
-		return result
-		//return fmt.Errorf("convert failed: %s", command.raw)
+		return []string{}
 	}
-
-	return result
 }
 
 func (t *Translator) arithmetic() []string {
@@ -419,6 +417,14 @@ func (t *Translator) dRegisterToStack() []string {
 func (t *Translator) label() []string {
 	label := fmt.Sprintf("(%s$%s)", *t.moduleName, t.arg1)
 	return []string{label}
+}
+
+func (t *Translator) gotoLabel() []string {
+	label := fmt.Sprintf("@%s$%s", *t.moduleName, t.arg1)
+	return []string{
+		label,
+		"0;JMP",
+	}
 }
 
 type TranslatorInitializer struct{}
