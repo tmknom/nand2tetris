@@ -156,8 +156,10 @@ func (t *Translator) compareBinary(condition string) []string {
 	arithmeticStep := []string{}
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
 	arithmeticStep = append(arithmeticStep, t.binaryFunction("D=M-D")...)
-	// Dレジスタに格納した減算結果と、引数の条件を比較してtrue/falseをセット
-	arithmeticStep = append(arithmeticStep, t.jumpTruth(condition)...) // true/falseをDレジスタに格納してもらって、それをコチラでスタックに積む
+	// Dレジスタに格納した減算結果と引数の条件を比較＆true/falseをDレジスタにセット
+	arithmeticStep = append(arithmeticStep, t.jumpTruth(condition)...)
+	// Dレジスタに格納されたtrue/falseをスタックに積む
+	arithmeticStep = append(arithmeticStep, t.dRegisterToStack()...)
 	// スタックに値を積んだので、スタックポインタをインクリメントしておく
 	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
 
@@ -203,15 +205,15 @@ func (t *Translator) jumpTruth(condition string) []string {
 
 func (t *Translator) returnFromJumpTruth(afterStepCount int) []string {
 	// ステップ数の微調整
-	const tweakStepCount = 2
+	const tweakStepCount = -1
 	// リターンアドレスは後続のステップ数を加味して算出
 	returnAddressInt := tweakStepCount + afterStepCount + t.pc
 	returnAddress := fmt.Sprintf("@%d", returnAddressInt)
 	return []string{
 		returnAddress, // Aレジスタにリターンアドレスをセット
 		"D=A",         // Dレジスタにリターンアドレスをセット
-		"@R15",        // AレジスタにアドレスR15をセット
-		"M=D",         // R15にリターンアドレスをセット
+		"@R14",        // AレジスタにアドレスR14をセット
+		"M=D",         // R14にリターンアドレスをセット
 	}
 }
 
@@ -628,25 +630,23 @@ func (ti *TranslatorInitializer) initializeEND() []string {
 	}
 }
 
+// Dレジスタにtrueをセットする
 func (ti *TranslatorInitializer) initializeTRUE() []string {
 	return []string{
 		"(TRUE)",
-		"  @SP",   // AレジスタにアドレスSPをセット
-		"  A=M",   // AレジスタにSPの値をセット
-		"  M=-1",  // スタックの先頭の値にtrueをセット // TODO スタックの先頭を書き換えるのがダメ、Dレジスタに格納して返す
-		"  @R15",  // AレジスタにアドレスR15をセット
+		"  D=-1",  // Dレジスタにtrueをセット
+		"  @R14",  // AレジスタにアドレスR14をセット
 		"  A=M",   // Aレジスタにリターンアドレスをセット
 		"  0;JMP", // リターンアドレスにジャンプ
 	}
 }
 
+// Dレジスタにfalseをセットする
 func (ti *TranslatorInitializer) initializeFALSE() []string {
 	return []string{
 		"(FALSE)",
-		"  @SP",   // AレジスタにアドレスSPをセット
-		"  A=M",   // AレジスタにSPの値をセット
-		"  M=0",   // スタックの先頭の値にfalseをセット // TODO スタックの先頭を書き換えるのがダメ、Dレジスタに格納して返す
-		"  @R15",  // AレジスタにアドレスR15をセット
+		"  D=0",   // Dレジスタにfalseをセット
+		"  @R14",  // AレジスタにアドレスR14をセット
 		"  A=M",   // Aレジスタにリターンアドレスをセット
 		"  0;JMP", // リターンアドレスにジャンプ
 	}

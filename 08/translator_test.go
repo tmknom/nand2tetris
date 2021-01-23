@@ -47,12 +47,12 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 		{
 			desc:    "hasInitがtrue",
 			hasInit: true,
-			want:    38,
+			want:    34,
 		},
 		{
 			desc:    "hasInitがfalse",
 			hasInit: false,
-			want:    37,
+			want:    33,
 		},
 	}
 
@@ -132,7 +132,7 @@ func TestTranslatorArithmetic(t *testing.T) {
 			want: []string{
 				"@114",
 				"D=A",
-				"@R15",
+				"@R14",
 				"M=D",
 				"@SP",
 				"AM=M-1",
@@ -145,6 +145,9 @@ func TestTranslatorArithmetic(t *testing.T) {
 				"@FALSE",
 				"0;JMP",
 				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
 				"M=M+1",
 			},
 		},
@@ -154,7 +157,7 @@ func TestTranslatorArithmetic(t *testing.T) {
 			want: []string{
 				"@114",
 				"D=A",
-				"@R15",
+				"@R14",
 				"M=D",
 				"@SP",
 				"AM=M-1",
@@ -167,6 +170,9 @@ func TestTranslatorArithmetic(t *testing.T) {
 				"@FALSE",
 				"0;JMP",
 				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
 				"M=M+1",
 			},
 		},
@@ -176,7 +182,7 @@ func TestTranslatorArithmetic(t *testing.T) {
 			want: []string{
 				"@114",
 				"D=A",
-				"@R15",
+				"@R14",
 				"M=D",
 				"@SP",
 				"AM=M-1",
@@ -188,6 +194,9 @@ func TestTranslatorArithmetic(t *testing.T) {
 				"D;JGT",
 				"@FALSE",
 				"0;JMP",
+				"@SP",
+				"A=M",
+				"M=D",
 				"@SP",
 				"M=M+1",
 			},
