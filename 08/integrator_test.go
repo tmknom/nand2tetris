@@ -63,6 +63,12 @@ func TestIntegratorIntegrate(t *testing.T) {
 			destFile: "FunctionCalls/SimpleFunction/SimpleFunction.asm",
 			wantFile: "FunctionCalls/SimpleFunction/SimpleFunction.asm.cmp",
 		},
+		{
+			desc:     "FibonacciElement",
+			srcFile:  "FunctionCalls/FibonacciElement/FibonacciElement.vm",
+			destFile: "FunctionCalls/FibonacciElement/FibonacciElement.asm",
+			wantFile: "FunctionCalls/FibonacciElement/FibonacciElement.asm.cmp",
+		},
 	}
 
 	for _, tc := range cases {
