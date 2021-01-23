@@ -4,40 +4,64 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 type Translators struct {
 	translators []*Translator
 	moduleName  string
 	hasInit     HasInit
+	pc          int
 }
 
 func NewTranslators(filename string, hasInit HasInit) *Translators {
 	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
-	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit}
+	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit, pc: 0}
 }
 
 func (ts *Translators) Add(command *Command) {
 	const uninitializedPC = -1
-	translator := NewTranslator(uninitializedPC, command.commandType, command.arg1, command.arg2, &ts.moduleName)
+	translator := NewTranslator(uninitializedPC, command.raw, command.commandType, command.arg1, command.arg2, &ts.moduleName)
 	ts.translators = append(ts.translators, translator)
 }
 
 func (ts *Translators) TranslateAll() []string {
 	ti := &TranslatorInitializer{hasInit: ts.hasInit}
 	result := ti.initializeHeader()
+	ts.calculatePC(result)
 
 	for _, translator := range ts.translators {
-		translator.setPC(len(result))
+		translator.setPC(ts.pc)
+		//fmt.Printf("\nVM[%d]: %s (pc: %d)\n", i, translator.raw, translator.pc)
 		assembler := translator.Translate()
+		ts.calculatePC(assembler)
+
+		//for j, line := range assembler {
+		//	index := translator.pc + j
+		//	if strings.Contains(line, "(") {
+		//		fmt.Printf("ASM[-]: %s\n", line)
+		//	} else {
+		//		fmt.Printf("ASM[%d]: %s\n", index, line)
+		//	}
+		//}
 		result = append(result, assembler...)
 	}
 
 	return append(result, ti.initializeFooter()...)
 }
 
+func (ts *Translators) calculatePC(assembler []string) {
+	for _, line := range assembler {
+		// (Main.testFunc) のようなラベル定義はプログラムカウンタの対象外にする
+		if !strings.Contains(line, "(") {
+			ts.pc += 1
+		}
+	}
+}
+
 type Translator struct {
 	pc          int
+	raw         string
 	commandType CommandType
 	arg1        string
 	arg2        *int
@@ -50,8 +74,8 @@ const (
 	baseStaticAddress  = 16
 )
 
-func NewTranslator(pc int, commandType CommandType, arg1 string, arg2 *int, moduleName *string) *Translator {
-	return &Translator{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2, moduleName: moduleName}
+func NewTranslator(pc int, raw string, commandType CommandType, arg1 string, arg2 *int, moduleName *string) *Translator {
+	return &Translator{pc: pc, raw: raw, commandType: commandType, arg1: arg1, arg2: arg2, moduleName: moduleName}
 }
 
 func (t *Translator) setPC(pc int) {
@@ -76,6 +100,8 @@ func (t *Translator) Translate() []string {
 		return t.function()
 	case CommandReturn:
 		return t.returnFunction()
+	case CommandCall:
+		return t.call()
 	default:
 		return []string{}
 	}
@@ -540,6 +566,87 @@ func (t *Translator) returnFunction() []string {
 	result = append(result, lcl...)
 	result = append(result, gotoRet...)
 
+	return result
+}
+
+// call <func-name> <arg-count>
+// call Main.add 1
+func (t *Translator) call() []string {
+	functionName := t.arg1
+
+	// push return-address
+	label := fmt.Sprintf("RETURN-ADDRESS$%s$%s$%d", *t.moduleName, functionName, t.pc)
+	returnAddress := fmt.Sprintf("@%s", label)
+	ret := []string{
+		returnAddress, // リターンアドレスをAレジスタにセット
+		"D=A",         // リターンアドレスを取得してDレジスタにセット
+	}
+	ret = append(ret, t.dRegisterToStack()...)
+	ret = append(ret, t.incrementSP()...)
+
+	// push LCL
+	callerLCL := t.storeCallerState("LCL")
+	// push ARG
+	callerARG := t.storeCallerState("ARG")
+	// push THIS
+	callerTHIS := t.storeCallerState("THIS")
+	// push THAT
+	callerTHAT := t.storeCallerState("THAT")
+
+	// @ARG = SP-n-5
+	argCount := fmt.Sprintf("@%d", *t.arg2)
+	const callerStateCount = "@5" // 呼び出し元の関数の状態の数=RTN+LCL+ARG+THIS+THAT=5
+	arg := []string{
+		argCount,         // 関数の引数の数(n)をAレジスタにセット
+		"D=A",            // 関数の引数の数(n)をAレジスタから取得してDレジスタにセット
+		callerStateCount, // 呼び出し元の関数の状態の数(=5)をAレジスタにセット
+		"D=D+A",          // 「n+5」を算出してDレジスタにセット
+		"@SP",            // AレジスタにアドレスSPをセット
+		"D=M-D",          // 「SP-n-5」を算出してDレジスタにセット
+		"@ARG",           // AレジスタにアドレスARGをセット
+		"M=D",            // 「SP-n-5」をARGにセット
+	}
+
+	// @LCL=SP
+	lcl := []string{
+		"@SP",  // AレジスタにアドレスSPをセット
+		"D=M",  // SPの値をDレジスタにセット
+		"@LCL", // AレジスタにアドレスARGをセット
+		"M=D",  // SPの値をARGにセット
+	}
+
+	// goto f
+	functionLabel := fmt.Sprintf("@%s", functionName)
+	gotoFunction := []string{
+		functionLabel,
+		"0;JMP",
+	}
+
+	// (return-address)
+	returnAddressLabel := []string{fmt.Sprintf("(%s)", label)}
+
+	result := []string{}
+	result = append(result, ret...)
+	result = append(result, callerLCL...)
+	result = append(result, callerARG...)
+	result = append(result, callerTHIS...)
+	result = append(result, callerTHAT...)
+	result = append(result, arg...)
+	result = append(result, lcl...)
+	result = append(result, gotoFunction...)
+	result = append(result, returnAddressLabel...)
+
+	return result
+}
+
+func (t *Translator) storeCallerState(label string) []string {
+	labelAddress := fmt.Sprintf("@%s", label)
+	result := []string{
+		labelAddress, // 指定したラベルのアドレスをAレジスタにセット
+		"D=M",        // 取得した値をDレジスタにセット
+	}
+	result = append(result, t.dRegisterToStack()...)
+	result = append(result, t.incrementSP()...)
 	return result
 }
 
