@@ -36,15 +36,9 @@ function recreateAndTest(){
   test ${dir_name}
 }
 
-recreateAndTest "StackArithmetic/SimpleAdd"
-recreateAndTest "StackArithmetic/StackTest"
-
-recreateAndTest "MemoryAccess/BasicTest"
-recreateAndTest "MemoryAccess/PointerTest"
-recreateAndTest "MemoryAccess/StaticTest"
-
-recreateAndTest "ProgramFlow/BasicLoop"
-recreateAndTest "ProgramFlow/FibonacciSeries"
+#recreateAndTest "FunctionCalls/StaticsTest"
+#recreateAndTest "FunctionCalls/NestedCall"
+recreateAndTest "FunctionCalls/FibonacciElement"
 
 # SimpleFunctionのみテスト時の初期化処理が特殊で、テスト実行前に
 # SimpleFunction.asmの 「(SimpleFunction.test)」から手前の初期化コードを事前に削除が必要
@@ -53,8 +47,14 @@ recreate "FunctionCalls/SimpleFunction"
 sed -i '' "1,20d" "FunctionCalls/SimpleFunction/SimpleFunction.asm"
 test "FunctionCalls/SimpleFunction"
 
-#recreateAndTest "FunctionCalls/FibonacciElement"
-#recreateAndTest "FunctionCalls/NestedCall"
-#recreateAndTest "FunctionCalls/StaticsTest"
+recreateAndTest "ProgramFlow/FibonacciSeries"
+recreateAndTest "ProgramFlow/BasicLoop"
+
+recreateAndTest "MemoryAccess/StaticTest"
+recreateAndTest "MemoryAccess/PointerTest"
+recreateAndTest "MemoryAccess/BasicTest"
+
+recreateAndTest "StackArithmetic/StackTest"
+recreateAndTest "StackArithmetic/SimpleAdd"
 
 echo "All succeeded!"
