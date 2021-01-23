@@ -670,10 +670,7 @@ type TranslatorInitializer struct {
 
 func (ti *TranslatorInitializer) initializeHeader() []string {
 	//return []string{}
-	result := []string{}
-	result = append(result, ti.initializeLabels()...)
-	result = append(result, ti.initializeSysInit()...) // これは必ず最後に追加する
-	return result
+	return ti.initializeLabels()
 }
 
 func (ti *TranslatorInitializer) initializeLabels() []string {
@@ -697,15 +694,6 @@ func (ti *TranslatorInitializer) initializeLabels() []string {
 		result = append(result, ti.initializeLabel(labels[address], address)...)
 	}
 	return result
-}
-
-// 初期化処理が終わったら最後にSys.initを実行する
-func (ti *TranslatorInitializer) initializeSysInit() []string {
-	// 以前のテストケースも動くように「function Sys.init 0」が定義されてるときだけSys.initを呼ぶ
-	if ti.hasInit {
-		return []string{"@Sys.init"}
-	}
-	return []string{}
 }
 
 func (ti *TranslatorInitializer) initializeLabel(name string, address int) []string {

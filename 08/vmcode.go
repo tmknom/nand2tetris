@@ -84,9 +84,10 @@ func (r *vmCodeReader) readLines(filename string) ([]string, HasInit, error) {
 		line := scanner.Text()
 		lines = append(lines, line)
 
-		// 以前のテストケースも動くように「function Sys.init 0」が定義されてるときだけSys.initを呼ぶようフラグをセット
-		if strings.Contains(line, "function Sys.init 0") {
+		// 以前のテストケースも動くように「function Sys.init」が定義されてるときだけSys.initを呼ぶようフラグをセット
+		if strings.Contains(line, "function Sys.init") {
 			hasInit = true
+			lines = append([]string{"call Sys.init 0"}, lines...)
 		}
 	}
 
