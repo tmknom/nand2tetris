@@ -122,36 +122,18 @@ func (t *Translator) neg() []string {
 }
 
 func (t *Translator) eq() []string {
-	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := t.binaryFunction("D=M-D")
-	// 減算結果がゼロよりゼロと等しければtrueをセット、ゼロ以外ならfalseをセット
-	jumpStep := t.jumpTruth("JEQ", "JNE")
-
-	arithmeticStep = append(arithmeticStep, jumpStep...)
-	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
-	return append(t.returnAddress(len(arithmeticStep)), arithmeticStep...)
+	// 「x=y」ならtrueをセット、そうでなければfalseをセット
+	return t.compareBinary("JEQ")
 }
 
 func (t *Translator) lt() []string {
-	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := t.binaryFunction("D=M-D")
-	// 減算結果がゼロより小さければtrueをセット、ゼロ以上ならfalseをセット
-	jumpStep := t.jumpTruth("JLT", "JGE")
-
-	arithmeticStep = append(arithmeticStep, jumpStep...)
-	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
-	return append(t.returnAddress(len(arithmeticStep)), arithmeticStep...)
+	// 「x<y」ならtrueをセット、そうでなければfalseをセット
+	return t.compareBinary("JLT")
 }
 
 func (t *Translator) gt() []string {
-	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep := t.binaryFunction("D=M-D")
-	// 減算結果がゼロより大きければtrueをセット、ゼロ以下ならfalseをセット
-	jumpStep := t.jumpTruth("JGT", "JLE")
-
-	arithmeticStep = append(arithmeticStep, jumpStep...)
-	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
-	return append(t.returnAddress(len(arithmeticStep)), arithmeticStep...)
+	// 「x>y」ならtrueをセット、そうでなければfalseをセット
+	return t.compareBinary("JGT")
 }
 
 func (t *Translator) and() []string {
@@ -167,6 +149,22 @@ func (t *Translator) or() []string {
 func (t *Translator) not() []string {
 	// スタック領域の先頭の値（第一引数）の否定
 	return append(t.unaryFunction("M=!M"), t.incrementSP()...)
+}
+
+// 2値を比較し、比較結果(true/false)をスタックに積む
+func (t *Translator) compareBinary(condition string) []string {
+	arithmeticStep := []string{}
+	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
+	arithmeticStep = append(arithmeticStep, t.binaryFunction("D=M-D")...)
+	// Dレジスタに格納した減算結果と、引数の条件を比較してtrue/falseをセット
+	arithmeticStep = append(arithmeticStep, t.jumpTruth(condition)...) // true/falseをDレジスタに格納してもらって、それをコチラでスタックに積む
+	// スタックに値を積んだので、スタックポインタをインクリメントしておく
+	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
+
+	result := []string{}
+	result = append(result, t.returnFromJumpTruth(len(arithmeticStep))...)
+	result = append(result, arithmeticStep...)
+	return result
 }
 
 // 2変数関数
@@ -192,18 +190,18 @@ func (t *Translator) unaryFunction(step string) []string {
 	}
 }
 
-func (t *Translator) jumpTruth(trueMnemonic string, falseMnemonic string) []string {
-	trueJump := fmt.Sprintf("D;%s", trueMnemonic)
-	falseJump := fmt.Sprintf("D;%s", falseMnemonic)
+// Dレジスタの値を参照し、条件に合致したらtrue、そうでなければfalseをDレジスタにセットする
+func (t *Translator) jumpTruth(condition string) []string {
+	trueJump := fmt.Sprintf("D;%s", condition)
 	return []string{
-		"@TRUE",   // AレジスタにTRUEラベルをセット
-		trueJump,  // trueMnemonicに合致したらTRUEラベルにジャンプ
-		"@FALSE",  // AレジスタにFALSEラベルをセット
-		falseJump, // falseMnemonicに合致したらFALSEラベルにジャンプ
+		"@TRUE",  // AレジスタにTRUEラベルをセット
+		trueJump, // 条件に合致したらTRUEラベルにジャンプ
+		"@FALSE", // AレジスタにFALSEラベルをセット
+		"0;JMP",  // 条件に合致しなかったらFALSEラベルにジャンプ
 	}
 }
 
-func (t *Translator) returnAddress(afterStepCount int) []string {
+func (t *Translator) returnFromJumpTruth(afterStepCount int) []string {
 	// ステップ数の微調整
 	const tweakStepCount = 2
 	// リターンアドレスは後続のステップ数を加味して算出
@@ -379,6 +377,7 @@ func (t *Translator) popAddress(baseAddress int) []string {
 	return result
 }
 
+// TODO R14じゃなくてR13を使う
 func (t *Translator) popLabel(label string) []string {
 	index := fmt.Sprintf("@%d", *t.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
@@ -468,7 +467,7 @@ func (t *Translator) function() []string {
 
 func (t *Translator) returnFunction() []string {
 	// FRAME=LCL
-	// R14にFRAMEの値を格納して参照できるようにしておく
+	// R13にFRAMEの値を格納して参照できるようにしておく
 	frame := []string{
 		"@LCL", // AレジスタにアドレスLCLをセット
 		"D=M",  // LCLの値をDレジスタにセット
@@ -634,7 +633,7 @@ func (ti *TranslatorInitializer) initializeTRUE() []string {
 		"(TRUE)",
 		"  @SP",   // AレジスタにアドレスSPをセット
 		"  A=M",   // AレジスタにSPの値をセット
-		"  M=-1",  // スタックの先頭の値にtrueをセット
+		"  M=-1",  // スタックの先頭の値にtrueをセット // TODO スタックの先頭を書き換えるのがダメ、Dレジスタに格納して返す
 		"  @R15",  // AレジスタにアドレスR15をセット
 		"  A=M",   // Aレジスタにリターンアドレスをセット
 		"  0;JMP", // リターンアドレスにジャンプ
@@ -646,7 +645,7 @@ func (ti *TranslatorInitializer) initializeFALSE() []string {
 		"(FALSE)",
 		"  @SP",   // AレジスタにアドレスSPをセット
 		"  A=M",   // AレジスタにSPの値をセット
-		"  M=0",   // スタックの先頭の値にfalseをセット
+		"  M=0",   // スタックの先頭の値にfalseをセット // TODO スタックの先頭を書き換えるのがダメ、Dレジスタに格納して返す
 		"  @R15",  // AレジスタにアドレスR15をセット
 		"  A=M",   // Aレジスタにリターンアドレスをセット
 		"  0;JMP", // リターンアドレスにジャンプ
