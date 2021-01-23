@@ -4,40 +4,64 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 type Translators struct {
 	translators []*Translator
 	moduleName  string
 	hasInit     HasInit
+	pc          int
 }
 
 func NewTranslators(filename string, hasInit HasInit) *Translators {
 	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
-	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit}
+	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit, pc: 0}
 }
 
 func (ts *Translators) Add(command *Command) {
 	const uninitializedPC = -1
-	translator := NewTranslator(uninitializedPC, command.commandType, command.arg1, command.arg2, &ts.moduleName)
+	translator := NewTranslator(uninitializedPC, command.raw, command.commandType, command.arg1, command.arg2, &ts.moduleName)
 	ts.translators = append(ts.translators, translator)
 }
 
 func (ts *Translators) TranslateAll() []string {
 	ti := &TranslatorInitializer{hasInit: ts.hasInit}
 	result := ti.initializeHeader()
+	ts.calculatePC(result)
 
 	for _, translator := range ts.translators {
-		translator.setPC(len(result))
+		translator.setPC(ts.pc)
+		//fmt.Printf("\nVM[%d]: %s (pc: %d)\n", i, translator.raw, translator.pc)
 		assembler := translator.Translate()
+		ts.calculatePC(assembler)
+
+		//for j, line := range assembler {
+		//	index := translator.pc + j
+		//	if strings.Contains(line, "(") {
+		//		fmt.Printf("ASM[-]: %s\n", line)
+		//	} else {
+		//		fmt.Printf("ASM[%d]: %s\n", index, line)
+		//	}
+		//}
 		result = append(result, assembler...)
 	}
 
 	return append(result, ti.initializeFooter()...)
 }
 
+func (ts *Translators) calculatePC(assembler []string) {
+	for _, line := range assembler {
+		// (Main.testFunc) のようなラベル定義はプログラムカウンタの対象外にする
+		if !strings.Contains(line, "(") {
+			ts.pc += 1
+		}
+	}
+}
+
 type Translator struct {
 	pc          int
+	raw         string
 	commandType CommandType
 	arg1        string
 	arg2        *int
@@ -50,8 +74,8 @@ const (
 	baseStaticAddress  = 16
 )
 
-func NewTranslator(pc int, commandType CommandType, arg1 string, arg2 *int, moduleName *string) *Translator {
-	return &Translator{pc: pc, commandType: commandType, arg1: arg1, arg2: arg2, moduleName: moduleName}
+func NewTranslator(pc int, raw string, commandType CommandType, arg1 string, arg2 *int, moduleName *string) *Translator {
+	return &Translator{pc: pc, raw: raw, commandType: commandType, arg1: arg1, arg2: arg2, moduleName: moduleName}
 }
 
 func (t *Translator) setPC(pc int) {

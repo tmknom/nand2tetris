@@ -4,13 +4,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"strconv"
 
-	"strings"
 	"testing"
 )
 
 const (
 	testFilename = "Dummy.vm"
 	testPC       = 100
+	testRaw      = "dummy raw"
+	testHasInit  = false
 )
 
 var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義
@@ -43,40 +44,210 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 	cases := []struct {
 		desc    string
 		hasInit HasInit
-		want    int
+		command *Command
+		want    []string
 	}{
 		{
-			desc:    "hasInitがtrue",
-			hasInit: true,
-			want:    34,
+			desc:    "@Sys.initを含まない＆初期化コードのみ（テストコードの後方互換性維持のため存在）",
+			hasInit: false,
+			want: []string{
+				"@256",
+				"D=A",
+				"@SP",
+				"M=D",
+				"@300",
+				"D=A",
+				"@LCL",
+				"M=D",
+				"@400",
+				"D=A",
+				"@ARG",
+				"M=D",
+				"@3000",
+				"D=A",
+				"@THIS",
+				"M=D",
+				"@3010",
+				"D=A",
+				"@THAT",
+				"M=D",
+				"@END",
+				"0;JMP",
+				"(TRUE)",
+				"  D=-1",
+				"  @R14",
+				"  A=M",
+				"  0;JMP",
+				"(FALSE)",
+				"  D=0",
+				"  @R14",
+				"  A=M",
+				"  0;JMP",
+				"(END)",
+			},
 		},
 		{
-			desc:    "hasInitがfalse",
-			hasInit: false,
-			want:    33,
+			desc:    "@Sys.initを含む＆初期化コードのみ",
+			hasInit: true,
+			want: []string{
+				"@256",
+				"D=A",
+				"@SP",
+				"M=D",
+				"@300",
+				"D=A",
+				"@LCL",
+				"M=D",
+				"@400",
+				"D=A",
+				"@ARG",
+				"M=D",
+				"@3000",
+				"D=A",
+				"@THIS",
+				"M=D",
+				"@3010",
+				"D=A",
+				"@THAT",
+				"M=D",
+				"@Sys.init",
+				"@END",
+				"0;JMP",
+				"(TRUE)",
+				"  D=-1",
+				"  @R14",
+				"  A=M",
+				"  0;JMP",
+				"(FALSE)",
+				"  D=0",
+				"  @R14",
+				"  A=M",
+				"  0;JMP",
+				"(END)",
+			},
+		},
+		{
+			desc:    "notコマンドを含む",
+			hasInit: true,
+			command: &Command{
+				raw:         "not",
+				commandType: CommandArithmetic,
+				arg1:        "not",
+			},
+			want: []string{
+				"@256",
+				"D=A",
+				"@SP",
+				"M=D",
+				"@300",
+				"D=A",
+				"@LCL",
+				"M=D",
+				"@400",
+				"D=A",
+				"@ARG",
+				"M=D",
+				"@3000",
+				"D=A",
+				"@THIS",
+				"M=D",
+				"@3010",
+				"D=A",
+				"@THAT",
+				"M=D",
+				"@Sys.init",
+				"@SP",
+				"AM=M-1",
+				"M=!M",
+				"@SP",
+				"M=M+1",
+				"@END",
+				"0;JMP",
+				"(TRUE)",
+				"  D=-1",
+				"  @R14",
+				"  A=M",
+				"  0;JMP",
+				"(FALSE)",
+				"  D=0",
+				"  @R14",
+				"  A=M",
+				"  0;JMP",
+				"(END)",
+			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			translators := NewTranslators(testFilename, tc.hasInit)
-			assembler := translators.TranslateAll()
-
-			var containInit HasInit = false
-			for _, line := range assembler {
-				if strings.Contains(line, "@Sys.init") {
-					containInit = true
-					break
-				}
+			if tc.command != nil {
+				translators.Add(tc.command)
 			}
 
-			if containInit != tc.hasInit {
-				t.Errorf("failed hasInit: got = %t, want = %t", containInit, tc.hasInit)
-			}
+			got := translators.TranslateAll()
 
-			length := len(assembler)
-			if length != tc.want {
-				t.Errorf("failed assembler length: got = %d, hasInit = %d", length, tc.want)
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
+			}
+		})
+	}
+}
+
+func TestTranslatorsCalculatePC(t *testing.T) {
+	cases := []struct {
+		desc      string
+		assembler []string
+		pc        int
+		want      int
+	}{
+		{
+			desc: "ラベル定義がない",
+			assembler: []string{
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@SP",
+				"AM=M-1",
+				"M=M+D",
+				"@SP",
+				"M=M+1",
+			},
+			pc:   100,
+			want: 108,
+		},
+		{
+			desc: "ラベル定義のみ",
+			assembler: []string{
+				"(FooModule$Bar)",
+			},
+			pc:   100,
+			want: 100,
+		},
+		{
+			desc: "ラベル定義がある",
+			assembler: []string{
+				"(Math.max)",
+				"@SP",
+				"A=M",
+				"M=0",
+				"@SP",
+				"M=M+1",
+			},
+			pc:   100,
+			want: 105,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translators := NewTranslators(testFilename, testHasInit)
+			translators.pc = tc.pc
+			translators.calculatePC(tc.assembler)
+
+			got := translators.pc
+			if got != tc.want {
+				t.Errorf("failed assembler length: got = %d, want = %d", got, tc.want)
 			}
 		})
 	}
@@ -245,7 +416,7 @@ func TestTranslatorArithmetic(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, CommandArithmetic, tc.arg1, nil, &testModuleName)
+			translator := NewTranslator(testPC, testRaw, CommandArithmetic, tc.arg1, nil, &testModuleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -324,7 +495,7 @@ func TestTranslatorCompareBinary(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(tc.pc, CommandArithmetic, "eq", nil, &testModuleName)
+			translator := NewTranslator(tc.pc, testRaw, CommandArithmetic, "eq", nil, &testModuleName)
 			got := translator.Translate()
 
 			gotReturnAddress, _ := strconv.Atoi((got[0])[1:])
@@ -489,7 +660,7 @@ func TestTranslatorPush(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -630,7 +801,7 @@ func TestTranslatorPop(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -661,7 +832,7 @@ func TestTranslatorLabel(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, nil, &tc.moduleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -693,7 +864,7 @@ func TestTranslatorLabelGoto(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, nil, &tc.moduleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -728,7 +899,7 @@ func TestTranslatorIfGoto(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &tc.moduleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, nil, &tc.moduleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -769,7 +940,7 @@ func TestTranslatorFunction(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -865,7 +1036,7 @@ func TestTranslatorReturnFunction(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translator := NewTranslator(testPC, tc.commandType, tc.arg1, nil, &testModuleName)
+			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, nil, &testModuleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
