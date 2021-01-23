@@ -143,17 +143,13 @@ M=M+1
 @END
 0;JMP
 (TRUE)
-  @SP
-  A=M
-  M=-1
-  @R15
+  D=-1
+  @R14
   A=M
   0;JMP
 (FALSE)
-  @SP
-  A=M
-  M=0
-  @R15
+  D=0
+  @R14
   A=M
   0;JMP
 (END)
