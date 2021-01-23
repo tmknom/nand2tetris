@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"strconv"
 
 	"strings"
 	"testing"
@@ -248,6 +249,96 @@ func TestTranslatorArithmetic(t *testing.T) {
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
+			}
+		})
+	}
+}
+
+func TestTranslatorCompareBinary(t *testing.T) {
+	cases := []struct {
+		desc            string
+		pc              int
+		returnAddress   int
+		beforeJumpStep  []string
+		afterReturnStep []string
+	}{
+		{
+			desc:          "プログラムカウンタがゼロの場合",
+			pc:            0,
+			returnAddress: 14,
+			beforeJumpStep: []string{
+				"@14",
+				"D=A",
+				"@R14",
+				"M=D",
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@SP",
+				"AM=M-1",
+				"D=M-D",
+				"@TRUE",
+				"D;JEQ",
+				"@FALSE",
+				"0;JMP",
+			},
+			afterReturnStep: []string{
+				// Dレジスタに -1 がセットされる
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+			},
+		},
+		{
+			desc:          "プログラムカウンタがゼロ以外の場合",
+			pc:            50,
+			returnAddress: 64,
+			beforeJumpStep: []string{
+				"@64",
+				"D=A",
+				"@R14",
+				"M=D",
+				"@SP",
+				"AM=M-1",
+				"D=M",
+				"@SP",
+				"AM=M-1",
+				"D=M-D",
+				"@TRUE",
+				"D;JEQ",
+				"@FALSE",
+				"0;JMP",
+			},
+			afterReturnStep: []string{
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translator := NewTranslator(tc.pc, CommandArithmetic, "eq", nil, &testModuleName)
+			got := translator.Translate()
+
+			gotReturnAddress, _ := strconv.Atoi((got[0])[1:])
+			if gotReturnAddress != tc.returnAddress {
+				t.Errorf("failed returnAddress: got = %d, want %d", gotReturnAddress, tc.returnAddress)
+			}
+
+			beforeJumpIndex := tc.returnAddress - tc.pc
+			if diff := cmp.Diff(got[:beforeJumpIndex], tc.beforeJumpStep); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
+			}
+
+			afterReturnIndex := tc.returnAddress - tc.pc
+			if diff := cmp.Diff(got[afterReturnIndex:], tc.afterReturnStep); diff != "" {
 				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})

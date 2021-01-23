@@ -155,16 +155,21 @@ func (t *Translator) not() []string {
 func (t *Translator) compareBinary(condition string) []string {
 	arithmeticStep := []string{}
 	// スタック領域の先頭の値（第一引数）からDレジスタの値（第二引数）を減算
-	arithmeticStep = append(arithmeticStep, t.binaryFunction("D=M-D")...)
+	sub := t.binaryFunction("D=M-D")
+	arithmeticStep = append(arithmeticStep, sub...)
 	// Dレジスタに格納した減算結果と引数の条件を比較＆true/falseをDレジスタにセット
-	arithmeticStep = append(arithmeticStep, t.jumpTruth(condition)...)
+	jumpTruth := t.jumpTruth(condition)
+	arithmeticStep = append(arithmeticStep, jumpTruth...)
 	// Dレジスタに格納されたtrue/falseをスタックに積む
 	arithmeticStep = append(arithmeticStep, t.dRegisterToStack()...)
 	// スタックに値を積んだので、スタックポインタをインクリメントしておく
 	arithmeticStep = append(arithmeticStep, t.incrementSP()...)
 
+	// true/falseセット後のリターンアドレスの相対位置
+	address := len(sub) + len(jumpTruth)
+
 	result := []string{}
-	result = append(result, t.returnFromJumpTruth(len(arithmeticStep))...)
+	result = append(result, t.returnFromJumpTruth(address)...)
 	result = append(result, arithmeticStep...)
 	return result
 }
@@ -204,17 +209,24 @@ func (t *Translator) jumpTruth(condition string) []string {
 }
 
 func (t *Translator) returnFromJumpTruth(afterStepCount int) []string {
-	// ステップ数の微調整
-	const tweakStepCount = -1
-	// リターンアドレスは後続のステップ数を加味して算出
-	returnAddressInt := tweakStepCount + afterStepCount + t.pc
-	returnAddress := fmt.Sprintf("@%d", returnAddressInt)
-	return []string{
-		returnAddress, // Aレジスタにリターンアドレスをセット
-		"D=A",         // Dレジスタにリターンアドレスをセット
-		"@R14",        // AレジスタにアドレスR14をセット
-		"M=D",         // R14にリターンアドレスをセット
+	returnStep := []string{
+		"D=A",  // Dレジスタにリターンアドレスをセット
+		"@R14", // AレジスタにアドレスR14をセット
+		"M=D",  // R14にリターンアドレスをセット
 	}
+
+	// リターンアドレスのセットに必要なステップ数
+	// +1 をしているのはリターンアドレスのAレジスタへのセット処理がreturnStepに含まれていないため
+	returnStepCount := len(returnStep) + 1
+
+	// リターンアドレスは後続のステップ数を加味して算出
+	returnAddressInt := t.pc + afterStepCount + returnStepCount
+	returnAddress := fmt.Sprintf("@%d", returnAddressInt)
+
+	result := []string{}
+	result = append(result, returnAddress)
+	result = append(result, returnStep...)
+	return result
 }
 
 func (t *Translator) push() []string {
