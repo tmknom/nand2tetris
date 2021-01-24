@@ -2,6 +2,7 @@ package main
 
 import (
 	"path/filepath"
+	"strings"
 )
 
 // コマンドの入力パラメータをパースして、変換対象のvmファイル名を管理
@@ -23,6 +24,13 @@ func NewArg(args []string) *Arg {
 	}
 
 	// vmファイルを指定していない場合は、ディレクトリが指定されたとみなす
+	// ただしファイル名にTestが含まれる場合は除外する
 	files, _ := filepath.Glob(arg + "/*.vm")
-	return &Arg{raw: arg, files: files}
+	ignoreTestFiles := []string{}
+	for _, file := range files {
+		if !strings.Contains(file, "Test") {
+			ignoreTestFiles = append(ignoreTestFiles, file)
+		}
+	}
+	return &Arg{raw: arg, files: ignoreTestFiles}
 }
