@@ -8,36 +8,11 @@ import (
 )
 
 const (
-	testFilename = "Dummy.vm"
 	testPC       = 100
 	testRaw      = "dummy raw"
 )
 
 var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義
-
-func TestNewTranslators(t *testing.T) {
-	cases := []struct {
-		desc     string
-		filename string
-		want     string
-	}{
-		{
-			desc:     "TODO",
-			filename: "StackArithmetic/SimpleAdd/Test.vm",
-			want:     "Test",
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			dest := NewTranslators(tc.filename)
-			got := dest.moduleName
-			if got != tc.want {
-				t.Errorf("failed: got = %s, want %s", got, tc.want)
-			}
-		})
-	}
-}
 
 func TestTranslatorsTranslateAll(t *testing.T) {
 	cases := []struct {
@@ -135,7 +110,7 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translators := NewTranslators(testFilename)
+			translators := NewTranslators()
 			if tc.command != nil {
 				translators.Add(tc.command)
 			}
@@ -196,7 +171,7 @@ func TestTranslatorsCalculatePC(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translators := NewTranslators(testFilename)
+			translators := NewTranslators()
 			translators.pc = tc.pc
 			translators.calculatePC(tc.assembler)
 

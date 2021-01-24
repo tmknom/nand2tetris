@@ -2,18 +2,35 @@ package main
 
 type Integrator struct {
 	filenames []string
+	commands  *Commands
 }
 
 func NewIntegrator(filenames []string) *Integrator {
-	return &Integrator{filenames: filenames}
+	return &Integrator{filenames: filenames, commands: NewCommands()}
 }
 
 func (i *Integrator) Integrate() error {
 	for _, file := range i.filenames {
-		err := i.integrateFile(file)
+		// ファイルを読み込んでメモリに展開
+		src := NewSrc(file)
+		err := src.Setup()
 		if err != nil {
 			return err
 		}
+
+		// Commandの生成
+		i.generateCommands(src)
+
+		// TODO あとで消す
+		err = i.integrateFile(file)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := i.commands.ParseAll()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -31,7 +48,7 @@ func (i *Integrator) integrateFile(file string) error {
 		return err
 	}
 
-	translators := i.factoryTranslators(commands, file)
+	translators := i.factoryTranslators(commands)
 	assembler := translators.TranslateAll()
 
 	dest := NewDest(file)
@@ -43,8 +60,15 @@ func (i *Integrator) integrateFile(file string) error {
 	return nil
 }
 
-func (i *Integrator) factoryTranslators(commands *Commands, filename string) *Translators {
-	translators := NewTranslators(filename)
+func (i *Integrator) generateCommands(src *Src) {
+	for _, line := range src.lines {
+		command := NewCommand(line, &src.moduleName)
+		i.commands.Add(command)
+	}
+}
+
+func (i *Integrator) factoryTranslators(commands *Commands) *Translators {
+	translators := NewTranslators()
 	for _, command := range commands.commands {
 		translators.Add(command)
 	}

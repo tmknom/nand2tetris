@@ -2,25 +2,22 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
 	"sort"
 	"strings"
 )
 
 type Translators struct {
 	translators []*Translator
-	moduleName  string
 	pc          int
 }
 
-func NewTranslators(filename string) *Translators {
-	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
-	return &Translators{translators: []*Translator{}, moduleName: moduleName, pc: 0}
+func NewTranslators() *Translators {
+	return &Translators{translators: []*Translator{}, pc: 0}
 }
 
 func (ts *Translators) Add(command *Command) {
 	const uninitializedPC = -1
-	translator := NewTranslator(uninitializedPC, command.raw, command.commandType, command.arg1, command.arg2, &ts.moduleName)
+	translator := NewTranslator(uninitializedPC, command.raw, command.commandType, command.arg1, command.arg2, command.moduleName)
 	ts.translators = append(ts.translators, translator)
 }
 
