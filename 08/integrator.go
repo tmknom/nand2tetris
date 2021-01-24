@@ -1,15 +1,26 @@
 package main
 
 type Integrator struct {
-	filename string
+	filenames []string
 }
 
-func NewIntegrator(filename string) *Integrator {
-	return &Integrator{filename: filename}
+func NewIntegrator(filenames []string) *Integrator {
+	return &Integrator{filenames: filenames}
 }
 
 func (i *Integrator) Integrate() error {
-	vmCode, err := ReadVmCode(i.filename)
+	for _, file := range i.filenames {
+		err := i.integrateFile(file)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *Integrator) integrateFile(file string) error {
+	vmCode, err := ReadVmCode(file)
 	if err != nil {
 		return err
 	}
@@ -20,10 +31,10 @@ func (i *Integrator) Integrate() error {
 		return err
 	}
 
-	translators := i.factoryTranslators(commands, i.filename)
+	translators := i.factoryTranslators(commands, file)
 	assembler := translators.TranslateAll()
 
-	dest := NewDest(i.filename)
+	dest := NewDest(file)
 	err = dest.Write(assembler)
 	if err != nil {
 		return err

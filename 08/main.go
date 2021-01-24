@@ -15,14 +15,7 @@ func main() {
 
 func run() error {
 	arg := NewArg(os.Args)
-	for _, file := range arg.files {
-		fmt.Printf("vmファイルの変換開始：%s\n", file)
-		integrator := NewIntegrator(file)
-		err := integrator.Integrate()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	fmt.Printf("vmファイルの変換開始：%s\n", arg.raw)
+	integrator := NewIntegrator(arg.files)
+	return integrator.Integrate()
 }
