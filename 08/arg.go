@@ -11,7 +11,7 @@ type Arg struct {
 	files []string
 }
 
-const DefaultArg = "FunctionCalls/FibonacciElement/"
+const DefaultArg = "MemoryAccess/StaticTest/"
 
 func NewArg(args []string) *Arg {
 	arg := DefaultArg
@@ -28,7 +28,7 @@ func NewArg(args []string) *Arg {
 	files, _ := filepath.Glob(arg + "/*.vm")
 	ignoreTestFiles := []string{}
 	for _, file := range files {
-		if !strings.Contains(file, "Test") {
+		if !strings.Contains(file, "Ignore") {
 			ignoreTestFiles = append(ignoreTestFiles, file)
 		}
 	}
