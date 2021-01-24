@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Dest struct {
-	filename string
+	src string
 }
 
-func NewDest(filename string) *Dest {
-	withoutExt := filename[:len(filename)-len(filepath.Ext(filename))]
-	return &Dest{filename: fmt.Sprintf("%s.asm", withoutExt)}
+func NewDest(src string) *Dest {
+	return &Dest{src: src}
 }
 
 func (d *Dest) Write(lines []string) error {
-	file, err := os.Create(d.filename)
+	filename := d.generateFilename()
+
+	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
@@ -32,4 +34,16 @@ func (d *Dest) Write(lines []string) error {
 	}
 	writer.Flush()
 	return nil
+}
+
+func (d *Dest) generateFilename() string {
+	if filepath.Ext(d.src) == ".vm" {
+		withoutExt := d.src[:len(d.src)-len(filepath.Ext(d.src))]
+		return fmt.Sprintf("%s.asm", withoutExt)
+	}
+
+	// vmファイルを指定していない場合は、ディレクトリが指定されたとみなす
+	path := strings.TrimSuffix(d.src, "/")
+	split := strings.Split(path, "/")
+	return fmt.Sprintf("%s/%s.asm", path, split[len(split)-1])
 }
