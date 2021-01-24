@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	testPC       = 100
-	testRaw      = "dummy raw"
+	testPC  = 100
+	testRaw = "dummy raw"
 )
 
 var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義

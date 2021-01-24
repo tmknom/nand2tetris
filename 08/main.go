@@ -16,6 +16,6 @@ func main() {
 func run() error {
 	arg := NewArg(os.Args)
 	fmt.Printf("vmファイルの変換開始：%s\n", arg.raw)
-	integrator := NewIntegrator(arg.files)
+	integrator := NewIntegrator(arg.files, arg.raw)
 	return integrator.Integrate()
 }

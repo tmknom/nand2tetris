@@ -2,14 +2,41 @@ package main
 
 type Integrator struct {
 	filenames []string
+	arg       string
 	commands  *Commands
 }
 
-func NewIntegrator(filenames []string) *Integrator {
-	return &Integrator{filenames: filenames, commands: NewCommands()}
+func NewIntegrator(filenames []string, arg string) *Integrator {
+	return &Integrator{filenames: filenames, arg: arg, commands: NewCommands()}
 }
 
 func (i *Integrator) Integrate() error {
+	// ファイルの読み込み
+	err := i.readFiles()
+	if err != nil {
+		return err
+	}
+
+	// コマンドのパース
+	err = i.commands.Parse()
+	if err != nil {
+		return err
+	}
+
+	// アセンブル
+	assembler := i.translate()
+
+	// アセンブラの書き込み
+	dest := NewDest(i.arg)
+	err = dest.Write(assembler)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i *Integrator) readFiles() error {
 	for _, file := range i.filenames {
 		// ファイルを読み込んでメモリに展開
 		src := NewSrc(file)
@@ -20,43 +47,7 @@ func (i *Integrator) Integrate() error {
 
 		// Commandの生成
 		i.generateCommands(src)
-
-		// TODO あとで消す
-		err = i.integrateFile(file)
-		if err != nil {
-			return err
-		}
 	}
-
-	err := i.commands.ParseAll()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (i *Integrator) integrateFile(file string) error {
-	vmCode, err := ReadVmCode(file)
-	if err != nil {
-		return err
-	}
-
-	commands := vmCode.Commands
-	err = commands.ParseAll()
-	if err != nil {
-		return err
-	}
-
-	translators := i.factoryTranslators(commands)
-	assembler := translators.TranslateAll()
-
-	dest := NewDest(file)
-	err = dest.Write(assembler)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -67,10 +58,10 @@ func (i *Integrator) generateCommands(src *Src) {
 	}
 }
 
-func (i *Integrator) factoryTranslators(commands *Commands) *Translators {
+func (i *Integrator) translate() []string {
 	translators := NewTranslators()
-	for _, command := range commands.commands {
+	for _, command := range i.commands.commands {
 		translators.Add(command)
 	}
-	return translators
+	return translators.TranslateAll()
 }

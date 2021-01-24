@@ -58,11 +58,6 @@ func (s *Src) setupLines() {
 		if withoutComment != "" {
 			s.lines = append(s.lines, withoutComment)
 		}
-
-		//// 以前のテストケースも動くように「function Sys.init」が定義されてるときだけSys.initを呼ぶようフラグをセット
-		//if strings.Contains(line, "function Sys.init") {
-		//	s.lines = append([]string{"call Sys.init 0"}, s.lines...)
-		//}
 	}
 }
 

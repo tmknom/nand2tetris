@@ -17,8 +17,22 @@ func NewCommands() *Commands {
 func (cs *Commands) Add(command *Command) {
 	cs.commands = append(cs.commands, command)
 }
+func (cs *Commands) Parse() error {
+	cs.insertSysInit()
+	return cs.parseCommands()
+}
 
-func (cs *Commands) ParseAll() error {
+func (cs *Commands) insertSysInit() {
+	// 以前のテストケースも動くように「function Sys.init」が定義されてるときだけSys.initを呼ぶ
+	for _, command := range cs.commands {
+		if strings.Contains(command.raw, "function Sys.init") {
+			command := NewCommand("call Sys.init 0", command.moduleName)
+			cs.commands = append([]*Command{command}, cs.commands...)
+		}
+	}
+}
+
+func (cs *Commands) parseCommands() error {
 	for _, command := range cs.commands {
 		err := command.Parse()
 		if err != nil {
@@ -26,13 +40,6 @@ func (cs *Commands) ParseAll() error {
 		}
 	}
 	return nil
-}
-
-// デバッグ用：コマンドのダンプ
-func (cs *Commands) dump() {
-	for i, command := range cs.commands {
-		fmt.Printf("Command[%d]: %s\n", i, command.tostring())
-	}
 }
 
 type Command struct {
@@ -134,15 +141,4 @@ func (c *Command) parseCommandType(commandTypeString string) (*CommandType, erro
 		return nil, fmt.Errorf("not implemented: %s\n", commandTypeString)
 	}
 	return &commandType, nil
-}
-
-func (c *Command) tostring() string {
-	split := strings.Split(c.raw, " ")
-	commandTypeString := split[0]
-
-	arg2 := "nil"
-	if c.arg2 != nil {
-		arg2 = strconv.Itoa(*c.arg2)
-	}
-	return fmt.Sprintf("&{raw: %s, commandType: %s, arg1: %s arg2: %s}", c.raw, commandTypeString, c.arg1, arg2)
 }
