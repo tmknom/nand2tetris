@@ -1043,3 +1043,178 @@ func TestTranslatorReturnFunction(t *testing.T) {
 		})
 	}
 }
+
+func TestTranslatorCall(t *testing.T) {
+	cases := []struct {
+		desc        string
+		commandType CommandType
+		arg1        string
+		arg2        int
+		pc          int
+		want        []string
+	}{
+		{
+			desc:        "call Math.max 0",
+			commandType: CommandCall,
+			arg1:        "Math.max",
+			arg2:        0,
+			pc:          100,
+			want: []string{
+				// push return-address
+				"@RETURN-ADDRESS$TestModule$Math.max$100",
+				"D=A",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push LCL
+				"@LCL",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push ARG
+				"@ARG",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THIS
+				"@THIS",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THAT
+				"@THAT",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// @ARG = SP-n-5
+				"@0",
+				"D=A",
+				"@5",
+				"D=D+A",
+				"@SP",
+				"D=M-D",
+				"@ARG",
+				"M=D",
+
+				// @LCL=SP
+				"@SP",
+				"D=M",
+				"@LCL",
+				"M=D",
+
+				// goto f
+				"@Math.max",
+				"0;JMP",
+
+				// (return-address)
+				"(RETURN-ADDRESS$TestModule$Math.max$100)",
+			},
+		},
+		{
+			desc:        "call Math.min 2",
+			commandType: CommandCall,
+			arg1:        "Math.min",
+			arg2:        2,
+			pc:          397,
+			want: []string{
+				// push return-address
+				"@RETURN-ADDRESS$TestModule$Math.min$397",
+				"D=A",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push LCL
+				"@LCL",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push ARG
+				"@ARG",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THIS
+				"@THIS",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THAT
+				"@THAT",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// @ARG = SP-n-5
+				"@2",
+				"D=A",
+				"@5",
+				"D=D+A",
+				"@SP",
+				"D=M-D",
+				"@ARG",
+				"M=D",
+
+				// @LCL=SP
+				"@SP",
+				"D=M",
+				"@LCL",
+				"M=D",
+
+				// goto f
+				"@Math.min",
+				"0;JMP",
+
+				// (return-address)
+				"(RETURN-ADDRESS$TestModule$Math.min$397)",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translator := NewTranslator(tc.pc, testRaw, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
+			got := translator.Translate()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
+			}
+		})
+	}
+}
