@@ -39,7 +39,7 @@ function recreateAndTest(){
 }
 
 #recreateAndTest "FunctionCalls/StaticsTest"
-#recreateAndTest "FunctionCalls/NestedCall"
+recreateAndTest "FunctionCalls/NestedCall"
 recreateAndTest "FunctionCalls/FibonacciElement"
 
 # SimpleFunctionのみテスト時の初期化処理が特殊で、テスト実行前に

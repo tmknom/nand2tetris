@@ -82,6 +82,13 @@ func TestIntegratorIntegrate(t *testing.T) {
 			destFile: "FunctionCalls/FibonacciElement/FibonacciElement.asm",
 			wantFile: "FunctionCalls/FibonacciElement/FibonacciElement.asm.cmp",
 		},
+		{
+			desc:      "NestedCall",
+			arg:       "FunctionCalls/NestedCall",
+			filenames: []string{"FunctionCalls/NestedCall/Sys.vm"},
+			destFile:  "FunctionCalls/NestedCall/NestedCall.asm",
+			wantFile:  "FunctionCalls/NestedCall/NestedCall.asm.cmp",
+		},
 	}
 
 	for _, tc := range cases {
