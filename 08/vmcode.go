@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -40,17 +41,19 @@ func (r *vmCodeReader) read(filename string) ([]string, *Commands, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	commands := r.createCommands(lines)
+
+	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
+	commands := r.createCommands(lines, &moduleName)
 
 	return lines, commands, nil
 }
 
-func (r *vmCodeReader) createCommands(lines []string) *Commands {
+func (r *vmCodeReader) createCommands(lines []string, moduleName *string) *Commands {
 	commands := NewCommands()
 	for _, line := range lines {
 		withoutComment := r.deleteCommentAndWhitespace(line)
 		if withoutComment != "" {
-			command := NewCommand(withoutComment)
+			command := NewCommand(withoutComment, moduleName)
 			commands.Add(command)
 		}
 	}

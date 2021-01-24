@@ -40,6 +40,7 @@ type Command struct {
 	commandType CommandType
 	arg1        string
 	arg2        *int
+	moduleName  *string
 }
 
 type CommandType int
@@ -56,8 +57,8 @@ const (
 	CommandCall
 )
 
-func NewCommand(raw string) *Command {
-	return &Command{raw: raw}
+func NewCommand(raw string, moduleName *string) *Command {
+	return &Command{raw: raw, moduleName: moduleName}
 }
 
 func (c *Command) Parse() error {
