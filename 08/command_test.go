@@ -1,8 +1,90 @@
 package main
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"testing"
 )
+
+func TestCommandsParse(t *testing.T) {
+	var testCommandModule = "TestCommandModule"
+	var testConstantVariable = 7
+	var testFunctionVariable = 1
+	var testCallVariable = 0
+
+	cases := []struct {
+		desc  string
+		lines []string
+		want  []*Command
+	}{
+		{
+			desc: "「function Sys.init」の定義なし",
+			lines: []string{
+				"push constant 7",
+			},
+			want: []*Command{
+				&Command{
+					raw:         "push constant 7",
+					commandType: CommandPush,
+					arg1:        "constant",
+					arg2:        &testConstantVariable,
+					moduleName:  &testCommandModule,
+				},
+			},
+		},
+		{
+			desc: "「function Sys.init」の定義あり",
+			lines: []string{
+				"function Sys.init 1",
+				"push constant 7",
+			},
+			want: []*Command{
+				&Command{
+					raw:         "call Sys.init 0",
+					commandType: CommandCall,
+					arg1:        "Sys.init",
+					arg2:        &testCallVariable,
+					moduleName:  &testCommandModule,
+				},
+				&Command{
+					raw:         "function Sys.init 1",
+					commandType: CommandFunction,
+					arg1:        "Sys.init",
+					arg2:        &testFunctionVariable,
+					moduleName:  &testCommandModule,
+				},
+				&Command{
+					raw:         "push constant 7",
+					commandType: CommandPush,
+					arg1:        "constant",
+					arg2:        &testConstantVariable,
+					moduleName:  &testCommandModule,
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			commands := NewCommands()
+			for _, line := range tc.lines {
+				command := NewCommand(line, &testCommandModule)
+				commands.Add(command)
+			}
+			commands.Parse()
+
+			if len(commands.commands) != len(tc.want) {
+				t.Fatalf("failed len: got = %d, want =%d", len(commands.commands), len(tc.want))
+			}
+
+			for i, command := range commands.commands {
+				opt := cmp.AllowUnexported(*command)
+				if diff := cmp.Diff(*command, *tc.want[i], opt); diff != "" {
+					t.Errorf("failed Commands[%d]: diff (-got +want):\n%s", i, diff)
+				}
+			}
+		})
+	}
+}
 
 func TestCommandParse1(t *testing.T) {
 	cases := []struct {
