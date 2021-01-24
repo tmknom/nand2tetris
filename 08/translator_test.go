@@ -11,7 +11,6 @@ const (
 	testFilename = "Dummy.vm"
 	testPC       = 100
 	testRaw      = "dummy raw"
-	testHasInit  = false
 )
 
 var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義
@@ -31,7 +30,7 @@ func TestNewTranslators(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			dest := NewTranslators(tc.filename, false)
+			dest := NewTranslators(tc.filename)
 			got := dest.moduleName
 			if got != tc.want {
 				t.Errorf("failed: got = %s, want %s", got, tc.want)
@@ -43,13 +42,11 @@ func TestNewTranslators(t *testing.T) {
 func TestTranslatorsTranslateAll(t *testing.T) {
 	cases := []struct {
 		desc    string
-		hasInit HasInit
 		command *Command
 		want    []string
 	}{
 		{
-			desc:    "@Sys.initを含まない＆初期化コードのみ（テストコードの後方互換性維持のため存在）",
-			hasInit: false,
+			desc: "初期化コードのみ",
 			want: []string{
 				"@256",
 				"D=A",
@@ -87,47 +84,7 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 			},
 		},
 		{
-			desc:    "@Sys.initを含む＆初期化コードのみ",
-			hasInit: true,
-			want: []string{
-				"@256",
-				"D=A",
-				"@SP",
-				"M=D",
-				"@300",
-				"D=A",
-				"@LCL",
-				"M=D",
-				"@400",
-				"D=A",
-				"@ARG",
-				"M=D",
-				"@3000",
-				"D=A",
-				"@THIS",
-				"M=D",
-				"@3010",
-				"D=A",
-				"@THAT",
-				"M=D",
-				"@END",
-				"0;JMP",
-				"(TRUE)",
-				"  D=-1",
-				"  @R14",
-				"  A=M",
-				"  0;JMP",
-				"(FALSE)",
-				"  D=0",
-				"  @R14",
-				"  A=M",
-				"  0;JMP",
-				"(END)",
-			},
-		},
-		{
-			desc:    "notコマンドを含む",
-			hasInit: true,
+			desc: "notコマンドを含む",
 			command: &Command{
 				raw:         "not",
 				commandType: CommandArithmetic,
@@ -178,7 +135,7 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translators := NewTranslators(testFilename, tc.hasInit)
+			translators := NewTranslators(testFilename)
 			if tc.command != nil {
 				translators.Add(tc.command)
 			}
@@ -239,7 +196,7 @@ func TestTranslatorsCalculatePC(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translators := NewTranslators(testFilename, testHasInit)
+			translators := NewTranslators(testFilename)
 			translators.pc = tc.pc
 			translators.calculatePC(tc.assembler)
 

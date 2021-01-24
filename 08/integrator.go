@@ -9,7 +9,7 @@ func NewIntegrator(filename string) *Integrator {
 }
 
 func (i *Integrator) Integrate() error {
-	vmCode, hasInit, err := ReadVmCode(i.filename)
+	vmCode, err := ReadVmCode(i.filename)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func (i *Integrator) Integrate() error {
 		return err
 	}
 
-	translators := i.factoryTranslators(commands, i.filename, hasInit)
+	translators := i.factoryTranslators(commands, i.filename)
 	assembler := translators.TranslateAll()
 
 	dest := NewDest(i.filename)
@@ -32,8 +32,8 @@ func (i *Integrator) Integrate() error {
 	return nil
 }
 
-func (i *Integrator) factoryTranslators(commands *Commands, filename string, hasInit HasInit) *Translators {
-	translators := NewTranslators(filename, hasInit)
+func (i *Integrator) factoryTranslators(commands *Commands, filename string) *Translators {
+	translators := NewTranslators(filename)
 	for _, command := range commands.commands {
 		translators.Add(command)
 	}

@@ -10,13 +10,12 @@ import (
 type Translators struct {
 	translators []*Translator
 	moduleName  string
-	hasInit     HasInit
 	pc          int
 }
 
-func NewTranslators(filename string, hasInit HasInit) *Translators {
+func NewTranslators(filename string) *Translators {
 	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
-	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit, pc: 0}
+	return &Translators{translators: []*Translator{}, moduleName: moduleName, pc: 0}
 }
 
 func (ts *Translators) Add(command *Command) {
@@ -26,7 +25,7 @@ func (ts *Translators) Add(command *Command) {
 }
 
 func (ts *Translators) TranslateAll() []string {
-	ti := &TranslatorInitializer{hasInit: ts.hasInit}
+	ti := &TranslatorInitializer{}
 	result := ti.initializeHeader()
 	ts.calculatePC(result)
 
@@ -664,9 +663,7 @@ func (t *Translator) restoreByFrame(definedLabel string, frameIndex int) []strin
 	}
 }
 
-type TranslatorInitializer struct {
-	hasInit HasInit
-}
+type TranslatorInitializer struct{}
 
 func (ti *TranslatorInitializer) initializeHeader() []string {
 	//return []string{}
