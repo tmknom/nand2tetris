@@ -11,7 +11,6 @@ const (
 	testFilename = "Dummy.vm"
 	testPC       = 100
 	testRaw      = "dummy raw"
-	testHasInit  = false
 )
 
 var testModuleName = "TestModule" // 定数だとアドレス参照できなかったのでvarで定義
@@ -31,7 +30,7 @@ func TestNewTranslators(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			dest := NewTranslators(tc.filename, false)
+			dest := NewTranslators(tc.filename)
 			got := dest.moduleName
 			if got != tc.want {
 				t.Errorf("failed: got = %s, want %s", got, tc.want)
@@ -43,13 +42,11 @@ func TestNewTranslators(t *testing.T) {
 func TestTranslatorsTranslateAll(t *testing.T) {
 	cases := []struct {
 		desc    string
-		hasInit HasInit
 		command *Command
 		want    []string
 	}{
 		{
-			desc:    "@Sys.initを含まない＆初期化コードのみ（テストコードの後方互換性維持のため存在）",
-			hasInit: false,
+			desc: "初期化コードのみ",
 			want: []string{
 				"@256",
 				"D=A",
@@ -87,48 +84,7 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 			},
 		},
 		{
-			desc:    "@Sys.initを含む＆初期化コードのみ",
-			hasInit: true,
-			want: []string{
-				"@256",
-				"D=A",
-				"@SP",
-				"M=D",
-				"@300",
-				"D=A",
-				"@LCL",
-				"M=D",
-				"@400",
-				"D=A",
-				"@ARG",
-				"M=D",
-				"@3000",
-				"D=A",
-				"@THIS",
-				"M=D",
-				"@3010",
-				"D=A",
-				"@THAT",
-				"M=D",
-				"@Sys.init",
-				"@END",
-				"0;JMP",
-				"(TRUE)",
-				"  D=-1",
-				"  @R14",
-				"  A=M",
-				"  0;JMP",
-				"(FALSE)",
-				"  D=0",
-				"  @R14",
-				"  A=M",
-				"  0;JMP",
-				"(END)",
-			},
-		},
-		{
-			desc:    "notコマンドを含む",
-			hasInit: true,
+			desc: "notコマンドを含む",
 			command: &Command{
 				raw:         "not",
 				commandType: CommandArithmetic,
@@ -155,7 +111,6 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 				"D=A",
 				"@THAT",
 				"M=D",
-				"@Sys.init",
 				"@SP",
 				"AM=M-1",
 				"M=!M",
@@ -180,7 +135,7 @@ func TestTranslatorsTranslateAll(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translators := NewTranslators(testFilename, tc.hasInit)
+			translators := NewTranslators(testFilename)
 			if tc.command != nil {
 				translators.Add(tc.command)
 			}
@@ -241,7 +196,7 @@ func TestTranslatorsCalculatePC(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			translators := NewTranslators(testFilename, testHasInit)
+			translators := NewTranslators(testFilename)
 			translators.pc = tc.pc
 			translators.calculatePC(tc.assembler)
 
@@ -1037,6 +992,181 @@ func TestTranslatorReturnFunction(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			translator := NewTranslator(testPC, testRaw, tc.commandType, tc.arg1, nil, &testModuleName)
+			got := translator.Translate()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
+			}
+		})
+	}
+}
+
+func TestTranslatorCall(t *testing.T) {
+	cases := []struct {
+		desc        string
+		commandType CommandType
+		arg1        string
+		arg2        int
+		pc          int
+		want        []string
+	}{
+		{
+			desc:        "call Math.max 0",
+			commandType: CommandCall,
+			arg1:        "Math.max",
+			arg2:        0,
+			pc:          100,
+			want: []string{
+				// push return-address
+				"@RETURN-ADDRESS$TestModule$Math.max$100",
+				"D=A",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push LCL
+				"@LCL",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push ARG
+				"@ARG",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THIS
+				"@THIS",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THAT
+				"@THAT",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// @ARG = SP-n-5
+				"@0",
+				"D=A",
+				"@5",
+				"D=D+A",
+				"@SP",
+				"D=M-D",
+				"@ARG",
+				"M=D",
+
+				// @LCL=SP
+				"@SP",
+				"D=M",
+				"@LCL",
+				"M=D",
+
+				// goto f
+				"@Math.max",
+				"0;JMP",
+
+				// (return-address)
+				"(RETURN-ADDRESS$TestModule$Math.max$100)",
+			},
+		},
+		{
+			desc:        "call Math.min 2",
+			commandType: CommandCall,
+			arg1:        "Math.min",
+			arg2:        2,
+			pc:          397,
+			want: []string{
+				// push return-address
+				"@RETURN-ADDRESS$TestModule$Math.min$397",
+				"D=A",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push LCL
+				"@LCL",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push ARG
+				"@ARG",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THIS
+				"@THIS",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// push THAT
+				"@THAT",
+				"D=M",
+				"@SP",
+				"A=M",
+				"M=D",
+				"@SP",
+				"M=M+1",
+
+				// @ARG = SP-n-5
+				"@2",
+				"D=A",
+				"@5",
+				"D=D+A",
+				"@SP",
+				"D=M-D",
+				"@ARG",
+				"M=D",
+
+				// @LCL=SP
+				"@SP",
+				"D=M",
+				"@LCL",
+				"M=D",
+
+				// goto f
+				"@Math.min",
+				"0;JMP",
+
+				// (return-address)
+				"(RETURN-ADDRESS$TestModule$Math.min$397)",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			translator := NewTranslator(tc.pc, testRaw, tc.commandType, tc.arg1, &tc.arg2, &testModuleName)
 			got := translator.Translate()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {

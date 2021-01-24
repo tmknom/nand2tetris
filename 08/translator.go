@@ -10,13 +10,12 @@ import (
 type Translators struct {
 	translators []*Translator
 	moduleName  string
-	hasInit     HasInit
 	pc          int
 }
 
-func NewTranslators(filename string, hasInit HasInit) *Translators {
+func NewTranslators(filename string) *Translators {
 	moduleName := filepath.Base(filename[:len(filename)-len(filepath.Ext(filename))])
-	return &Translators{translators: []*Translator{}, moduleName: moduleName, hasInit: hasInit, pc: 0}
+	return &Translators{translators: []*Translator{}, moduleName: moduleName, pc: 0}
 }
 
 func (ts *Translators) Add(command *Command) {
@@ -26,7 +25,7 @@ func (ts *Translators) Add(command *Command) {
 }
 
 func (ts *Translators) TranslateAll() []string {
-	ti := &TranslatorInitializer{hasInit: ts.hasInit}
+	ti := &TranslatorInitializer{}
 	result := ti.initializeHeader()
 	ts.calculatePC(result)
 
@@ -664,16 +663,11 @@ func (t *Translator) restoreByFrame(definedLabel string, frameIndex int) []strin
 	}
 }
 
-type TranslatorInitializer struct {
-	hasInit HasInit
-}
+type TranslatorInitializer struct{}
 
 func (ti *TranslatorInitializer) initializeHeader() []string {
 	//return []string{}
-	result := []string{}
-	result = append(result, ti.initializeLabels()...)
-	result = append(result, ti.initializeSysInit()...) // これは必ず最後に追加する
-	return result
+	return ti.initializeLabels()
 }
 
 func (ti *TranslatorInitializer) initializeLabels() []string {
@@ -697,15 +691,6 @@ func (ti *TranslatorInitializer) initializeLabels() []string {
 		result = append(result, ti.initializeLabel(labels[address], address)...)
 	}
 	return result
-}
-
-// 初期化処理が終わったら最後にSys.initを実行する
-func (ti *TranslatorInitializer) initializeSysInit() []string {
-	// 以前のテストケースも動くように「function Sys.init 0」が定義されてるときだけSys.initを呼ぶ
-	if ti.hasInit {
-		return []string{"@Sys.init"}
-	}
-	return []string{}
 }
 
 func (ti *TranslatorInitializer) initializeLabel(name string, address int) []string {

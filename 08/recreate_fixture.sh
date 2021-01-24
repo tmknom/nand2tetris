@@ -9,9 +9,10 @@ set -ex
 
 function recreate(){
   dir_name=${1}
+  file_name="${dir_name}/${2}"
 
   # 新しいasmファイル作成
-  go run . ${dir_name}
+  go run . ${file_name}
 
   pushd ${dir_name} > /dev/null
   cmp=$(find . -name "*.asm.cmp") # cmpファイルの検索
@@ -32,29 +33,30 @@ function test(){
 
 function recreateAndTest(){
   dir_name=${1}
-  recreate ${dir_name}
+  file_name=${2}
+  recreate ${dir_name} ${file_name}
   test ${dir_name}
 }
 
-recreateAndTest "StackArithmetic/SimpleAdd"
-recreateAndTest "StackArithmetic/StackTest"
-
-recreateAndTest "MemoryAccess/BasicTest"
-recreateAndTest "MemoryAccess/PointerTest"
-recreateAndTest "MemoryAccess/StaticTest"
-
-recreateAndTest "ProgramFlow/BasicLoop"
-recreateAndTest "ProgramFlow/FibonacciSeries"
+#recreateAndTest "FunctionCalls/StaticsTest"
+#recreateAndTest "FunctionCalls/NestedCall"
+recreateAndTest "FunctionCalls/FibonacciElement"
 
 # SimpleFunctionのみテスト時の初期化処理が特殊で、テスト実行前に
 # SimpleFunction.asmの 「(SimpleFunction.test)」から手前の初期化コードを事前に削除が必要
 # sedコマンドで初期化コードを削除してテストを実行する
-recreate "FunctionCalls/SimpleFunction"
+recreate "FunctionCalls/SimpleFunction" "SimpleFunction.vm"
 sed -i '' "1,20d" "FunctionCalls/SimpleFunction/SimpleFunction.asm"
 test "FunctionCalls/SimpleFunction"
 
-#recreateAndTest "FunctionCalls/FibonacciElement"
-#recreateAndTest "FunctionCalls/NestedCall"
-#recreateAndTest "FunctionCalls/StaticsTest"
+recreateAndTest "ProgramFlow/FibonacciSeries" "FibonacciSeries.vm"
+recreateAndTest "ProgramFlow/BasicLoop" "BasicLoop.vm"
+
+recreateAndTest "MemoryAccess/StaticTest" "StaticTest.vm"
+recreateAndTest "MemoryAccess/PointerTest" "PointerTest.vm"
+recreateAndTest "MemoryAccess/BasicTest" "BasicTest.vm"
+
+recreateAndTest "StackArithmetic/StackTest" "StackTest.vm"
+recreateAndTest "StackArithmetic/SimpleAdd" "SimpleAdd.vm"
 
 echo "All succeeded!"
