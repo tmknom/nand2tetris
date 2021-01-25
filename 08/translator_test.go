@@ -577,7 +577,7 @@ func TestTranslatorPush(t *testing.T) {
 			arg1:        "static",
 			arg2:        14,
 			want: []string{
-				"@30",
+				"@TestModule.14",
 				"D=M",
 				"@SP",
 				"A=M",
@@ -723,7 +723,7 @@ func TestTranslatorPop(t *testing.T) {
 				"@SP",
 				"AM=M-1",
 				"D=M",
-				"@30",
+				"@TestModule.14",
 				"M=D",
 			},
 		},

@@ -11,7 +11,7 @@ type Arg struct {
 	files []string
 }
 
-const DefaultArg = "MemoryAccess/StaticTest/"
+const DefaultArg = "FunctionCalls/StaticsTest/"
 
 func NewArg(args []string) *Arg {
 	arg := DefaultArg
