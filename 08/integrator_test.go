@@ -89,6 +89,17 @@ func TestIntegratorIntegrate(t *testing.T) {
 			destFile:  "FunctionCalls/NestedCall/NestedCall.asm",
 			wantFile:  "FunctionCalls/NestedCall/NestedCall.asm.cmp",
 		},
+		{
+			desc: "StaticsTest",
+			arg:  "FunctionCalls/StaticsTest",
+			filenames: []string{
+				"FunctionCalls/StaticsTest/Class1.vm",
+				"FunctionCalls/StaticsTest/Class2.vm",
+				"FunctionCalls/StaticsTest/Sys.vm",
+			},
+			destFile: "FunctionCalls/StaticsTest/StaticsTest.asm",
+			wantFile: "FunctionCalls/StaticsTest/StaticsTest.asm.cmp",
+		},
 	}
 
 	for _, tc := range cases {

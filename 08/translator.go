@@ -313,7 +313,17 @@ func (t *Translator) pushPointer() []string {
 }
 
 func (t *Translator) pushStatic() []string {
-	return t.pushAddress(baseStaticAddress)
+	symbol := fmt.Sprintf("@%s.%d", *t.moduleName, *t.arg2)
+	result := []string{
+		symbol, // Aレジスタに変数シンボルをセット
+		"D=M",   // 変数シンボルの値をDレジスタにセット
+	}
+
+	// スタックにDレジスタの値を積む
+	result = append(result, t.dRegisterToStack()...)
+	// スタックポインタのインクリメント
+	result = append(result, t.incrementSP()...)
+	return result
 }
 
 func (t *Translator) pushAddress(baseAddress int) []string {
@@ -395,7 +405,18 @@ func (t *Translator) popPointer() []string {
 }
 
 func (t *Translator) popStatic() []string {
-	return t.popAddress(baseStaticAddress)
+	symbol := fmt.Sprintf("@%s.%d", *t.moduleName, *t.arg2)
+
+	result := []string{
+		// スタック領域の先頭の値をDレジスタにセット
+		"@SP",    // AレジスタにアドレスSPをセット
+		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
+		"D=M",    // スタック領域の先頭の値をDレジスタにセット
+		// 変数シンボルの割り当て
+		symbol, // Aレジスタに変数シンボルをセット
+		"M=D",  // 変数シンボルにDレジスタの値（スタック領域の先頭の値）をセット
+	}
+	return result
 }
 
 func (t *Translator) popAddress(baseAddress int) []string {
@@ -413,25 +434,24 @@ func (t *Translator) popAddress(baseAddress int) []string {
 	return result
 }
 
-// TODO R14じゃなくてR13を使う
 func (t *Translator) popLabel(label string) []string {
 	index := fmt.Sprintf("@%d", *t.arg2)
 	baseAddress := fmt.Sprintf("@%s", label)
 
 	result := []string{
-		// 保存先アドレスを算出して、R14に一時的にセット
+		// 保存先アドレスを算出して、R13に一時的にセット
 		index,       // インデックスをAレジスタにセット
 		"D=A",       // Dレジスタへ、Aレジスタの値（インデックス）をセット
 		baseAddress, // Aレジスタにベースアドレスをセット
 		"D=D+M",     // 保存先アドレス（インデックス+ベースアドレス）を算出してDレジスタにセット
-		"@R14",      // AレジスタにアドレスR14をセット
+		"@R13",      // AレジスタにアドレスR13をセット
 		"M=D",       // R14に一時的に保存先アドレスをセット
 		// スタック領域の先頭の値をDレジスタにセット
 		"@SP",    // AレジスタにアドレスSPをセット
 		"AM=M-1", // スタック領域の先頭アドレスをデクリメントしてAレジスタにセット
 		"D=M",    // スタック領域の先頭の値をDレジスタにセット
 		// 保存先アドレスにスタック領域の先頭の値をセット
-		"@R14", // AレジスタにアドレスR14をセット
+		"@R13", // AレジスタにアドレスR13をセット
 		"A=M",  // Aレジスタに保存先アドレスをセット
 		"M=D",  // 保存先アドレスにDレジスタの値（スタック領域の先頭の値）をセット
 	}
