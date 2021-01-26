@@ -28,5 +28,8 @@ func (i *Integrator) integrateFile(file string) error {
 		return err
 	}
 
+	tokenizer := NewTokenizer(src.lines)
+	tokenizer.Tokenize()
+
 	return nil
 }
