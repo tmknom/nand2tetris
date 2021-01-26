@@ -16,5 +16,6 @@ func main() {
 func run() error {
 	arg := NewArg(os.Args)
 	fmt.Printf("コンパイル開始：%s\n", arg.raw)
-	return nil
+	integrator := NewIntegrator(arg.files)
+	return integrator.Integrate()
 }
