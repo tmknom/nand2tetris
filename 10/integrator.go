@@ -13,6 +13,19 @@ func NewIntegrator(filenames []string) *Integrator {
 func (i *Integrator) Integrate() error {
 	for _, file := range i.filenames {
 		fmt.Println(file)
+		err := i.integrateFile(file)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (i *Integrator) integrateFile(file string) error {
+	src := NewSrc(file)
+	err := src.Setup()
+	if err != nil {
+		return err
 	}
 
 	return nil
