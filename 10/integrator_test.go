@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"github.com/google/go-cmp/cmp"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -198,7 +199,7 @@ func readFileQuietly(filename string) []string {
 
 	lines := []string{}
 	for scanner.Scan() {
-		line := scanner.Text()
+		line := strings.TrimSpace(scanner.Text())
 		lines = append(lines, line)
 	}
 	return lines
