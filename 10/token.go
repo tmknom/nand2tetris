@@ -14,15 +14,11 @@ func NewTokens() *Tokens {
 	return &Tokens{items: []*Token{}, headIndex: 0}
 }
 
-func (t *Tokens) SubList() *Tokens {
-	tokens := NewTokens()
-	tokens.items = t.items[t.headIndex:t.tailIndex]
-	tokens.SetupIndex()
-	return tokens
-}
-
-func (t *Tokens) First() *Token {
-	return t.items[t.headIndex]
+func (t *Tokens) Add(items []*Token) {
+	for _, item := range items {
+		t.items = append(t.items, item)
+	}
+	t.setupIndex()
 }
 
 func (t *Tokens) Advance() *Token {
@@ -35,15 +31,23 @@ func (t *Tokens) Backward() *Token {
 	return t.items[t.tailIndex+1]
 }
 
-func (t *Tokens) SetupIndex() {
-	t.headIndex = 0
-	t.tailIndex = len(t.items) - 1
+func (t *Tokens) First() *Token {
+	if len(t.items) > t.headIndex {
+		return t.items[t.headIndex]
+	}
+	return nil
 }
 
-func (t *Tokens) Add(items []*Token) {
-	for _, item := range items {
-		t.items = append(t.items, item)
-	}
+func (t *Tokens) SubList() *Tokens {
+	tokens := NewTokens()
+	tokens.items = t.items[t.headIndex : t.tailIndex+1]
+	tokens.setupIndex()
+	return tokens
+}
+
+func (t *Tokens) setupIndex() {
+	t.headIndex = 0
+	t.tailIndex = len(t.items) - 1
 }
 
 func (t *Tokens) ToXML() []string {
