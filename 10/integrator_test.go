@@ -151,6 +151,45 @@ func TestIntegratorIntegrateFile(t *testing.T) {
 	}
 }
 
+// TODO パース処理が一通り実装できるまで、途中状態のXMLファイルをリグレッションテストできるようにしておく
+func TestIntegratorProvisional(t *testing.T) {
+	cases := []struct {
+		desc             string
+		src              string
+		destTokenizedXML string
+		destParsedXML    string
+		wantParsedXML    string
+	}{
+		{
+			desc:             "途中状態のXMLファイルをリグレッションテスト",
+			src:              "Square/Main.jack",
+			destTokenizedXML: "Square/MainT.xml",
+			destParsedXML:    "Square/Main.xml",
+			wantParsedXML:    "Square/provisional/Main.xml",
+		},
+	}
+
+	for _, tc := range cases {
+		os.Remove(tc.destTokenizedXML)
+		os.Remove(tc.destParsedXML)
+
+		t.Run(tc.desc, func(t *testing.T) {
+			integrator := NewIntegrator([]string{})
+			integrator.integrateFile(tc.src)
+
+			gotParsedXML := readFileQuietly(tc.destParsedXML)
+			wantParsedXML := readFileQuietly(tc.wantParsedXML)
+
+			if diff := cmp.Diff(gotParsedXML, wantParsedXML); diff != "" {
+				t.Errorf("failed: diff %s %s: (-got +want):\n%s\n", tc.destParsedXML, tc.wantParsedXML, diff)
+			} else {
+				os.Remove(tc.destParsedXML)
+			}
+			os.Remove(tc.destTokenizedXML)
+		})
+	}
+}
+
 func readFileQuietly(filename string) []string {
 	file, _ := os.Open(filename)
 	defer file.Close()
