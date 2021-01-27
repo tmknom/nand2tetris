@@ -15,9 +15,17 @@ func NewDest(src string) *Dest {
 	return &Dest{src: src}
 }
 
-func (d *Dest) Write(lines []string) error {
-	filename := d.generateFilename()
+func (d *Dest) WriteTokenizedXML(lines []string) error {
+	filename := d.tokenizedXMLFilename()
+	return d.write(filename, lines)
+}
 
+func (d *Dest) WriteParsedXML(lines []string) error {
+	filename := d.parsedXMLFilename()
+	return d.write(filename, lines)
+}
+
+func (d *Dest) write(filename string, lines []string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -35,7 +43,12 @@ func (d *Dest) Write(lines []string) error {
 	return nil
 }
 
-func (d *Dest) generateFilename() string {
+func (d *Dest) tokenizedXMLFilename() string {
 	withoutExt := d.src[:len(d.src)-len(filepath.Ext(d.src))]
 	return fmt.Sprintf("%sT.xml", withoutExt)
+}
+
+func (d *Dest) parsedXMLFilename() string {
+	withoutExt := d.src[:len(d.src)-len(filepath.Ext(d.src))]
+	return fmt.Sprintf("%s.xml", withoutExt)
 }

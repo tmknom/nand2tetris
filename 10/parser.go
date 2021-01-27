@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Parser struct {
 	tokens *Tokens
@@ -8,6 +10,10 @@ type Parser struct {
 
 func NewParser(tokens *Tokens) *Parser {
 	return &Parser{tokens: tokens}
+}
+
+func (p *Parser) excludeParsedTokens() {
+	p.tokens = p.tokens.SubList()
 }
 
 func (p *Parser) Parse() (*Class, error) {
@@ -39,11 +45,15 @@ func (p *Parser) parseClass() (*Class, error) {
 		return nil, fmt.Errorf("parseClass closeSymbol: %s", closeSymbol.debug())
 	}
 
+	// パース済みのclass要素を除外したTokensに更新
+	p.excludeParsedTokens()
+	//fmt.Printf("Tokens = %+v\n", p.tokens.debug())
+
 	// TODO ClassVarDec の処理
 
 	// TODO SubroutineDec の処理
 
-	fmt.Printf("class = %+v\n", class.debug())
+	//fmt.Printf("class = %+v\n", class.debug())
 	return class, nil
 }
 
@@ -64,6 +74,19 @@ func NewClass() *Class {
 		ClassVarDec:   NewTokens(),
 		SubroutineDec: NewTokens(),
 	}
+}
+
+func (c *Class) ToXML() []string {
+	const indent = "  "
+
+	result := []string{}
+	result = append(result, "<class>")
+	result = append(result, indent+c.Keyword.ToXML())
+	result = append(result, indent+c.Identifier.ToXML())
+	result = append(result, indent+c.OpenSymbol.ToXML())
+	result = append(result, indent+c.CloseSymbol.ToXML())
+	result = append(result, "</class>")
+	return result
 }
 
 func (c *Class) SetIdentifier(identifier *Token) {

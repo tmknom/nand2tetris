@@ -29,15 +29,23 @@ func (i *Integrator) integrateFile(file string) error {
 	// トークンに分割
 	tokenizer := NewTokenizer(src.lines)
 	tokens := tokenizer.Tokenize()
-	xml := tokens.ToXML()
+	tokenizedXML := tokens.ToXML()
 
 	// トークンをパース
 	parser := NewParser(tokens)
-	parser.Parse()
+	class, err := parser.Parse()
+	if err != nil {
+		return err
+	}
 
 	// XMLファイルへ書き込み
 	dest := NewDest(src.filename)
-	err = dest.Write(xml)
+	err = dest.WriteTokenizedXML(tokenizedXML)
+	if err != nil {
+		return err
+	}
+
+	err = dest.WriteParsedXML(class.ToXML())
 	if err != nil {
 		return err
 	}
