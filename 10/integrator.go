@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type Integrator struct {
 	filenames []string
 }
@@ -12,7 +10,6 @@ func NewIntegrator(filenames []string) *Integrator {
 
 func (i *Integrator) Integrate() error {
 	for _, file := range i.filenames {
-		fmt.Println(file)
 		err := i.integrateFile(file)
 		if err != nil {
 			return err
@@ -33,6 +30,10 @@ func (i *Integrator) integrateFile(file string) error {
 	tokenizer := NewTokenizer(src.lines)
 	tokens := tokenizer.Tokenize()
 	xml := tokens.ToXML()
+
+	// トークンをパース
+	parser := NewParser(tokens)
+	parser.Parse()
 
 	// XMLファイルへ書き込み
 	dest := NewDest(src.filename)
