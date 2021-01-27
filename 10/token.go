@@ -14,6 +14,13 @@ func NewTokens() *Tokens {
 	return &Tokens{items: []*Token{}, headIndex: 0}
 }
 
+func (t *Tokens) SubList() *Tokens {
+	tokens := NewTokens()
+	tokens.items = t.items[t.headIndex:t.tailIndex]
+	tokens.SetupIndex()
+	return tokens
+}
+
 func (t *Tokens) Advance() *Token {
 	t.headIndex += 1
 	return t.items[t.headIndex-1]
