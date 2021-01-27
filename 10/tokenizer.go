@@ -21,6 +21,9 @@ func (t *Tokenizer) Tokenize() *Tokens {
 		t.tokens.Add(items)
 	}
 
+	// Linked List形式で辿れるようにインデックスをセットアップ
+	t.tokens.SetupIndex()
+
 	return t.tokens
 }
 
