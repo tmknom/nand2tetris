@@ -15,13 +15,13 @@ func NewTokenizer(lines []string) *Tokenizer {
 	return &Tokenizer{lines: lines, tokens: tokens}
 }
 
-func (t *Tokenizer) Tokenize() []string {
+func (t *Tokenizer) Tokenize() *Tokens {
 	for _, line := range t.lines {
 		items := t.tokenizeLine(line)
 		t.tokens.Add(items)
 	}
 
-	return t.tokens.ToXML()
+	return t.tokens
 }
 
 func (t *Tokenizer) tokenizeLine(line string) []*Token {

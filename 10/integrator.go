@@ -31,7 +31,8 @@ func (i *Integrator) integrateFile(file string) error {
 
 	// トークンに分割
 	tokenizer := NewTokenizer(src.lines)
-	xml := tokenizer.Tokenize()
+	tokens := tokenizer.Tokenize()
+	xml := tokens.ToXML()
 
 	// XMLファイルへ書き込み
 	dest := NewDest(src.filename)
