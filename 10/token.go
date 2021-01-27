@@ -5,11 +5,35 @@ import (
 )
 
 type Tokens struct {
-	items []*Token
+	items     []*Token
+	headIndex int
+	tailIndex int
 }
 
 func NewTokens() *Tokens {
-	return &Tokens{items: []*Token{}}
+	return &Tokens{items: []*Token{}, headIndex: 0}
+}
+
+func (t *Tokens) SubList() *Tokens {
+	tokens := NewTokens()
+	tokens.items = t.items[t.headIndex:t.tailIndex]
+	tokens.SetupIndex()
+	return tokens
+}
+
+func (t *Tokens) Advance() *Token {
+	t.headIndex += 1
+	return t.items[t.headIndex-1]
+}
+
+func (t *Tokens) Backward() *Token {
+	t.tailIndex -= 1
+	return t.items[t.tailIndex+1]
+}
+
+func (t *Tokens) SetupIndex() {
+	t.headIndex = 0
+	t.tailIndex = len(t.items) - 1
 }
 
 func (t *Tokens) Add(items []*Token) {
@@ -54,6 +78,10 @@ const (
 
 func NewToken(value string, tokenType TokenType) *Token {
 	return &Token{Value: value, TokenType: tokenType}
+}
+
+func (t *Token) Equals(other *Token) bool {
+	return t.Value == other.Value && t.TokenType == other.TokenType
 }
 
 func (t *Token) ToXML() string {
