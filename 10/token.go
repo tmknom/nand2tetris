@@ -21,6 +21,10 @@ func (t *Tokens) SubList() *Tokens {
 	return tokens
 }
 
+func (t *Tokens) First() *Token {
+	return t.items[t.headIndex]
+}
+
 func (t *Tokens) Advance() *Token {
 	t.headIndex += 1
 	return t.items[t.headIndex-1]
