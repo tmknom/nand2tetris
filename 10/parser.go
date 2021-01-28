@@ -33,6 +33,7 @@ func (p *Parser) Parse() (*Class, error) {
 	return p.parseClass()
 }
 
+// 'class' className '{' classVarDec* subroutineDec* '}'
 // class Main { ... }
 func (p *Parser) parseClass() (*Class, error) {
 	class := NewClass()
@@ -67,28 +68,29 @@ func (p *Parser) parseClass() (*Class, error) {
 	}
 	class.SetClassVarDecs(classVarDecs)
 
-	// TODO SubroutineDec の処理
-	//fmt.Printf("Tokens = %+v\n", p.tokens.debug())
+	subroutineDecs, err := p.parseSubroutineDecs()
+	if err != nil {
+		return nil, err
+	}
+	class.SetSubroutineDecs(subroutineDecs)
 
-	//fmt.Printf("class = %+v\n", class.debug())
 	return class, nil
 }
 
 type Class struct {
-	Keyword       *Keyword
-	ClassName     *ClassName
-	OpenSymbol    *OpeningCurlyBracket
-	CloseSymbol   *ClosingCurlyBrackets
-	ClassVarDecs  *ClassVarDecs
-	SubroutineDec []*Token
+	Keyword        *Keyword
+	ClassName      *ClassName
+	OpenSymbol     *OpeningCurlyBracket
+	CloseSymbol    *ClosingCurlyBracket
+	ClassVarDecs   *ClassVarDecs
+	SubroutineDecs *SubroutineDecs
 }
 
 func NewClass() *Class {
 	return &Class{
-		Keyword:       NewKeywordByValue("class"),
-		OpenSymbol:    ConstOpeningCurlyBracket,
-		CloseSymbol:   ConstClosingCurlyBrackets,
-		SubroutineDec: []*Token{},
+		Keyword:     NewKeywordByValue("class"),
+		OpenSymbol:  ConstOpeningCurlyBracket,
+		CloseSymbol: ConstClosingCurlyBrackets,
 	}
 }
 
@@ -120,6 +122,10 @@ func (c *Class) SetClassVarDecs(classVarDecs *ClassVarDecs) {
 	c.ClassVarDecs = classVarDecs
 }
 
+func (c *Class) SetSubroutineDecs(subroutineDecs *SubroutineDecs) {
+	c.SubroutineDecs = subroutineDecs
+}
+
 func (c *Class) ToXML() []string {
 	result := []string{}
 	result = append(result, "<class>")
@@ -127,6 +133,7 @@ func (c *Class) ToXML() []string {
 	result = append(result, c.ClassName.ToXML())
 	result = append(result, c.OpenSymbol.ToXML())
 	result = append(result, c.ClassVarDecs.ToXML()...)
+	result = append(result, c.SubroutineDecs.ToXML()...)
 	result = append(result, c.CloseSymbol.ToXML())
 	result = append(result, "</class>")
 	return result
@@ -137,6 +144,8 @@ func (c *Class) debug() string {
 		c.Keyword.debug(), c.ClassName.debug(), c.OpenSymbol.debug(), c.CloseSymbol.debug())
 }
 
+// ('static' | 'field') varType varName (',' varName) ';'
+// field int x, y;
 func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 	classVarDecs := NewClassVarDecs()
 
@@ -158,7 +167,7 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 			return nil, err
 		}
 
-		for p.readFirstToken().Value == "," {
+		for ConstComma.IsCheck(p.readFirstToken()) {
 			comma := p.advanceToken()
 			varName := p.advanceToken()
 			if err := classVarDec.AddCommaAndVarName(comma, varName); err != nil {
@@ -267,6 +276,294 @@ func (c *ClassVarDec) ToXML() []string {
 	return result
 }
 
+// ('constructor' | 'function' | 'method') ('void' | varType) subroutineName '(' parameterList ')' subroutineBody
+// constructor Square new(int x, int y) { ... }
+func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
+	subroutineDecs := NewSubroutineDecs()
+	for subroutineDecs.hasSubroutineDec(p.readFirstToken()) {
+		keyword := NewKeyword(p.advanceToken())
+		subroutineDec := NewSubroutineDec(keyword)
+
+		subroutineType := p.advanceToken()
+		if err := subroutineDec.SetSubroutineType(subroutineType); err != nil {
+			return nil, err
+		}
+
+		subroutineName := p.advanceToken()
+		if err := subroutineDec.SetSubroutineName(subroutineName); err != nil {
+			return nil, err
+		}
+
+		openingRoundBracket := p.advanceToken()
+		if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+			return nil, err
+		}
+
+		// パラメータリストの追加
+		parameterList, err := p.parseParameterList()
+		if err != nil {
+			return nil, err
+		}
+		subroutineDec.SetParameterList(parameterList)
+
+		closingRoundBracket := p.advanceToken()
+		if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+			return nil, err
+		}
+
+		// パースに成功したら要素に追加
+		subroutineDecs.Add(subroutineDec)
+
+		// パース済みのclass要素を除外したTokensに更新
+		p.excludeParsedTokens()
+	}
+
+	return subroutineDecs, nil
+}
+
+type SubroutineDecs struct {
+	Items []*SubroutineDec
+}
+
+func NewSubroutineDecs() *SubroutineDecs {
+	return &SubroutineDecs{
+		Items: []*SubroutineDec{},
+	}
+}
+
+func (s *SubroutineDecs) Add(item *SubroutineDec) {
+	s.Items = append(s.Items, item)
+}
+
+func (s *SubroutineDecs) ToXML() []string {
+	result := []string{}
+	for _, item := range s.Items {
+		result = append(result, item.ToXML()...)
+	}
+	return result
+}
+
+func (s *SubroutineDecs) hasSubroutineDec(token *Token) bool {
+	if token == nil {
+		return false
+	}
+
+	return token.Value == "constructor" || token.Value == "function" || token.Value == "method"
+}
+
+type SubroutineDec struct {
+	Subroutine *Keyword
+	*SubroutineType
+	*SubroutineName
+	*OpeningRoundBracket
+	*ClosingRoundBracket
+	*ParameterList
+	*SubroutineBody
+}
+
+func NewSubroutineDec(subroutine *Keyword) *SubroutineDec {
+	return &SubroutineDec{
+		Subroutine:          subroutine,
+		OpeningRoundBracket: ConstOpeningRoundBracket,
+		ClosingRoundBracket: ConstClosingRoundBracket,
+	}
+}
+
+func (s *SubroutineDec) SetSubroutineType(token *Token) error {
+	subroutineType := NewSubroutineType(token)
+	if err := subroutineType.Check(); err != nil {
+		return err
+	}
+
+	s.SubroutineType = subroutineType
+	return nil
+}
+
+func (s *SubroutineDec) SetSubroutineName(token *Token) error {
+	subroutineName := NewSubroutineName(token)
+	if err := subroutineName.Check(); err != nil {
+		return err
+	}
+
+	s.SubroutineName = subroutineName
+	return nil
+}
+
+func (s *SubroutineDec) SetParameterList(parameterList *ParameterList) {
+	s.ParameterList = parameterList
+}
+
+func (s *SubroutineDec) ToXML() []string {
+	result := []string{}
+	result = append(result, "<subroutineDec>")
+	result = append(result, s.Subroutine.ToXML())
+	result = append(result, s.SubroutineType.ToXML())
+	result = append(result, s.SubroutineName.ToXML())
+	result = append(result, s.OpeningRoundBracket.ToXML())
+	result = append(result, s.ParameterList.ToXML()...)
+	result = append(result, s.ClosingRoundBracket.ToXML())
+	result = append(result, "</subroutineDec>")
+	return result
+}
+
+type SubroutineType struct {
+	*Token
+}
+
+func NewSubroutineType(token *Token) *SubroutineType {
+	return &SubroutineType{
+		Token: token,
+	}
+}
+
+func (s *SubroutineType) Check() error {
+	if err := NewVarType(s.Token).Check(); err == nil {
+		return nil
+	}
+
+	expected := []string{"void"}
+	if err := s.CheckKeywordValue(expected...); err == nil {
+		return nil
+	}
+
+	message := fmt.Sprintf("SubroutineType: got = %s", s.debug())
+	return errors.New(message)
+}
+
+// ((varType varName) (',' varType varName)*)?
+// int Ax, int Ay
+func (p *Parser) parseParameterList() (*ParameterList, error) {
+	// パラメータがひとつも定義されていない場合は即終了
+	parameterList := NewParameterList()
+	if !NewVarType(p.readFirstToken()).IsCheck() {
+		return parameterList, nil
+	}
+
+	// パラメータ1つめのみカンマがないのでループに入る前に処理する
+	varType := p.advanceToken()
+	varName := p.advanceToken()
+	if err := parameterList.Add(varType, varName); err != nil {
+		return nil, err
+	}
+
+	// パラメータ2つめ以降はカンマが見つかった場合のみ処理する
+	for ConstComma.IsCheck(p.readFirstToken()) {
+		p.advanceToken() // カンマを飛ばす
+		varType := p.advanceToken()
+		varName := p.advanceToken()
+		if err := parameterList.Add(varType, varName); err != nil {
+			return nil, err
+		}
+
+		// パース済みの要素を除外したTokensに更新
+		p.excludeParsedTokens()
+	}
+	return parameterList, nil
+}
+
+type ParameterList struct {
+	First              *Parameter
+	CommaAndParameters []*CommaAndParameter
+}
+
+func NewParameterList() *ParameterList {
+	return &ParameterList{
+		CommaAndParameters: []*CommaAndParameter{},
+	}
+}
+
+func (p *ParameterList) Add(varTypeToken *Token, varNameToken *Token) error {
+	parameter := NewParameterByToken(varTypeToken, varNameToken)
+	if err := parameter.Check(); err != nil {
+		return err
+	}
+
+	if p.First == nil {
+		p.First = parameter
+	} else {
+		p.CommaAndParameters = append(p.CommaAndParameters, NewCommaAndParameter(parameter))
+	}
+	return nil
+}
+
+func (p *ParameterList) ToXML() []string {
+	result := []string{}
+	result = append(result, "<parameterList>")
+
+	if p.First != nil {
+		result = append(result, p.First.ToXML()...)
+	}
+
+	for _, commaAndParameter := range p.CommaAndParameters {
+		result = append(result, commaAndParameter.ToXML()...)
+	}
+
+	result = append(result, "</parameterList>")
+	return result
+}
+
+type CommaAndParameter struct {
+	*Comma
+	*Parameter
+}
+
+func NewCommaAndParameter(parameter *Parameter) *CommaAndParameter {
+	return &CommaAndParameter{
+		Comma:     ConstComma,
+		Parameter: parameter,
+	}
+}
+
+func NewCommaAndParameterByToken(varTypeToken *Token, varNameToken *Token) *CommaAndParameter {
+	return NewCommaAndParameter(NewParameterByToken(varTypeToken, varNameToken))
+}
+
+func (c *CommaAndParameter) ToXML() []string {
+	result := []string{}
+	result = append(result, c.Comma.ToXML())
+	result = append(result, c.Parameter.ToXML()...)
+	return result
+}
+
+type Parameter struct {
+	*VarType
+	*VarName
+}
+
+func NewParameter(varType *VarType, varName *VarName) *Parameter {
+	return &Parameter{
+		VarType: varType,
+		VarName: varName,
+	}
+}
+
+func NewParameterByToken(varTypeToken *Token, varNameToken *Token) *Parameter {
+	return NewParameter(NewVarType(varTypeToken), NewVarName(varNameToken))
+}
+
+func (p *Parameter) Check() error {
+	if err := p.VarType.Check(); err != nil {
+		return err
+	}
+
+	if err := p.VarName.Check(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Parameter) ToXML() []string {
+	result := []string{}
+	result = append(result, p.VarType.ToXML())
+	result = append(result, p.VarName.ToXML())
+	return result
+}
+
+type SubroutineBody struct {
+	*NotImplemented
+}
+
 type VarType struct {
 	*Token
 }
@@ -275,6 +572,11 @@ func NewVarType(token *Token) *VarType {
 	return &VarType{
 		Token: token,
 	}
+}
+
+func (v *VarType) IsCheck() bool {
+	err := v.Check()
+	return err == nil
 }
 
 func (v *VarType) Check() error {
@@ -358,6 +660,20 @@ func (c *CommaAndVarName) ToXML() []string {
 	}
 }
 
+type SubroutineName struct {
+	*Identifier
+}
+
+func NewSubroutineName(token *Token) *SubroutineName {
+	return &SubroutineName{
+		Identifier: NewIdentifier("SubroutineName", token),
+	}
+}
+
+func NewSubroutineNameByValue(value string) *SubroutineName {
+	return NewSubroutineName(NewToken(value, TokenIdentifier))
+}
+
 type VarName struct {
 	*Identifier
 }
@@ -425,10 +741,11 @@ func (i *Identifier) Check() error {
 }
 
 // よく使われるシンボル
-// () - Round brackets
 // [] - Square brackets
 var ConstOpeningCurlyBracket = NewOpeningCurlyBracket()
-var ConstClosingCurlyBrackets = NewClosingCurlyBrackets()
+var ConstClosingCurlyBrackets = NewClosingCurlyBracket()
+var ConstOpeningRoundBracket = NewOpeningRoundBracket()
+var ConstClosingRoundBracket = NewClosingRoundBracket()
 var ConstComma = NewComma()
 var ConstSemicolon = NewSemicolon()
 
@@ -446,17 +763,45 @@ func (o *OpeningCurlyBracket) Check(token *Token) error {
 	return NewSymbol(token).Check(o.Value)
 }
 
-type ClosingCurlyBrackets struct {
+type ClosingCurlyBracket struct {
 	*Symbol
 }
 
-func NewClosingCurlyBrackets() *ClosingCurlyBrackets {
-	return &ClosingCurlyBrackets{
+func NewClosingCurlyBracket() *ClosingCurlyBracket {
+	return &ClosingCurlyBracket{
 		Symbol: NewSymbolByValue("}"),
 	}
 }
 
-func (c *ClosingCurlyBrackets) Check(token *Token) error {
+func (c *ClosingCurlyBracket) Check(token *Token) error {
+	return NewSymbol(token).Check(c.Value)
+}
+
+type OpeningRoundBracket struct {
+	*Symbol
+}
+
+func NewOpeningRoundBracket() *OpeningRoundBracket {
+	return &OpeningRoundBracket{
+		Symbol: NewSymbolByValue("("),
+	}
+}
+
+func (o *OpeningRoundBracket) Check(token *Token) error {
+	return NewSymbol(token).Check(o.Value)
+}
+
+type ClosingRoundBracket struct {
+	*Symbol
+}
+
+func NewClosingRoundBracket() *ClosingRoundBracket {
+	return &ClosingRoundBracket{
+		Symbol: NewSymbolByValue(")"),
+	}
+}
+
+func (c *ClosingRoundBracket) Check(token *Token) error {
 	return NewSymbol(token).Check(c.Value)
 }
 
@@ -468,6 +813,11 @@ func NewComma() *Comma {
 	return &Comma{
 		Symbol: NewSymbolByValue(","),
 	}
+}
+
+func (c *Comma) IsCheck(token *Token) bool {
+	err := c.Check(token)
+	return err == nil
 }
 
 func (c *Comma) Check(token *Token) error {
@@ -486,4 +836,8 @@ func NewSemicolon() *Semicolon {
 
 func (s *Semicolon) Check(token *Token) error {
 	return NewSymbol(token).Check(s.Value)
+}
+
+type NotImplemented struct {
+	*Token
 }
