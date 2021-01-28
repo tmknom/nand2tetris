@@ -98,7 +98,7 @@ type ClassName struct {
 
 func NewClassName(token *Token) *ClassName {
 	return &ClassName{
-		Identifier: NewIdentifier(token),
+		Identifier: NewIdentifier("ClassName", token),
 	}
 }
 
@@ -111,8 +111,8 @@ func (c *Class) CheckKeyword(token *Token) error {
 	return errors.New(message)
 }
 
-func (c *Class) SetClassName(identifier *Token) error {
-	className := NewClassName(identifier)
+func (c *Class) SetClassName(token *Token) error {
+	className := NewClassName(token)
 	if err := className.Check(); err != nil {
 		return err
 	}
@@ -392,28 +392,17 @@ func (c *CommaAndVarName) ToXML() []string {
 }
 
 type Identifier struct {
-	Token *Token
+	Name string
+	*Token
 }
 
-func NewIdentifier(token *Token) *Identifier {
+func NewIdentifier(name string, token *Token) *Identifier {
 	return &Identifier{
+		Name:  name,
 		Token: token,
 	}
 }
 
 func (i *Identifier) Check() error {
-	if i.Token.TokenType == TokenIdentifier {
-		return nil
-	}
-
-	message := fmt.Sprintf("Identifier: got = %s", i.Token.debug())
-	return errors.New(message)
-}
-
-func (i *Identifier) ToXML() string {
-	return i.Token.ToXML()
-}
-
-func (i *Identifier) debug() string {
-	return i.Token.debug()
+	return i.CheckTokenType(TokenIdentifier, i.Name)
 }
