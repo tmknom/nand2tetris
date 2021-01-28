@@ -77,8 +77,8 @@ func (p *Parser) parseClass() (*Class, error) {
 type Class struct {
 	Keyword       *Keyword
 	ClassName     *ClassName
-	OpenSymbol    *Token
-	CloseSymbol   *Token
+	OpenSymbol    *Symbol
+	CloseSymbol   *Symbol
 	ClassVarDecs  *ClassVarDecs
 	SubroutineDec []*Token
 }
@@ -86,8 +86,8 @@ type Class struct {
 func NewClass() *Class {
 	return &Class{
 		Keyword:       NewKeyword("class"),
-		OpenSymbol:    NewToken("{", TokenSymbol),
-		CloseSymbol:   NewToken("}", TokenSymbol),
+		OpenSymbol:    NewSymbol("{"),
+		CloseSymbol:   NewSymbol("}"),
 		SubroutineDec: []*Token{},
 	}
 }
@@ -117,21 +117,11 @@ func (c *Class) SetClassName(token *Token) error {
 }
 
 func (c *Class) CheckOpenSymbol(token *Token) error {
-	if c.OpenSymbol.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("OpenSymbol: got = %s", token.debug())
-	return errors.New(message)
+	return c.OpenSymbol.Check(token)
 }
 
 func (c *Class) CheckCloseSymbol(token *Token) error {
-	if c.CloseSymbol.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("CloseSymbol: got = %s", token.debug())
-	return errors.New(message)
+	return c.CloseSymbol.Check(token)
 }
 
 func (c *Class) SetClassVarDecs(classVarDecs *ClassVarDecs) {
@@ -232,13 +222,13 @@ type ClassVarDec struct {
 	Keyword   *Token
 	VarType   *Token
 	VarNames  *VarNames
-	EndSymbol *Token
+	EndSymbol *Symbol
 }
 
 func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
-		EndSymbol: NewToken(";", TokenSymbol),
+		EndSymbol: NewSymbol(";"),
 	}
 }
 
@@ -291,12 +281,7 @@ func (c *ClassVarDec) AddCommaAndVarName(comma *Token, varName *Token) error {
 }
 
 func (c *ClassVarDec) CheckEndSymbol(token *Token) error {
-	if c.EndSymbol.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("EndSymbol: got = %s", token.debug())
-	return errors.New(message)
+	return c.EndSymbol.Check(token)
 }
 
 func (c *ClassVarDec) ToXML() []string {
@@ -398,6 +383,20 @@ func NewKeyword(value string) *Keyword {
 
 func (k *Keyword) Check(token *Token) error {
 	return token.CheckKeyword(k.Value)
+}
+
+type Symbol struct {
+	*Token
+}
+
+func NewSymbol(value string) *Symbol {
+	return &Symbol{
+		Token: NewToken(value, TokenSymbol),
+	}
+}
+
+func (s *Symbol) Check(token *Token) error {
+	return token.CheckSymbol(s.Value)
 }
 
 type Identifier struct {

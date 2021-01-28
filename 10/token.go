@@ -90,13 +90,23 @@ func NewToken(value string, tokenType TokenType) *Token {
 }
 
 func (t *Token) CheckKeyword(value string) error {
-	tokenName := fmt.Sprintf("Keyword %s", value)
+	tokenName := fmt.Sprintf("Keyword '%s'", value)
 	if t.Value != value {
 		message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
 		return errors.New(message)
 	}
 
 	return t.CheckTokenType(TokenKeyword, tokenName)
+}
+
+func (t *Token) CheckSymbol(value string) error {
+	tokenName := fmt.Sprintf("Symbol '%s'", value)
+	if t.Value != value {
+		message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
+		return errors.New(message)
+	}
+
+	return t.CheckTokenType(TokenSymbol, tokenName)
 }
 
 func (t *Token) CheckTokenType(tokenType TokenType, tokenName string) error {

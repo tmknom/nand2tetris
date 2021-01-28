@@ -22,8 +22,8 @@ func TestParserParse(t *testing.T) {
 			want: &Class{
 				Keyword:       NewKeyword("class"),
 				ClassName:     NewClassName(NewToken("Main", TokenIdentifier)),
-				OpenSymbol:    NewToken("{", TokenSymbol),
-				CloseSymbol:   NewToken("}", TokenSymbol),
+				OpenSymbol:    NewSymbol("{"),
+				CloseSymbol:   NewSymbol("}"),
 				ClassVarDecs:  NewClassVarDecs(),
 				SubroutineDec: []*Token{},
 			},
@@ -66,8 +66,8 @@ func TestParserParseClass(t *testing.T) {
 			want: &Class{
 				Keyword:       NewKeyword("class"),
 				ClassName:     NewClassName(NewToken("Main", TokenIdentifier)),
-				OpenSymbol:    NewToken("{", TokenSymbol),
-				CloseSymbol:   NewToken("}", TokenSymbol),
+				OpenSymbol:    NewSymbol("{"),
+				CloseSymbol:   NewSymbol("}"),
 				ClassVarDecs:  NewClassVarDecs(),
 				SubroutineDec: []*Token{},
 			},
@@ -87,8 +87,8 @@ func TestParserParseClass(t *testing.T) {
 			want: &Class{
 				Keyword:     NewKeyword("class"),
 				ClassName:   NewClassName(NewToken("Main", TokenIdentifier)),
-				OpenSymbol:  NewToken("{", TokenSymbol),
-				CloseSymbol: NewToken("}", TokenSymbol),
+				OpenSymbol:  NewSymbol("{"),
+				CloseSymbol: NewSymbol("}"),
 				ClassVarDecs: &ClassVarDecs{
 					Items: []*ClassVarDec{
 						&ClassVarDec{
@@ -98,7 +98,7 @@ func TestParserParseClass(t *testing.T) {
 								First:            NewToken("test", TokenIdentifier),
 								CommaAndVarNames: []*CommaAndVarName{},
 							},
-							EndSymbol: NewToken(";", TokenSymbol),
+							EndSymbol: NewSymbol(";"),
 						},
 					},
 				},
@@ -160,7 +160,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 							First:            NewToken("test", TokenIdentifier),
 							CommaAndVarNames: []*CommaAndVarName{},
 						},
-						EndSymbol: NewToken(";", TokenSymbol),
+						EndSymbol: NewSymbol(";"),
 					},
 				},
 			},
@@ -182,7 +182,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 							First:            NewToken("test", TokenIdentifier),
 							CommaAndVarNames: []*CommaAndVarName{},
 						},
-						EndSymbol: NewToken(";", TokenSymbol),
+						EndSymbol: NewSymbol(";"),
 					},
 				},
 			},
@@ -217,7 +217,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 								},
 							},
 						},
-						EndSymbol: NewToken(";", TokenSymbol),
+						EndSymbol: NewSymbol(";"),
 					},
 				},
 			},
