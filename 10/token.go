@@ -89,13 +89,18 @@ func NewToken(value string, tokenType TokenType) *Token {
 	return &Token{Value: value, TokenType: tokenType}
 }
 
-func (t *Token) CheckKeyword(value string) error {
+func (t *Token) CheckKeywordWithValue(value string) error {
 	tokenName := fmt.Sprintf("Keyword '%s'", value)
 	if t.Value != value {
 		message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
 		return errors.New(message)
 	}
 
+	return t.CheckTokenType(TokenKeyword, tokenName)
+}
+
+func (t *Token) CheckKeyword() error {
+	tokenName := fmt.Sprintf("Keyword '%s'", t.Value)
 	return t.CheckTokenType(TokenKeyword, tokenName)
 }
 
@@ -107,6 +112,11 @@ func (t *Token) CheckSymbol(value string) error {
 	}
 
 	return t.CheckTokenType(TokenSymbol, tokenName)
+}
+
+func (t *Token) CheckIdentifier() error {
+	tokenName := fmt.Sprintf("Identifier '%s'", t.Value)
+	return t.CheckTokenType(TokenIdentifier, tokenName)
 }
 
 func (t *Token) CheckTokenType(tokenType TokenType, tokenName string) error {

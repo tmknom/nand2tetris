@@ -93,7 +93,7 @@ func NewClass() *Class {
 }
 
 func (c *Class) CheckKeyword(token *Token) error {
-	return c.Keyword.Check(token)
+	return c.Keyword.CheckWithValue(token)
 }
 
 type ClassName struct {
@@ -219,8 +219,8 @@ func (c *ClassVarDecs) hasClassVarDec(token *Token) bool {
 }
 
 type ClassVarDec struct {
-	Keyword   *Token
-	VarType   *Token
+	Keyword   *Keyword
+	VarType   *VarType
 	VarNames  *VarNames
 	EndSymbol *Symbol
 }
@@ -237,25 +237,21 @@ func (c *ClassVarDec) SetKeyword(token *Token) error {
 		return err
 	}
 
-	c.Keyword = token
+	c.Keyword = NewKeyword(token.Value)
 	return nil
 }
 
 func (c *ClassVarDec) checkKeyword(token *Token) error {
-	if token.TokenType == TokenKeyword {
-		return nil
-	}
-
-	message := fmt.Sprintf("Keyword: got = %s", token.debug())
-	return errors.New(message)
+	return token.CheckKeyword()
 }
 
 func (c *ClassVarDec) SetVarType(token *Token) error {
-	if err := c.checkVarType(token); err != nil {
+	varType := NewVarType(token)
+	if err := varType.Check(); err != nil {
 		return err
 	}
 
-	c.VarType = token
+	c.VarType = varType
 	return nil
 }
 
@@ -293,6 +289,30 @@ func (c *ClassVarDec) ToXML() []string {
 	result = append(result, c.EndSymbol.ToXML())
 	result = append(result, "</classVarDec>")
 	return result
+}
+
+type VarType struct {
+	*Token
+}
+
+func NewVarType(token *Token) *VarType {
+	return &VarType{
+		Token: token,
+	}
+}
+
+func (v *VarType) Check() error {
+	if err := v.CheckIdentifier(); err == nil {
+		return nil
+	}
+	if err := v.CheckKeyword(); err == nil {
+		if v.Value == "int" || v.Value == "char" || v.Value == "boolean" {
+			return nil
+		}
+	}
+
+	message := fmt.Sprintf("VarType: got = %s", v.debug())
+	return errors.New(message)
 }
 
 type VarNames struct {
@@ -381,8 +401,12 @@ func NewKeyword(value string) *Keyword {
 	}
 }
 
-func (k *Keyword) Check(token *Token) error {
-	return token.CheckKeyword(k.Value)
+func (k *Keyword) CheckWithValue(token *Token) error {
+	return token.CheckKeywordWithValue(k.Value)
+}
+
+func (k *Keyword) Check() error {
+	return k.CheckKeyword()
 }
 
 type Symbol struct {
