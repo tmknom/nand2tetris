@@ -48,13 +48,13 @@ func (p *Parser) parseClass() (*Class, error) {
 	}
 
 	openSymbol := p.advanceToken()
-	if err := class.CheckOpenSymbol(openSymbol); err != nil {
+	if err := ConstOpeningCurlyBracket.Check(openSymbol); err != nil {
 		return nil, err
 	}
 
 	// 閉じカッコは後ろから取得
 	closeSymbol := p.backwardToken()
-	if err := class.CheckCloseSymbol(closeSymbol); err != nil {
+	if err := ConstClosingCurlyBrackets.Check(closeSymbol); err != nil {
 		return nil, err
 	}
 
@@ -116,14 +116,6 @@ func (c *Class) SetClassName(token *Token) error {
 	return nil
 }
 
-func (c *Class) CheckOpenSymbol(token *Token) error {
-	return NewSymbol(token).Check(c.OpenSymbol.Value)
-}
-
-func (c *Class) CheckCloseSymbol(token *Token) error {
-	return NewSymbol(token).Check(c.CloseSymbol.Value)
-}
-
 func (c *Class) SetClassVarDecs(classVarDecs *ClassVarDecs) {
 	c.ClassVarDecs = classVarDecs
 }
@@ -175,7 +167,7 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 		}
 
 		endSymbol := p.advanceToken()
-		if err := classVarDec.CheckEndSymbol(endSymbol); err != nil {
+		if err := ConstSemicolon.Check(endSymbol); err != nil {
 			return nil, err
 		}
 
@@ -242,7 +234,8 @@ func (c *ClassVarDec) SetKeyword(token *Token) error {
 }
 
 func (c *ClassVarDec) checkKeyword(token *Token) error {
-	return token.CheckKeyword()
+	expected := []string{"static", "field"}
+	return token.CheckKeywordValue(expected...)
 }
 
 func (c *ClassVarDec) SetVarType(token *Token) error {
@@ -255,29 +248,12 @@ func (c *ClassVarDec) SetVarType(token *Token) error {
 	return nil
 }
 
-func (c *ClassVarDec) checkVarType(token *Token) error {
-	if token.TokenType == TokenIdentifier {
-		return nil
-	}
-
-	if token.TokenType == TokenKeyword && (token.Value == "int" || token.Value == "char" || token.Value == "boolean") {
-		return nil
-	}
-
-	message := fmt.Sprintf("VarType: got = %s", token.debug())
-	return errors.New(message)
-}
-
 func (c *ClassVarDec) SetFirstVarName(token *Token) error {
 	return c.VarNames.SetFirst(token)
 }
 
 func (c *ClassVarDec) AddCommaAndVarName(comma *Token, varName *Token) error {
 	return c.VarNames.AddCommaAndVarName(comma, varName)
-}
-
-func (c *ClassVarDec) CheckEndSymbol(token *Token) error {
-	return NewSymbol(token).Check(c.EndSymbol.Value)
 }
 
 func (c *ClassVarDec) ToXML() []string {
@@ -316,7 +292,7 @@ func (v *VarType) Check() error {
 }
 
 type VarNames struct {
-	First            *Token
+	First            *VarName
 	CommaAndVarNames []*CommaAndVarName
 }
 
@@ -327,43 +303,27 @@ func NewVarNames() *VarNames {
 }
 
 func (v *VarNames) SetFirst(token *Token) error {
-	if err := v.checkVarName(token); err != nil {
+	varName := NewVarName(token)
+	if err := varName.Check(); err != nil {
 		return err
 	}
 
-	v.First = token
+	v.First = varName
 	return nil
 }
 
-func (v *VarNames) AddCommaAndVarName(commaToken *Token, varName *Token) error {
-	if err := v.checkComma(commaToken); err != nil {
+func (v *VarNames) AddCommaAndVarName(commaToken *Token, varNameToken *Token) error {
+	if err := ConstComma.Check(commaToken); err != nil {
 		return err
 	}
 
-	if err := v.checkVarName(varName); err != nil {
+	varName := NewVarName(varNameToken)
+	if err := varName.Check(); err != nil {
 		return err
 	}
 
 	v.CommaAndVarNames = append(v.CommaAndVarNames, NewCommaAndVarName(varName))
 	return nil
-}
-
-func (v *VarNames) checkVarName(token *Token) error {
-	if token.TokenType == TokenIdentifier {
-		return nil
-	}
-
-	message := fmt.Sprintf("VarName: got = %s", token.debug())
-	return errors.New(message)
-}
-
-func (v *VarNames) checkComma(token *Token) error {
-	if token.TokenType == TokenSymbol && token.Value == "," {
-		return nil
-	}
-
-	message := fmt.Sprintf("Comma: got = %s", token.debug())
-	return errors.New(message)
 }
 
 func (v *VarNames) ToXML() []string {
@@ -377,14 +337,18 @@ func (v *VarNames) ToXML() []string {
 
 type CommaAndVarName struct {
 	Comma   *Comma
-	VarName *Token
+	VarName *VarName
 }
 
-func NewCommaAndVarName(varName *Token) *CommaAndVarName {
+func NewCommaAndVarName(varName *VarName) *CommaAndVarName {
 	return &CommaAndVarName{
 		Comma:   ConstComma,
 		VarName: varName,
 	}
+}
+
+func NewCommaAndVarNameByValue(value string) *CommaAndVarName {
+	return NewCommaAndVarName(NewVarNameByValue(value))
 }
 
 func (c *CommaAndVarName) ToXML() []string {
@@ -392,6 +356,20 @@ func (c *CommaAndVarName) ToXML() []string {
 		c.Comma.ToXML(),
 		c.VarName.ToXML(),
 	}
+}
+
+type VarName struct {
+	*Identifier
+}
+
+func NewVarName(token *Token) *VarName {
+	return &VarName{
+		Identifier: NewIdentifier("VarName", token),
+	}
+}
+
+func NewVarNameByValue(value string) *VarName {
+	return NewVarName(NewToken(value, TokenIdentifier))
 }
 
 type Keyword struct {
@@ -443,7 +421,7 @@ func NewIdentifier(name string, token *Token) *Identifier {
 }
 
 func (i *Identifier) Check() error {
-	return i.CheckTokenType(TokenIdentifier, i.Name)
+	return i.CheckTokenType(TokenIdentifier, "Identifier "+i.Name)
 }
 
 // よく使われるシンボル
@@ -464,6 +442,10 @@ func NewOpeningCurlyBracket() *OpeningCurlyBracket {
 	}
 }
 
+func (o *OpeningCurlyBracket) Check(token *Token) error {
+	return NewSymbol(token).Check(o.Value)
+}
+
 type ClosingCurlyBrackets struct {
 	*Symbol
 }
@@ -472,6 +454,10 @@ func NewClosingCurlyBrackets() *ClosingCurlyBrackets {
 	return &ClosingCurlyBrackets{
 		Symbol: NewSymbolByValue("}"),
 	}
+}
+
+func (c *ClosingCurlyBrackets) Check(token *Token) error {
+	return NewSymbol(token).Check(c.Value)
 }
 
 type Comma struct {
@@ -484,6 +470,10 @@ func NewComma() *Comma {
 	}
 }
 
+func (c *Comma) Check(token *Token) error {
+	return NewSymbol(token).Check(c.Value)
+}
+
 type Semicolon struct {
 	*Symbol
 }
@@ -492,4 +482,8 @@ func NewSemicolon() *Semicolon {
 	return &Semicolon{
 		Symbol: NewSymbolByValue(";"),
 	}
+}
+
+func (s *Semicolon) Check(token *Token) error {
+	return NewSymbol(token).Check(s.Value)
 }

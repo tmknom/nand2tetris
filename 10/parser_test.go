@@ -95,7 +95,7 @@ func TestParserParseClass(t *testing.T) {
 							Keyword: NewKeywordByValue("field"),
 							VarType: NewVarType(NewToken("Array", TokenIdentifier)),
 							VarNames: &VarNames{
-								First:            NewToken("test", TokenIdentifier),
+								First:            NewVarNameByValue("test"),
 								CommaAndVarNames: []*CommaAndVarName{},
 							},
 							EndSymbol: ConstSemicolon,
@@ -157,7 +157,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 						Keyword: NewKeywordByValue("field"),
 						VarType: NewVarType(NewToken("Array", TokenIdentifier)),
 						VarNames: &VarNames{
-							First:            NewToken("test", TokenIdentifier),
+							First:            NewVarNameByValue("test"),
 							CommaAndVarNames: []*CommaAndVarName{},
 						},
 						EndSymbol: ConstSemicolon,
@@ -179,7 +179,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 						Keyword: NewKeywordByValue("static"),
 						VarType: NewVarType(NewToken("boolean", TokenKeyword)),
 						VarNames: &VarNames{
-							First:            NewToken("test", TokenIdentifier),
+							First:            NewVarNameByValue("test"),
 							CommaAndVarNames: []*CommaAndVarName{},
 						},
 						EndSymbol: ConstSemicolon,
@@ -205,10 +205,10 @@ func TestParserParseClassVarDecs(t *testing.T) {
 						Keyword: NewKeywordByValue("field"),
 						VarType: NewVarType(NewToken("Array", TokenIdentifier)),
 						VarNames: &VarNames{
-							First: NewToken("foo", TokenIdentifier),
+							First: NewVarNameByValue("foo"),
 							CommaAndVarNames: []*CommaAndVarName{
-								NewCommaAndVarName(NewToken("bar", TokenIdentifier)),
-								NewCommaAndVarName(NewToken("baz", TokenIdentifier)),
+								NewCommaAndVarNameByValue("bar"),
+								NewCommaAndVarNameByValue("baz"),
 							},
 						},
 						EndSymbol: ConstSemicolon,
