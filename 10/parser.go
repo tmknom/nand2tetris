@@ -86,8 +86,8 @@ type Class struct {
 func NewClass() *Class {
 	return &Class{
 		Keyword:       NewKeyword("class"),
-		OpenSymbol:    NewSymbol("{"),
-		CloseSymbol:   NewSymbol("}"),
+		OpenSymbol:    NewSymbolByValue("{"),
+		CloseSymbol:   NewSymbolByValue("}"),
 		SubroutineDec: []*Token{},
 	}
 }
@@ -117,11 +117,11 @@ func (c *Class) SetClassName(token *Token) error {
 }
 
 func (c *Class) CheckOpenSymbol(token *Token) error {
-	return c.OpenSymbol.Check(token)
+	return NewSymbol(token).Check(c.OpenSymbol.Value)
 }
 
 func (c *Class) CheckCloseSymbol(token *Token) error {
-	return c.CloseSymbol.Check(token)
+	return NewSymbol(token).Check(c.CloseSymbol.Value)
 }
 
 func (c *Class) SetClassVarDecs(classVarDecs *ClassVarDecs) {
@@ -228,7 +228,7 @@ type ClassVarDec struct {
 func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
-		EndSymbol: NewSymbol(";"),
+		EndSymbol: NewSymbolByValue(";"),
 	}
 }
 
@@ -277,7 +277,7 @@ func (c *ClassVarDec) AddCommaAndVarName(comma *Token, varName *Token) error {
 }
 
 func (c *ClassVarDec) CheckEndSymbol(token *Token) error {
-	return c.EndSymbol.Check(token)
+	return NewSymbol(token).Check(c.EndSymbol.Value)
 }
 
 func (c *ClassVarDec) ToXML() []string {
@@ -413,14 +413,24 @@ type Symbol struct {
 	*Token
 }
 
-func NewSymbol(value string) *Symbol {
+func NewSymbol(token *Token) *Symbol {
 	return &Symbol{
-		Token: NewToken(value, TokenSymbol),
+		Token: token,
 	}
 }
 
-func (s *Symbol) Check(token *Token) error {
-	return token.CheckSymbol(s.Value)
+func NewSymbolByValue(value string) *Symbol {
+	return NewSymbol(NewToken(value, TokenSymbol))
+}
+
+func (s *Symbol) Check(expected string) error {
+	tokenName := fmt.Sprintf("Symbol '%s'", expected)
+	if s.Value != expected {
+		message := fmt.Sprintf("%s: got = %s", tokenName, s.debug())
+		return errors.New(message)
+	}
+
+	return s.CheckSymbol()
 }
 
 type Identifier struct {

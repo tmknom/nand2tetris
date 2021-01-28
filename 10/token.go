@@ -104,13 +104,8 @@ func (t *Token) CheckKeyword() error {
 	return t.CheckTokenType(TokenKeyword, tokenName)
 }
 
-func (t *Token) CheckSymbol(value string) error {
-	tokenName := fmt.Sprintf("Symbol '%s'", value)
-	if t.Value != value {
-		message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
-		return errors.New(message)
-	}
-
+func (t *Token) CheckSymbol() error {
+	tokenName := fmt.Sprintf("Symbol '%s'", t.Value)
 	return t.CheckTokenType(TokenSymbol, tokenName)
 }
 
