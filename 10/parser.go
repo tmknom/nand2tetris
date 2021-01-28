@@ -107,7 +107,7 @@ func (c *Class) CheckKeyword(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error Keyword: got = %s, want = %s", token.debug(), c.Keyword.debug())
+	message := fmt.Sprintf("Keyword: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -126,7 +126,7 @@ func (c *Class) CheckOpenSymbol(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error OpenSymbol: got = %s, want = %s", token.debug(), c.OpenSymbol.debug())
+	message := fmt.Sprintf("OpenSymbol: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -135,7 +135,7 @@ func (c *Class) CheckCloseSymbol(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error CloseSymbol: got = %s, want = %s", token.debug(), c.CloseSymbol.debug())
+	message := fmt.Sprintf("CloseSymbol: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -261,7 +261,7 @@ func (c *ClassVarDec) checkKeyword(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error Keyword: got = %d (%s), want = %d", token.TokenType, token.debug(), TokenKeyword)
+	message := fmt.Sprintf("Keyword: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -283,7 +283,7 @@ func (c *ClassVarDec) checkVarType(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error VarType: got = %d (%s)", token.TokenType, token.debug())
+	message := fmt.Sprintf("VarType: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -300,7 +300,7 @@ func (c *ClassVarDec) CheckEndSymbol(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error EndSymbol: got = %s, want = %s", token.debug(), c.EndSymbol.debug())
+	message := fmt.Sprintf("EndSymbol: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -353,7 +353,7 @@ func (v *VarNames) checkVarName(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error VarName: got = %d (%s), want = %d", token.TokenType, token.debug(), TokenIdentifier)
+	message := fmt.Sprintf("VarName: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -362,7 +362,7 @@ func (v *VarNames) checkComma(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error Comma: got = %d (%s), want = %d", token.TokenType, token.debug(), TokenIdentifier)
+	message := fmt.Sprintf("Comma: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -406,7 +406,7 @@ func (i *Identifier) Check() error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error: got = %d (%s), want = %d", i.Token.TokenType, i.Token.debug(), TokenIdentifier)
+	message := fmt.Sprintf("Identifier: got = %s", i.Token.debug())
 	return errors.New(message)
 }
 
