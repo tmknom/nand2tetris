@@ -20,7 +20,7 @@ func TestParserParse(t *testing.T) {
 				NewToken("}", TokenSymbol),
 			},
 			want: &Class{
-				Keyword:       NewKeyword("class"),
+				Keyword:       NewKeywordByValue("class"),
 				ClassName:     NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:    NewSymbolByValue("{"),
 				CloseSymbol:   NewSymbolByValue("}"),
@@ -64,7 +64,7 @@ func TestParserParseClass(t *testing.T) {
 				NewToken("}", TokenSymbol),
 			},
 			want: &Class{
-				Keyword:       NewKeyword("class"),
+				Keyword:       NewKeywordByValue("class"),
 				ClassName:     NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:    NewSymbolByValue("{"),
 				CloseSymbol:   NewSymbolByValue("}"),
@@ -85,14 +85,14 @@ func TestParserParseClass(t *testing.T) {
 				NewToken("}", TokenSymbol),
 			},
 			want: &Class{
-				Keyword:     NewKeyword("class"),
+				Keyword:     NewKeywordByValue("class"),
 				ClassName:   NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:  NewSymbolByValue("{"),
 				CloseSymbol: NewSymbolByValue("}"),
 				ClassVarDecs: &ClassVarDecs{
 					Items: []*ClassVarDec{
 						&ClassVarDec{
-							Keyword: NewKeyword("field"),
+							Keyword: NewKeywordByValue("field"),
 							VarType: NewVarType(NewToken("Array", TokenIdentifier)),
 							VarNames: &VarNames{
 								First:            NewToken("test", TokenIdentifier),
@@ -154,7 +154,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{
 					&ClassVarDec{
-						Keyword: NewKeyword("field"),
+						Keyword: NewKeywordByValue("field"),
 						VarType: NewVarType(NewToken("Array", TokenIdentifier)),
 						VarNames: &VarNames{
 							First:            NewToken("test", TokenIdentifier),
@@ -176,7 +176,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{
 					&ClassVarDec{
-						Keyword: NewKeyword("static"),
+						Keyword: NewKeywordByValue("static"),
 						VarType: NewVarType(NewToken("boolean", TokenKeyword)),
 						VarNames: &VarNames{
 							First:            NewToken("test", TokenIdentifier),
@@ -202,7 +202,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{
 					&ClassVarDec{
-						Keyword: NewKeyword("field"),
+						Keyword: NewKeywordByValue("field"),
 						VarType: NewVarType(NewToken("Array", TokenIdentifier)),
 						VarNames: &VarNames{
 							First: NewToken("foo", TokenIdentifier),

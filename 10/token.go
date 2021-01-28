@@ -89,16 +89,6 @@ func NewToken(value string, tokenType TokenType) *Token {
 	return &Token{Value: value, TokenType: tokenType}
 }
 
-func (t *Token) CheckKeywordWithValue(value string) error {
-	tokenName := fmt.Sprintf("Keyword '%s'", value)
-	if t.Value != value {
-		message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
-		return errors.New(message)
-	}
-
-	return t.CheckTokenType(TokenKeyword, tokenName)
-}
-
 func (t *Token) CheckKeyword() error {
 	tokenName := fmt.Sprintf("Keyword '%s'", t.Value)
 	return t.CheckTokenType(TokenKeyword, tokenName)

@@ -85,7 +85,7 @@ type Class struct {
 
 func NewClass() *Class {
 	return &Class{
-		Keyword:       NewKeyword("class"),
+		Keyword:       NewKeywordByValue("class"),
 		OpenSymbol:    NewSymbolByValue("{"),
 		CloseSymbol:   NewSymbolByValue("}"),
 		SubroutineDec: []*Token{},
@@ -93,7 +93,7 @@ func NewClass() *Class {
 }
 
 func (c *Class) CheckKeyword(token *Token) error {
-	return c.Keyword.CheckWithValue(token)
+	return NewKeyword(token).Check(c.Keyword.Value)
 }
 
 type ClassName struct {
@@ -237,7 +237,7 @@ func (c *ClassVarDec) SetKeyword(token *Token) error {
 		return err
 	}
 
-	c.Keyword = NewKeyword(token.Value)
+	c.Keyword = NewKeywordByValue(token.Value)
 	return nil
 }
 
@@ -395,17 +395,23 @@ type Keyword struct {
 	*Token
 }
 
-func NewKeyword(value string) *Keyword {
+func NewKeyword(token *Token) *Keyword {
 	return &Keyword{
-		Token: NewToken(value, TokenKeyword),
+		Token: token,
 	}
 }
 
-func (k *Keyword) CheckWithValue(token *Token) error {
-	return token.CheckKeywordWithValue(k.Value)
+func NewKeywordByValue(value string) *Keyword {
+	return NewKeyword(NewToken(value, TokenKeyword))
 }
 
-func (k *Keyword) Check() error {
+func (k *Keyword) Check(expected string) error {
+	tokenName := fmt.Sprintf("Keyword '%s'", expected)
+	if k.Value != expected {
+		message := fmt.Sprintf("%s: got = %s", tokenName, k.debug())
+		return errors.New(message)
+	}
+
 	return k.CheckKeyword()
 }
 
