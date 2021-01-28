@@ -77,8 +77,8 @@ func (p *Parser) parseClass() (*Class, error) {
 type Class struct {
 	Keyword       *Keyword
 	ClassName     *ClassName
-	OpenSymbol    *Symbol
-	CloseSymbol   *Symbol
+	OpenSymbol    *OpeningCurlyBracket
+	CloseSymbol   *ClosingCurlyBrackets
 	ClassVarDecs  *ClassVarDecs
 	SubroutineDec []*Token
 }
@@ -86,8 +86,8 @@ type Class struct {
 func NewClass() *Class {
 	return &Class{
 		Keyword:       NewKeywordByValue("class"),
-		OpenSymbol:    NewSymbolByValue("{"),
-		CloseSymbol:   NewSymbolByValue("}"),
+		OpenSymbol:    ConstOpeningCurlyBracket,
+		CloseSymbol:   ConstClosingCurlyBrackets,
 		SubroutineDec: []*Token{},
 	}
 }
@@ -222,13 +222,13 @@ type ClassVarDec struct {
 	Keyword   *Keyword
 	VarType   *VarType
 	VarNames  *VarNames
-	EndSymbol *Symbol
+	EndSymbol *Semicolon
 }
 
 func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
-		EndSymbol: NewSymbolByValue(";"),
+		EndSymbol: ConstSemicolon,
 	}
 }
 
@@ -335,8 +335,8 @@ func (v *VarNames) SetFirst(token *Token) error {
 	return nil
 }
 
-func (v *VarNames) AddCommaAndVarName(comma *Token, varName *Token) error {
-	if err := v.checkComma(comma); err != nil {
+func (v *VarNames) AddCommaAndVarName(commaToken *Token, varName *Token) error {
+	if err := v.checkComma(commaToken); err != nil {
 		return err
 	}
 
@@ -344,7 +344,7 @@ func (v *VarNames) AddCommaAndVarName(comma *Token, varName *Token) error {
 		return err
 	}
 
-	v.CommaAndVarNames = append(v.CommaAndVarNames, NewCommaAndVarName(comma, varName))
+	v.CommaAndVarNames = append(v.CommaAndVarNames, NewCommaAndVarName(varName))
 	return nil
 }
 
@@ -376,12 +376,15 @@ func (v *VarNames) ToXML() []string {
 }
 
 type CommaAndVarName struct {
-	Comma   *Token
+	Comma   *Comma
 	VarName *Token
 }
 
-func NewCommaAndVarName(comma *Token, varName *Token) *CommaAndVarName {
-	return &CommaAndVarName{Comma: comma, VarName: varName}
+func NewCommaAndVarName(varName *Token) *CommaAndVarName {
+	return &CommaAndVarName{
+		Comma:   ConstComma,
+		VarName: varName,
+	}
 }
 
 func (c *CommaAndVarName) ToXML() []string {
@@ -441,4 +444,52 @@ func NewIdentifier(name string, token *Token) *Identifier {
 
 func (i *Identifier) Check() error {
 	return i.CheckTokenType(TokenIdentifier, i.Name)
+}
+
+// よく使われるシンボル
+// () - Round brackets
+// [] - Square brackets
+var ConstOpeningCurlyBracket = NewOpeningCurlyBracket()
+var ConstClosingCurlyBrackets = NewClosingCurlyBrackets()
+var ConstComma = NewComma()
+var ConstSemicolon = NewSemicolon()
+
+type OpeningCurlyBracket struct {
+	*Symbol
+}
+
+func NewOpeningCurlyBracket() *OpeningCurlyBracket {
+	return &OpeningCurlyBracket{
+		Symbol: NewSymbolByValue("{"),
+	}
+}
+
+type ClosingCurlyBrackets struct {
+	*Symbol
+}
+
+func NewClosingCurlyBrackets() *ClosingCurlyBrackets {
+	return &ClosingCurlyBrackets{
+		Symbol: NewSymbolByValue("}"),
+	}
+}
+
+type Comma struct {
+	*Symbol
+}
+
+func NewComma() *Comma {
+	return &Comma{
+		Symbol: NewSymbolByValue(","),
+	}
+}
+
+type Semicolon struct {
+	*Symbol
+}
+
+func NewSemicolon() *Semicolon {
+	return &Semicolon{
+		Symbol: NewSymbolByValue(";"),
+	}
 }
