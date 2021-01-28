@@ -75,7 +75,7 @@ func (p *Parser) parseClass() (*Class, error) {
 }
 
 type Class struct {
-	Keyword       *Token
+	Keyword       *Keyword
 	ClassName     *ClassName
 	OpenSymbol    *Token
 	CloseSymbol   *Token
@@ -85,11 +85,15 @@ type Class struct {
 
 func NewClass() *Class {
 	return &Class{
-		Keyword:       NewToken("class", TokenKeyword),
+		Keyword:       NewKeyword("class"),
 		OpenSymbol:    NewToken("{", TokenSymbol),
 		CloseSymbol:   NewToken("}", TokenSymbol),
 		SubroutineDec: []*Token{},
 	}
+}
+
+func (c *Class) CheckKeyword(token *Token) error {
+	return c.Keyword.Check(token)
 }
 
 type ClassName struct {
@@ -100,15 +104,6 @@ func NewClassName(token *Token) *ClassName {
 	return &ClassName{
 		Identifier: NewIdentifier("ClassName", token),
 	}
-}
-
-func (c *Class) CheckKeyword(token *Token) error {
-	if c.Keyword.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("Keyword: got = %s", token.debug())
-	return errors.New(message)
 }
 
 func (c *Class) SetClassName(token *Token) error {
@@ -389,6 +384,20 @@ func (c *CommaAndVarName) ToXML() []string {
 		c.Comma.ToXML(),
 		c.VarName.ToXML(),
 	}
+}
+
+type Keyword struct {
+	*Token
+}
+
+func NewKeyword(value string) *Keyword {
+	return &Keyword{
+		Token: NewToken(value, TokenKeyword),
+	}
+}
+
+func (k *Keyword) Check(token *Token) error {
+	return token.CheckKeyword(k.Value)
 }
 
 type Identifier struct {

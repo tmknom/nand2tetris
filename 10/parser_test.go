@@ -20,7 +20,7 @@ func TestParserParse(t *testing.T) {
 				NewToken("}", TokenSymbol),
 			},
 			want: &Class{
-				Keyword:       NewToken("class", TokenKeyword),
+				Keyword:       NewKeyword("class"),
 				ClassName:     NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:    NewToken("{", TokenSymbol),
 				CloseSymbol:   NewToken("}", TokenSymbol),
@@ -64,7 +64,7 @@ func TestParserParseClass(t *testing.T) {
 				NewToken("}", TokenSymbol),
 			},
 			want: &Class{
-				Keyword:       NewToken("class", TokenKeyword),
+				Keyword:       NewKeyword("class"),
 				ClassName:     NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:    NewToken("{", TokenSymbol),
 				CloseSymbol:   NewToken("}", TokenSymbol),
@@ -85,7 +85,7 @@ func TestParserParseClass(t *testing.T) {
 				NewToken("}", TokenSymbol),
 			},
 			want: &Class{
-				Keyword:     NewToken("class", TokenKeyword),
+				Keyword:     NewKeyword("class"),
 				ClassName:   NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:  NewToken("{", TokenSymbol),
 				CloseSymbol: NewToken("}", TokenSymbol),
