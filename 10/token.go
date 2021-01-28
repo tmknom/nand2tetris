@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 type Tokens struct {
@@ -86,6 +87,15 @@ const (
 
 func NewToken(value string, tokenType TokenType) *Token {
 	return &Token{Value: value, TokenType: tokenType}
+}
+
+func (t *Token) CheckTokenType(tokenType TokenType, tokenName string) error {
+	if t.TokenType == tokenType {
+		return nil
+	}
+
+	message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
+	return errors.New(message)
 }
 
 func (t *Token) Equals(other *Token) bool {
