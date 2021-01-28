@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 type Parser struct {
@@ -75,21 +75,25 @@ func (p *Parser) parseClass() (*Class, error) {
 }
 
 type Class struct {
-	Keyword       *Token
+	Keyword       *Keyword
 	ClassName     *ClassName
-	OpenSymbol    *Token
-	CloseSymbol   *Token
+	OpenSymbol    *Symbol
+	CloseSymbol   *Symbol
 	ClassVarDecs  *ClassVarDecs
 	SubroutineDec []*Token
 }
 
 func NewClass() *Class {
 	return &Class{
-		Keyword:       NewToken("class", TokenKeyword),
-		OpenSymbol:    NewToken("{", TokenSymbol),
-		CloseSymbol:   NewToken("}", TokenSymbol),
+		Keyword:       NewKeyword("class"),
+		OpenSymbol:    NewSymbol("{"),
+		CloseSymbol:   NewSymbol("}"),
 		SubroutineDec: []*Token{},
 	}
+}
+
+func (c *Class) CheckKeyword(token *Token) error {
+	return c.Keyword.CheckWithValue(token)
 }
 
 type ClassName struct {
@@ -98,21 +102,12 @@ type ClassName struct {
 
 func NewClassName(token *Token) *ClassName {
 	return &ClassName{
-		Identifier: NewIdentifier(token),
+		Identifier: NewIdentifier("ClassName", token),
 	}
 }
 
-func (c *Class) CheckKeyword(token *Token) error {
-	if c.Keyword.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("error Keyword: got = %s, want = %s", token.debug(), c.Keyword.debug())
-	return errors.New(message)
-}
-
-func (c *Class) SetClassName(identifier *Token) error {
-	className := NewClassName(identifier)
+func (c *Class) SetClassName(token *Token) error {
+	className := NewClassName(token)
 	if err := className.Check(); err != nil {
 		return err
 	}
@@ -122,21 +117,11 @@ func (c *Class) SetClassName(identifier *Token) error {
 }
 
 func (c *Class) CheckOpenSymbol(token *Token) error {
-	if c.OpenSymbol.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("error OpenSymbol: got = %s, want = %s", token.debug(), c.OpenSymbol.debug())
-	return errors.New(message)
+	return c.OpenSymbol.Check(token)
 }
 
 func (c *Class) CheckCloseSymbol(token *Token) error {
-	if c.CloseSymbol.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("error CloseSymbol: got = %s, want = %s", token.debug(), c.CloseSymbol.debug())
-	return errors.New(message)
+	return c.CloseSymbol.Check(token)
 }
 
 func (c *Class) SetClassVarDecs(classVarDecs *ClassVarDecs) {
@@ -234,16 +219,16 @@ func (c *ClassVarDecs) hasClassVarDec(token *Token) bool {
 }
 
 type ClassVarDec struct {
-	Keyword   *Token
-	VarType   *Token
+	Keyword   *Keyword
+	VarType   *VarType
 	VarNames  *VarNames
-	EndSymbol *Token
+	EndSymbol *Symbol
 }
 
 func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
-		EndSymbol: NewToken(";", TokenSymbol),
+		EndSymbol: NewSymbol(";"),
 	}
 }
 
@@ -252,25 +237,21 @@ func (c *ClassVarDec) SetKeyword(token *Token) error {
 		return err
 	}
 
-	c.Keyword = token
+	c.Keyword = NewKeyword(token.Value)
 	return nil
 }
 
 func (c *ClassVarDec) checkKeyword(token *Token) error {
-	if token.TokenType == TokenKeyword {
-		return nil
-	}
-
-	message := fmt.Sprintf("error Keyword: got = %d (%s), want = %d", token.TokenType, token.debug(), TokenKeyword)
-	return errors.New(message)
+	return token.CheckKeyword()
 }
 
 func (c *ClassVarDec) SetVarType(token *Token) error {
-	if err := c.checkVarType(token); err != nil {
+	varType := NewVarType(token)
+	if err := varType.Check(); err != nil {
 		return err
 	}
 
-	c.VarType = token
+	c.VarType = varType
 	return nil
 }
 
@@ -283,7 +264,7 @@ func (c *ClassVarDec) checkVarType(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error VarType: got = %d (%s)", token.TokenType, token.debug())
+	message := fmt.Sprintf("VarType: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -296,12 +277,7 @@ func (c *ClassVarDec) AddCommaAndVarName(comma *Token, varName *Token) error {
 }
 
 func (c *ClassVarDec) CheckEndSymbol(token *Token) error {
-	if c.EndSymbol.Equals(token) {
-		return nil
-	}
-
-	message := fmt.Sprintf("error EndSymbol: got = %s, want = %s", token.debug(), c.EndSymbol.debug())
-	return errors.New(message)
+	return c.EndSymbol.Check(token)
 }
 
 func (c *ClassVarDec) ToXML() []string {
@@ -313,6 +289,30 @@ func (c *ClassVarDec) ToXML() []string {
 	result = append(result, c.EndSymbol.ToXML())
 	result = append(result, "</classVarDec>")
 	return result
+}
+
+type VarType struct {
+	*Token
+}
+
+func NewVarType(token *Token) *VarType {
+	return &VarType{
+		Token: token,
+	}
+}
+
+func (v *VarType) Check() error {
+	if err := v.CheckIdentifier(); err == nil {
+		return nil
+	}
+	if err := v.CheckKeyword(); err == nil {
+		if v.Value == "int" || v.Value == "char" || v.Value == "boolean" {
+			return nil
+		}
+	}
+
+	message := fmt.Sprintf("VarType: got = %s", v.debug())
+	return errors.New(message)
 }
 
 type VarNames struct {
@@ -353,7 +353,7 @@ func (v *VarNames) checkVarName(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error VarName: got = %d (%s), want = %d", token.TokenType, token.debug(), TokenIdentifier)
+	message := fmt.Sprintf("VarName: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -362,7 +362,7 @@ func (v *VarNames) checkComma(token *Token) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("error Comma: got = %d (%s), want = %d", token.TokenType, token.debug(), TokenIdentifier)
+	message := fmt.Sprintf("Comma: got = %s", token.debug())
 	return errors.New(message)
 }
 
@@ -391,29 +391,50 @@ func (c *CommaAndVarName) ToXML() []string {
 	}
 }
 
-type Identifier struct {
-	Token *Token
+type Keyword struct {
+	*Token
 }
 
-func NewIdentifier(token *Token) *Identifier {
+func NewKeyword(value string) *Keyword {
+	return &Keyword{
+		Token: NewToken(value, TokenKeyword),
+	}
+}
+
+func (k *Keyword) CheckWithValue(token *Token) error {
+	return token.CheckKeywordWithValue(k.Value)
+}
+
+func (k *Keyword) Check() error {
+	return k.CheckKeyword()
+}
+
+type Symbol struct {
+	*Token
+}
+
+func NewSymbol(value string) *Symbol {
+	return &Symbol{
+		Token: NewToken(value, TokenSymbol),
+	}
+}
+
+func (s *Symbol) Check(token *Token) error {
+	return token.CheckSymbol(s.Value)
+}
+
+type Identifier struct {
+	Name string
+	*Token
+}
+
+func NewIdentifier(name string, token *Token) *Identifier {
 	return &Identifier{
+		Name:  name,
 		Token: token,
 	}
 }
 
 func (i *Identifier) Check() error {
-	if i.Token.TokenType == TokenIdentifier {
-		return nil
-	}
-
-	message := fmt.Sprintf("error: got = %d (%s), want = %d", i.Token.TokenType, i.Token.debug(), TokenIdentifier)
-	return errors.New(message)
-}
-
-func (i *Identifier) ToXML() string {
-	return i.Token.ToXML()
-}
-
-func (i *Identifier) debug() string {
-	return i.Token.debug()
+	return i.CheckTokenType(TokenIdentifier, i.Name)
 }
