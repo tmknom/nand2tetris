@@ -79,7 +79,7 @@ func TestParserParseClass(t *testing.T) {
 				NewToken("Main", TokenIdentifier),
 				NewToken("{", TokenSymbol),
 				NewToken("field", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
+				NewToken("char", TokenKeyword),
 				NewToken("test", TokenIdentifier),
 				NewToken(";", TokenSymbol),
 				NewToken("}", TokenSymbol),
@@ -93,7 +93,7 @@ func TestParserParseClass(t *testing.T) {
 					Items: []*ClassVarDec{
 						&ClassVarDec{
 							Keyword: NewKeywordByValue("field"),
-							VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+							VarType: NewVarType(NewToken("char", TokenKeyword)),
 							VarNames: &VarNames{
 								First:            NewVarNameByValue("test"),
 								CommaAndVarNames: []*CommaAndVarName{},
@@ -191,7 +191,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 			desc: "定義が複数",
 			tokens: []*Token{
 				NewToken("field", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
+				NewToken("int", TokenKeyword),
 				NewToken("foo", TokenIdentifier),
 				NewToken(",", TokenSymbol),
 				NewToken("bar", TokenIdentifier),
@@ -203,7 +203,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 				Items: []*ClassVarDec{
 					&ClassVarDec{
 						Keyword: NewKeywordByValue("field"),
-						VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+						VarType: NewVarType(NewToken("int", TokenKeyword)),
 						VarNames: &VarNames{
 							First: NewVarNameByValue("foo"),
 							CommaAndVarNames: []*CommaAndVarName{

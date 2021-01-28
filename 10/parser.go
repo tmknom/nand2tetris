@@ -281,10 +281,10 @@ func (v *VarType) Check() error {
 	if err := v.CheckIdentifier(); err == nil {
 		return nil
 	}
-	if err := v.CheckKeyword(); err == nil {
-		if v.Value == "int" || v.Value == "char" || v.Value == "boolean" {
-			return nil
-		}
+
+	expected := []string{"int", "char", "boolean"}
+	if err := v.CheckKeywordValue(expected...); err == nil {
+		return nil
 	}
 
 	message := fmt.Sprintf("VarType: got = %s", v.debug())
