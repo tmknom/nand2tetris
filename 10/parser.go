@@ -405,14 +405,8 @@ func NewKeywordByValue(value string) *Keyword {
 	return NewKeyword(NewToken(value, TokenKeyword))
 }
 
-func (k *Keyword) Check(expected string) error {
-	tokenName := fmt.Sprintf("Keyword '%s'", expected)
-	if k.Value != expected {
-		message := fmt.Sprintf("%s: got = %s", tokenName, k.debug())
-		return errors.New(message)
-	}
-
-	return k.CheckKeyword()
+func (k *Keyword) Check(expected ...string) error {
+	return k.CheckKeywordValue(expected...)
 }
 
 type Symbol struct {
@@ -430,13 +424,7 @@ func NewSymbolByValue(value string) *Symbol {
 }
 
 func (s *Symbol) Check(expected string) error {
-	tokenName := fmt.Sprintf("Symbol '%s'", expected)
-	if s.Value != expected {
-		message := fmt.Sprintf("%s: got = %s", tokenName, s.debug())
-		return errors.New(message)
-	}
-
-	return s.CheckSymbol()
+	return s.CheckSymbolValue(expected)
 }
 
 type Identifier struct {
