@@ -1,27 +1,28 @@
-package main
+package parsing
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"./token"
 	"testing"
 )
 
 func TestParserParseClass(t *testing.T) {
 	cases := []struct {
 		desc   string
-		tokens []*Token
+		tokens []*token.Token
 		want   *Class
 	}{
 		{
 			desc: "ClassVarDecsとSubroutineDecが初期値のクラス",
-			tokens: []*Token{
-				NewToken("class", TokenKeyword),
-				NewToken("Main", TokenIdentifier),
-				NewToken("{", TokenSymbol),
-				NewToken("}", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("class", token.TokenKeyword),
+				token.NewToken("Main", token.TokenIdentifier),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &Class{
 				Keyword:        NewKeywordByValue("class"),
-				ClassName:      NewClassName(NewToken("Main", TokenIdentifier)),
+				ClassName:      NewClassName(token.NewToken("Main", token.TokenIdentifier)),
 				OpenSymbol:     ConstOpeningCurlyBracket,
 				CloseSymbol:    ConstClosingCurlyBracket,
 				ClassVarDecs:   NewClassVarDecs(),
@@ -30,26 +31,26 @@ func TestParserParseClass(t *testing.T) {
 		},
 		{
 			desc: "SubroutineDecsが初期値のクラス",
-			tokens: []*Token{
-				NewToken("class", TokenKeyword),
-				NewToken("Main", TokenIdentifier),
-				NewToken("{", TokenSymbol),
-				NewToken("field", TokenKeyword),
-				NewToken("char", TokenKeyword),
-				NewToken("test", TokenIdentifier),
-				NewToken(";", TokenSymbol),
-				NewToken("}", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("class", token.TokenKeyword),
+				token.NewToken("Main", token.TokenIdentifier),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("field", token.TokenKeyword),
+				token.NewToken("char", token.TokenKeyword),
+				token.NewToken("test", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &Class{
 				Keyword:     NewKeywordByValue("class"),
-				ClassName:   NewClassName(NewToken("Main", TokenIdentifier)),
+				ClassName:   NewClassName(token.NewToken("Main", token.TokenIdentifier)),
 				OpenSymbol:  ConstOpeningCurlyBracket,
 				CloseSymbol: ConstClosingCurlyBracket,
 				ClassVarDecs: &ClassVarDecs{
 					Items: []*ClassVarDec{
 						&ClassVarDec{
 							Keyword: NewKeywordByValue("field"),
-							VarType: NewVarType(NewToken("char", TokenKeyword)),
+							VarType: NewVarType(token.NewToken("char", token.TokenKeyword)),
 							VarNames: &VarNames{
 								First:            NewVarNameByValue("test"),
 								CommaAndVarNames: []*CommaAndVarName{},
@@ -65,7 +66,7 @@ func TestParserParseClass(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
+			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
 			parser := NewParser(tokens)
@@ -85,15 +86,15 @@ func TestParserParseClass(t *testing.T) {
 func TestParserParseClassVarDecs(t *testing.T) {
 	cases := []struct {
 		desc   string
-		tokens []*Token
+		tokens []*token.Token
 		want   *ClassVarDecs
 	}{
 		{
 			desc: "フィールドもスタティック変数の定義もない",
-			tokens: []*Token{
-				NewToken("function", TokenKeyword),
-				NewToken("void", TokenKeyword),
-				NewToken("main", TokenIdentifier),
+			tokens: []*token.Token{
+				token.NewToken("function", token.TokenKeyword),
+				token.NewToken("void", token.TokenKeyword),
+				token.NewToken("main", token.TokenIdentifier),
 			},
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{},
@@ -101,17 +102,17 @@ func TestParserParseClassVarDecs(t *testing.T) {
 		},
 		{
 			desc: "フィールドの定義がひとつ",
-			tokens: []*Token{
-				NewToken("field", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
-				NewToken("test", TokenIdentifier),
-				NewToken(";", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("field", token.TokenKeyword),
+				token.NewToken("Array", token.TokenIdentifier),
+				token.NewToken("test", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{
 					&ClassVarDec{
 						Keyword: NewKeywordByValue("field"),
-						VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+						VarType: NewVarType(token.NewToken("Array", token.TokenIdentifier)),
 						VarNames: &VarNames{
 							First:            NewVarNameByValue("test"),
 							CommaAndVarNames: []*CommaAndVarName{},
@@ -123,17 +124,17 @@ func TestParserParseClassVarDecs(t *testing.T) {
 		},
 		{
 			desc: "スタティック変数の定義がひとつ",
-			tokens: []*Token{
-				NewToken("static", TokenKeyword),
-				NewToken("boolean", TokenKeyword),
-				NewToken("test", TokenIdentifier),
-				NewToken(";", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("static", token.TokenKeyword),
+				token.NewToken("boolean", token.TokenKeyword),
+				token.NewToken("test", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{
 					&ClassVarDec{
 						Keyword: NewKeywordByValue("static"),
-						VarType: NewVarType(NewToken("boolean", TokenKeyword)),
+						VarType: NewVarType(token.NewToken("boolean", token.TokenKeyword)),
 						VarNames: &VarNames{
 							First:            NewVarNameByValue("test"),
 							CommaAndVarNames: []*CommaAndVarName{},
@@ -145,21 +146,21 @@ func TestParserParseClassVarDecs(t *testing.T) {
 		},
 		{
 			desc: "定義が複数",
-			tokens: []*Token{
-				NewToken("field", TokenKeyword),
-				NewToken("int", TokenKeyword),
-				NewToken("foo", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("bar", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("baz", TokenIdentifier),
-				NewToken(";", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("field", token.TokenKeyword),
+				token.NewToken("int", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ClassVarDecs{
 				Items: []*ClassVarDec{
 					&ClassVarDec{
 						Keyword: NewKeywordByValue("field"),
-						VarType: NewVarType(NewToken("int", TokenKeyword)),
+						VarType: NewVarType(token.NewToken("int", token.TokenKeyword)),
 						VarNames: &VarNames{
 							First: NewVarNameByValue("foo"),
 							CommaAndVarNames: []*CommaAndVarName{
@@ -176,7 +177,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
+			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
 			parser := NewParser(tokens)
@@ -196,31 +197,31 @@ func TestParserParseClassVarDecs(t *testing.T) {
 func TestParserSubroutineDecs(t *testing.T) {
 	cases := []struct {
 		desc   string
-		tokens []*Token
+		tokens []*token.Token
 		want   *SubroutineDecs
 	}{
 		{
 			desc: "サブルーチンの定義なし",
-			tokens: []*Token{
-				NewToken("}", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: NewSubroutineDecs(),
 		},
 		{
 			desc: "function void main()",
-			tokens: []*Token{
-				NewToken("function", TokenKeyword),
-				NewToken("void", TokenKeyword),
-				NewToken("main", TokenIdentifier),
-				NewToken("(", TokenSymbol),
-				NewToken(")", TokenSymbol),
-				NewToken("{", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("function", token.TokenKeyword),
+				token.NewToken("void", token.TokenKeyword),
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
 					&SubroutineDec{
 						Subroutine:          NewKeywordByValue("function"),
-						SubroutineType:      NewSubroutineType(NewToken("void", TokenKeyword)),
+						SubroutineType:      NewSubroutineType(token.NewToken("void", token.TokenKeyword)),
 						SubroutineName:      NewSubroutineNameByValue("main"),
 						OpeningRoundBracket: ConstOpeningRoundBracket,
 						ClosingRoundBracket: ConstClosingRoundBracket,
@@ -232,36 +233,36 @@ func TestParserSubroutineDecs(t *testing.T) {
 		},
 		{
 			desc: "constructor Square new(int foo, int bar)",
-			tokens: []*Token{
-				NewToken("constructor", TokenKeyword),
-				NewToken("Square", TokenIdentifier),
-				NewToken("new", TokenIdentifier),
-				NewToken("(", TokenSymbol),
-				NewToken("int", TokenKeyword),
-				NewToken("foo", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("int", TokenKeyword),
-				NewToken("bar", TokenIdentifier),
-				NewToken(")", TokenSymbol),
-				NewToken("{", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("constructor", token.TokenKeyword),
+				token.NewToken("Square", token.TokenIdentifier),
+				token.NewToken("new", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("int", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("int", token.TokenKeyword),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
 					&SubroutineDec{
 						Subroutine:          NewKeywordByValue("constructor"),
-						SubroutineType:      NewSubroutineType(NewToken("Square", TokenIdentifier)),
+						SubroutineType:      NewSubroutineType(token.NewToken("Square", token.TokenIdentifier)),
 						SubroutineName:      NewSubroutineNameByValue("new"),
 						OpeningRoundBracket: ConstOpeningRoundBracket,
 						ClosingRoundBracket: ConstClosingRoundBracket,
 						ParameterList: &ParameterList{
 							First: NewParameterByToken(
-								NewToken("int", TokenKeyword),
-								NewToken("foo", TokenIdentifier),
+								token.NewToken("int", token.TokenKeyword),
+								token.NewToken("foo", token.TokenIdentifier),
 							),
 							CommaAndParameters: []*CommaAndParameter{
 								NewCommaAndParameterByToken(
-									NewToken("int", TokenKeyword),
-									NewToken("bar", TokenIdentifier),
+									token.NewToken("int", token.TokenKeyword),
+									token.NewToken("bar", token.TokenIdentifier),
 								),
 							},
 						},
@@ -274,7 +275,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
+			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
 			parser := NewParser(tokens)
@@ -294,13 +295,13 @@ func TestParserSubroutineDecs(t *testing.T) {
 func TestParserParameterList(t *testing.T) {
 	cases := []struct {
 		desc   string
-		tokens []*Token
+		tokens []*token.Token
 		want   *ParameterList
 	}{
 		{
 			desc: "パラメータの定義がひとつもない",
-			tokens: []*Token{
-				NewToken(")", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken(")", token.TokenSymbol),
 			},
 			want: &ParameterList{
 				CommaAndParameters: []*CommaAndParameter{},
@@ -308,45 +309,45 @@ func TestParserParameterList(t *testing.T) {
 		},
 		{
 			desc: "パラメータの定義がひとつ",
-			tokens: []*Token{
-				NewToken("Array", TokenIdentifier),
-				NewToken("elements", TokenIdentifier),
-				NewToken(")", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("Array", token.TokenIdentifier),
+				token.NewToken("elements", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
 			},
 			want: &ParameterList{
 				First: NewParameterByToken(
-					NewToken("Array", TokenIdentifier),
-					NewToken("elements", TokenIdentifier),
+					token.NewToken("Array", token.TokenIdentifier),
+					token.NewToken("elements", token.TokenIdentifier),
 				),
 				CommaAndParameters: []*CommaAndParameter{},
 			},
 		},
 		{
 			desc: "パラメータの定義が複数",
-			tokens: []*Token{
-				NewToken("int", TokenKeyword),
-				NewToken("foo", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("boolean", TokenKeyword),
-				NewToken("bar", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("char", TokenKeyword),
-				NewToken("baz", TokenIdentifier),
-				NewToken(")", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("int", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("boolean", token.TokenKeyword),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("char", token.TokenKeyword),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
 			},
 			want: &ParameterList{
 				First: NewParameterByToken(
-					NewToken("int", TokenKeyword),
-					NewToken("foo", TokenIdentifier),
+					token.NewToken("int", token.TokenKeyword),
+					token.NewToken("foo", token.TokenIdentifier),
 				),
 				CommaAndParameters: []*CommaAndParameter{
 					NewCommaAndParameterByToken(
-						NewToken("boolean", TokenKeyword),
-						NewToken("bar", TokenIdentifier),
+						token.NewToken("boolean", token.TokenKeyword),
+						token.NewToken("bar", token.TokenIdentifier),
 					),
 					NewCommaAndParameterByToken(
-						NewToken("char", TokenKeyword),
-						NewToken("baz", TokenIdentifier),
+						token.NewToken("char", token.TokenKeyword),
+						token.NewToken("baz", token.TokenIdentifier),
 					),
 				},
 			},
@@ -355,7 +356,7 @@ func TestParserParameterList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
+			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
 			parser := NewParser(tokens)
@@ -376,16 +377,16 @@ func TestParserParameterList(t *testing.T) {
 func TestSubroutineBody(t *testing.T) {
 	cases := []struct {
 		desc   string
-		tokens []*Token
+		tokens []*token.Token
 		want   *SubroutineBody
 	}{
 		{
 			desc: "ローカル変数の定義がない",
-			tokens: []*Token{
-				NewToken("{", TokenSymbol),
-				NewToken("return", TokenKeyword),
-				NewToken(";", TokenSymbol),
-				NewToken("}", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineBody{
 				VarDecs:             NewVarDecs(),
@@ -395,24 +396,24 @@ func TestSubroutineBody(t *testing.T) {
 		},
 		{
 			desc: "ローカル変数の定義が一行ある",
-			tokens: []*Token{
-				NewToken("{", TokenSymbol),
-				NewToken("var", TokenKeyword),
-				NewToken("boolean", TokenKeyword),
-				NewToken("foo", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("bar", TokenIdentifier),
-				NewToken(";", TokenSymbol),
-				NewToken("return", TokenKeyword),
-				NewToken(";", TokenSymbol),
-				NewToken("}", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("var", token.TokenKeyword),
+				token.NewToken("boolean", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineBody{
 				VarDecs: &VarDecs{
 					Items: []*VarDec{
 						&VarDec{
 							Keyword: NewKeywordByValue("var"),
-							VarType: NewVarType(NewToken("boolean", TokenKeyword)),
+							VarType: NewVarType(token.NewToken("boolean", token.TokenKeyword)),
 							VarNames: &VarNames{
 								First: NewVarNameByValue("foo"),
 								CommaAndVarNames: []*CommaAndVarName{
@@ -429,26 +430,26 @@ func TestSubroutineBody(t *testing.T) {
 		},
 		{
 			desc: "ローカル変数の定義が複数行ある",
-			tokens: []*Token{
-				NewToken("{", TokenSymbol),
-				NewToken("var", TokenKeyword),
-				NewToken("int", TokenKeyword),
-				NewToken("foo", TokenIdentifier),
-				NewToken(";", TokenSymbol),
-				NewToken("var", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
-				NewToken("elements", TokenIdentifier),
-				NewToken(";", TokenSymbol),
-				NewToken("return", TokenKeyword),
-				NewToken(";", TokenSymbol),
-				NewToken("}", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("var", token.TokenKeyword),
+				token.NewToken("int", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("var", token.TokenKeyword),
+				token.NewToken("Array", token.TokenIdentifier),
+				token.NewToken("elements", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineBody{
 				VarDecs: &VarDecs{
 					Items: []*VarDec{
 						&VarDec{
 							Keyword: NewKeywordByValue("var"),
-							VarType: NewVarType(NewToken("int", TokenKeyword)),
+							VarType: NewVarType(token.NewToken("int", token.TokenKeyword)),
 							VarNames: &VarNames{
 								First:            NewVarNameByValue("foo"),
 								CommaAndVarNames: []*CommaAndVarName{},
@@ -457,7 +458,7 @@ func TestSubroutineBody(t *testing.T) {
 						},
 						&VarDec{
 							Keyword: NewKeywordByValue("var"),
-							VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+							VarType: NewVarType(token.NewToken("Array", token.TokenIdentifier)),
 							VarNames: &VarNames{
 								First:            NewVarNameByValue("elements"),
 								CommaAndVarNames: []*CommaAndVarName{},
@@ -474,7 +475,7 @@ func TestSubroutineBody(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
+			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
 			parser := NewParser(tokens)
@@ -494,20 +495,20 @@ func TestSubroutineBody(t *testing.T) {
 func TestParserVarDec(t *testing.T) {
 	cases := []struct {
 		desc   string
-		tokens []*Token
+		tokens []*token.Token
 		want   *VarDec
 	}{
 		{
 			desc: "ローカル変数の定義がひとつ",
-			tokens: []*Token{
-				NewToken("var", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
-				NewToken("elements", TokenIdentifier),
-				NewToken(";", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("var", token.TokenKeyword),
+				token.NewToken("Array", token.TokenIdentifier),
+				token.NewToken("elements", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &VarDec{
 				Keyword: NewKeywordByValue("var"),
-				VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+				VarType: NewVarType(token.NewToken("Array", token.TokenIdentifier)),
 				VarNames: &VarNames{
 					First:            NewVarNameByValue("elements"),
 					CommaAndVarNames: []*CommaAndVarName{},
@@ -517,19 +518,19 @@ func TestParserVarDec(t *testing.T) {
 		},
 		{
 			desc: "ローカル変数の定義が複数",
-			tokens: []*Token{
-				NewToken("var", TokenKeyword),
-				NewToken("char", TokenKeyword),
-				NewToken("foo", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("bar", TokenIdentifier),
-				NewToken(",", TokenSymbol),
-				NewToken("baz", TokenIdentifier),
-				NewToken(";", TokenSymbol),
+			tokens: []*token.Token{
+				token.NewToken("var", token.TokenKeyword),
+				token.NewToken("char", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &VarDec{
 				Keyword: NewKeywordByValue("var"),
-				VarType: NewVarType(NewToken("char", TokenKeyword)),
+				VarType: NewVarType(token.NewToken("char", token.TokenKeyword)),
 				VarNames: &VarNames{
 					First: NewVarNameByValue("foo"),
 					CommaAndVarNames: []*CommaAndVarName{
@@ -544,7 +545,7 @@ func TestParserVarDec(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
+			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
 			parser := NewParser(tokens)

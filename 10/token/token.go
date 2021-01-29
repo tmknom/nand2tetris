@@ -1,4 +1,4 @@
-package main
+package token
 
 import (
 	"fmt"
@@ -60,10 +60,10 @@ func (t *Tokens) ToXML() []string {
 	return result
 }
 
-func (t *Tokens) debug() string {
+func (t *Tokens) Debug() string {
 	result := "&Tokens{\n"
 	for i, item := range t.items {
-		result += fmt.Sprintf("    [%d] = %s\n", i, item.debug())
+		result += fmt.Sprintf("    [%d] = %s\n", i, item.Debug())
 	}
 	result += "}\n"
 	return result
@@ -112,7 +112,7 @@ func (t *Token) CheckValue(tokenTypeString string, expected ...string) error {
 		}
 	}
 
-	message := fmt.Sprintf("%s expected values %v: got = %s", tokenTypeString, expected, t.debug())
+	message := fmt.Sprintf("%s expected values %v: got = %s", tokenTypeString, expected, t.Debug())
 	return errors.New(message)
 }
 
@@ -136,7 +136,7 @@ func (t *Token) CheckTokenType(tokenType TokenType, tokenName string) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("%s: got = %s", tokenName, t.debug())
+	message := fmt.Sprintf("%s: got = %s", tokenName, t.Debug())
 	return errors.New(message)
 }
 
@@ -155,7 +155,7 @@ func (t *Token) ToXML() string {
 	return fmt.Sprintf("<%s> %s </%s>", t.tokenTypeString(), value, t.tokenTypeString())
 }
 
-func (t *Token) debug() string {
+func (t *Token) Debug() string {
 	return fmt.Sprintf("&Token{Value: '%s', TokenType: %s}", t.Value, t.tokenTypeString())
 }
 

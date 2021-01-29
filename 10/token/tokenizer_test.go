@@ -1,4 +1,4 @@
-package main
+package token
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -43,7 +43,7 @@ func TestTokenizerTokenize(t *testing.T) {
 
 			if len(tokenizer.tokens.items) > len(tc.want) {
 				want := &Tokens{items: tc.want}
-				t.Fatalf("failed: size: got = %s,\nwant:%s\n", tokenizer.tokens.debug(), want.debug())
+				t.Fatalf("failed: size: got = %s,\nwant:%s\n", tokenizer.tokens.Debug(), want.Debug())
 			}
 
 			for i, token := range tokenizer.tokens.items {

@@ -1,5 +1,11 @@
 package main
 
+import (
+	"./io"
+	"./parsing"
+	"./token"
+)
+
 type Integrator struct {
 	filenames []string
 }
@@ -9,8 +15,8 @@ func NewIntegrator(filenames []string) *Integrator {
 }
 
 func (i *Integrator) Integrate() error {
-	for _, file := range i.filenames {
-		err := i.integrateFile(file)
+	for _, filename := range i.filenames {
+		err := i.integrateFile(filename)
 		if err != nil {
 			return err
 		}
@@ -20,26 +26,26 @@ func (i *Integrator) Integrate() error {
 
 func (i *Integrator) integrateFile(file string) error {
 	// ソースファイルの読み込み
-	src := NewSrc(file)
+	src := io.NewSrc(file)
 	err := src.Setup()
 	if err != nil {
 		return err
 	}
 
 	// トークンに分割
-	tokenizer := NewTokenizer(src.lines)
+	tokenizer := token.NewTokenizer(src.Lines)
 	tokens := tokenizer.Tokenize()
 	tokenizedXML := tokens.ToXML()
 
 	// トークンをパース
-	parser := NewParser(tokens)
+	parser := parsing.NewParser(tokens)
 	class, err := parser.Parse()
 	if err != nil {
 		return err
 	}
 
 	// XMLファイルへ書き込み
-	dest := NewDest(src.filename)
+	dest := io.NewDest(src.Filename)
 	err = dest.WriteTokenizedXML(tokenizedXML)
 	if err != nil {
 		return err
