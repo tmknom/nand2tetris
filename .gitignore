@@ -5,5 +5,6 @@
 *.cmp
 *.vm
 *.html
+*.xml
 
 suite/
