@@ -2,6 +2,8 @@ package parsing
 
 import (
 	"../token"
+	"fmt"
+	"github.com/pkg/errors"
 )
 
 type Parser struct {
@@ -259,8 +261,25 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 }
 
 func (p *Parser) parseStatement() (*Statement, error) {
-	statement := NewStatement()
+	keyword := p.advanceToken()
+	switch keyword.Value {
+	case "let":
+		return p.parseNotImplementedStatement()
+	case "if":
+		return p.parseNotImplementedStatement()
+	case "while":
+		return p.parseNotImplementedStatement()
+	case "do":
+		return p.parseNotImplementedStatement()
+	case "return":
+		return p.parseNotImplementedStatement()
+	default:
+		message := fmt.Sprintf("Invalid Statement: got = %s", keyword.Debug())
+		return nil, errors.New(message)
+	}
+}
 
+func (p *Parser) parseNotImplementedStatement() (*Statement, error) {
 	for {
 		// TODO とりあえず実装が完了するまで「return;」まで読み込んで終了する
 		t := p.advanceToken()
@@ -277,5 +296,5 @@ func (p *Parser) parseStatement() (*Statement, error) {
 	//fmt.Println(p.tokens.Debug())
 	//fmt.Println(p.readFirstToken().Debug())
 
-	return statement, nil
+	return NewStatement(), nil
 }
