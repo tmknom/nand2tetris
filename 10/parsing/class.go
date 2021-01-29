@@ -3,19 +3,19 @@ package parsing
 import "../token"
 
 type Class struct {
-	Keyword        *Keyword
-	ClassName      *ClassName
-	OpenSymbol     *OpeningCurlyBracket
-	CloseSymbol    *ClosingCurlyBracket
-	ClassVarDecs   *ClassVarDecs
-	SubroutineDecs *SubroutineDecs
+	Keyword *Keyword
+	*ClassName
+	*OpeningCurlyBracket
+	*ClosingCurlyBracket
+	*ClassVarDecs
+	*SubroutineDecs
 }
 
 func NewClass() *Class {
 	return &Class{
-		Keyword:     NewKeywordByValue("class"),
-		OpenSymbol:  ConstOpeningCurlyBracket,
-		CloseSymbol: ConstClosingCurlyBracket,
+		Keyword:             NewKeywordByValue("class"),
+		OpeningCurlyBracket: ConstOpeningCurlyBracket,
+		ClosingCurlyBracket: ConstClosingCurlyBracket,
 	}
 }
 
@@ -56,10 +56,10 @@ func (c *Class) ToXML() []string {
 	result = append(result, "<class>")
 	result = append(result, c.Keyword.ToXML())
 	result = append(result, c.ClassName.ToXML())
-	result = append(result, c.OpenSymbol.ToXML())
+	result = append(result, c.OpeningCurlyBracket.ToXML())
 	result = append(result, c.ClassVarDecs.ToXML()...)
 	result = append(result, c.SubroutineDecs.ToXML()...)
-	result = append(result, c.CloseSymbol.ToXML())
+	result = append(result, c.ClosingCurlyBracket.ToXML())
 	result = append(result, "</class>")
 	return result
 }
@@ -86,7 +86,7 @@ func (c *ClassVarDecs) ToXML() []string {
 	return result
 }
 
-func (c *ClassVarDecs) hasClassVarDec(token *token.Token) bool {
+func (c *ClassVarDecs) HasClassVarDec(token *token.Token) bool {
 	if token == nil {
 		return false
 	}
@@ -97,13 +97,13 @@ type ClassVarDec struct {
 	*Keyword
 	*VarType
 	*VarNames
-	EndSymbol *Semicolon
+	*Semicolon
 }
 
 func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
-		EndSymbol: ConstSemicolon,
+		Semicolon: ConstSemicolon,
 	}
 }
 
@@ -137,7 +137,7 @@ func (c *ClassVarDec) ToXML() []string {
 	result = append(result, c.Keyword.ToXML())
 	result = append(result, c.VarType.ToXML())
 	result = append(result, c.VarNames.ToXML()...)
-	result = append(result, c.EndSymbol.ToXML())
+	result = append(result, c.Semicolon.ToXML())
 	result = append(result, "</classVarDec>")
 	return result
 }

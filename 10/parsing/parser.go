@@ -1,6 +1,8 @@
 package parsing
 
-import "../token"
+import (
+	"../token"
+)
 
 type Parser struct {
 	tokens *token.Tokens
@@ -14,9 +16,9 @@ func (p *Parser) advanceToken() *token.Token {
 	return p.tokens.Advance()
 }
 
-func (p *Parser) backwardToken() *token.Token {
-	return p.tokens.Backward()
-}
+//func (p *Parser) backwardToken() *token.Token {
+//	return p.tokens.Backward()
+//}
 
 func (p *Parser) readFirstToken() *token.Token {
 	p.tokens = p.tokens.SubList()
@@ -42,14 +44,8 @@ func (p *Parser) parseClass() (*Class, error) {
 		return nil, err
 	}
 
-	openSymbol := p.advanceToken()
-	if err := ConstOpeningCurlyBracket.Check(openSymbol); err != nil {
-		return nil, err
-	}
-
-	// 閉じカッコは後ろから取得
-	closeSymbol := p.backwardToken()
-	if err := ConstClosingCurlyBracket.Check(closeSymbol); err != nil {
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
 		return nil, err
 	}
 
@@ -65,6 +61,11 @@ func (p *Parser) parseClass() (*Class, error) {
 	}
 	class.SetSubroutineDecs(subroutineDecs)
 
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
 	return class, nil
 }
 
@@ -73,7 +74,7 @@ func (p *Parser) parseClass() (*Class, error) {
 func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 	classVarDecs := NewClassVarDecs()
 
-	for classVarDecs.hasClassVarDec(p.readFirstToken()) {
+	for classVarDecs.HasClassVarDec(p.readFirstToken()) {
 		classVarDec := NewClassVarDec()
 
 		keyword := p.advanceToken()
@@ -99,8 +100,8 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 			}
 		}
 
-		endSymbol := p.advanceToken()
-		if err := ConstSemicolon.Check(endSymbol); err != nil {
+		semicolon := p.advanceToken()
+		if err := ConstSemicolon.Check(semicolon); err != nil {
 			return nil, err
 		}
 
@@ -187,7 +188,7 @@ func (p *Parser) parseParameterList() (*ParameterList, error) {
 	return parameterList, nil
 }
 
-// '{' varDec* statements* '}'
+// '{' varDec* statements '}'
 func (p *Parser) parseSubroutineBody() (*SubroutineBody, error) {
 	subroutineBody := NewSubroutineBody()
 
@@ -202,19 +203,22 @@ func (p *Parser) parseSubroutineBody() (*SubroutineBody, error) {
 		if err != nil {
 			return nil, err
 		}
-		subroutineBody.VarDecs.Add(varDec)
+		subroutineBody.AddVarDec(varDec)
 	}
 
-	// TODO Statements
+	// statementsのパース
+	for subroutineBody.IsStatementKeyword(p.readFirstToken()) {
+		statement, err := p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+		subroutineBody.AddStatement(statement)
+	}
 
-	// TODO subroutineBodyの他の部分の実装が終わったら有効にする
-	//closingCurlyBracket := p.advanceToken()
-	//if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
-	//	return nil, err
-	//}
-
-	//fmt.Println(p.tokens.Debug())
-	//fmt.Println(p.readFirstToken().Debug())
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
 
 	return subroutineBody, nil
 }
@@ -252,4 +256,26 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 	}
 
 	return varDec, nil
+}
+
+func (p *Parser) parseStatement() (*Statement, error) {
+	statement := NewStatement()
+
+	for {
+		// TODO とりあえず実装が完了するまで「return;」まで読み込んで終了する
+		t := p.advanceToken()
+		if t.Value == "return" {
+			end := p.advanceToken() // セミコロンをスキップ
+			if end.Value != ";" {
+				p.advanceToken() // リターンで値を返す場合にはさらにもう一つトークンをスキップする
+			}
+			break
+		}
+	}
+
+	//p.readFirstToken()
+	//fmt.Println(p.tokens.Debug())
+	//fmt.Println(p.readFirstToken().Debug())
+
+	return statement, nil
 }

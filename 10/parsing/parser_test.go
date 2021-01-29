@@ -1,8 +1,8 @@
 package parsing
 
 import (
+	"../token"
 	"github.com/google/go-cmp/cmp"
-	"./token"
 	"testing"
 )
 
@@ -21,12 +21,12 @@ func TestParserParseClass(t *testing.T) {
 				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &Class{
-				Keyword:        NewKeywordByValue("class"),
-				ClassName:      NewClassName(token.NewToken("Main", token.TokenIdentifier)),
-				OpenSymbol:     ConstOpeningCurlyBracket,
-				CloseSymbol:    ConstClosingCurlyBracket,
-				ClassVarDecs:   NewClassVarDecs(),
-				SubroutineDecs: NewSubroutineDecs(),
+				Keyword:             NewKeywordByValue("class"),
+				ClassName:           NewClassName(token.NewToken("Main", token.TokenIdentifier)),
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+				ClassVarDecs:        NewClassVarDecs(),
+				SubroutineDecs:      NewSubroutineDecs(),
 			},
 		},
 		{
@@ -42,10 +42,10 @@ func TestParserParseClass(t *testing.T) {
 				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &Class{
-				Keyword:     NewKeywordByValue("class"),
-				ClassName:   NewClassName(token.NewToken("Main", token.TokenIdentifier)),
-				OpenSymbol:  ConstOpeningCurlyBracket,
-				CloseSymbol: ConstClosingCurlyBracket,
+				Keyword:             NewKeywordByValue("class"),
+				ClassName:           NewClassName(token.NewToken("Main", token.TokenIdentifier)),
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
 				ClassVarDecs: &ClassVarDecs{
 					Items: []*ClassVarDec{
 						&ClassVarDec{
@@ -55,7 +55,7 @@ func TestParserParseClass(t *testing.T) {
 								First:            NewVarNameByValue("test"),
 								CommaAndVarNames: []*CommaAndVarName{},
 							},
-							EndSymbol: ConstSemicolon,
+							Semicolon: ConstSemicolon,
 						},
 					},
 				},
@@ -117,7 +117,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 							First:            NewVarNameByValue("test"),
 							CommaAndVarNames: []*CommaAndVarName{},
 						},
-						EndSymbol: ConstSemicolon,
+						Semicolon: ConstSemicolon,
 					},
 				},
 			},
@@ -139,7 +139,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 							First:            NewVarNameByValue("test"),
 							CommaAndVarNames: []*CommaAndVarName{},
 						},
-						EndSymbol: ConstSemicolon,
+						Semicolon: ConstSemicolon,
 					},
 				},
 			},
@@ -168,7 +168,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 								NewCommaAndVarNameByValue("baz"),
 							},
 						},
-						EndSymbol: ConstSemicolon,
+						Semicolon: ConstSemicolon,
 					},
 				},
 			},

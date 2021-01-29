@@ -80,8 +80,8 @@ func (v *VarNames) ToXML() []string {
 }
 
 type CommaAndVarName struct {
-	Comma   *Comma
-	VarName *VarName
+	*Comma
+	*VarName
 }
 
 func NewCommaAndVarName(varName *VarName) *CommaAndVarName {

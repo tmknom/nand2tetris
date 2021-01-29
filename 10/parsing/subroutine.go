@@ -130,6 +130,7 @@ type SubroutineBody struct {
 func NewSubroutineBody() *SubroutineBody {
 	return &SubroutineBody{
 		VarDecs:             NewVarDecs(),
+		Statements:          NewStatements(),
 		OpeningCurlyBracket: ConstOpeningCurlyBracket,
 		ClosingCurlyBracket: ConstClosingCurlyBracket,
 	}
@@ -140,6 +141,7 @@ func (s *SubroutineBody) ToXML() []string {
 	result = append(result, "<subroutineBody>")
 	result = append(result, s.OpeningCurlyBracket.ToXML())
 	result = append(result, s.VarDecs.ToXML()...)
+	result = append(result, s.Statements.ToXML()...)
 	result = append(result, s.ClosingCurlyBracket.ToXML())
 	result = append(result, "</subroutineBody>")
 	return result
@@ -155,7 +157,7 @@ func NewVarDecs() *VarDecs {
 	}
 }
 
-func (v *VarDecs) Add(item *VarDec) {
+func (v *VarDecs) AddVarDec(item *VarDec) {
 	v.Items = append(v.Items, item)
 }
 
@@ -212,8 +214,4 @@ func (v *VarDec) ToXML() []string {
 	result = append(result, v.Semicolon.ToXML())
 	result = append(result, "</varDec>")
 	return result
-}
-
-type Statements struct {
-	*NotImplemented
 }
