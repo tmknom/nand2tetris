@@ -25,6 +25,10 @@
         <symbol> ; </symbol>
       </varDec>
       <statements>
+        <returnStatement>
+          <keyword> return </keyword>
+          <symbol> ; </symbol>
+        </returnStatement>
       </statements>
       <symbol> } </symbol>
     </subroutineBody>
@@ -60,6 +64,10 @@
         <symbol> ; </symbol>
       </varDec>
       <statements>
+        <returnStatement>
+          <keyword> return </keyword>
+          <symbol> ; </symbol>
+        </returnStatement>
       </statements>
       <symbol> } </symbol>
     </subroutineBody>

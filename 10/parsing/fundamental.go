@@ -276,6 +276,11 @@ func NewSemicolon() *Semicolon {
 	}
 }
 
+func (s *Semicolon) IsCheck(token *token.Token) bool {
+	err := s.Check(token)
+	return err == nil
+}
+
 func (s *Semicolon) Check(token *token.Token) error {
 	return NewSymbol(token).Check(s.Value)
 }
