@@ -194,7 +194,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 	}
 }
 
-func TestParserSubroutineDecs(t *testing.T) {
+func TestParserParseSubroutineDecs(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -292,7 +292,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 	}
 }
 
-func TestParserParameterList(t *testing.T) {
+func TestParserParseParameterList(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -374,7 +374,7 @@ func TestParserParameterList(t *testing.T) {
 }
 
 // '{' varDec* statements* '}'
-func TestSubroutineBody(t *testing.T) {
+func TestParserParseSubroutineBody(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -492,7 +492,7 @@ func TestSubroutineBody(t *testing.T) {
 	}
 }
 
-func TestParserVarDec(t *testing.T) {
+func TestParserParseVarDec(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -550,6 +550,93 @@ func TestParserVarDec(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseVarDec()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ReturnStatement
+	}{
+		{
+			desc: "return",
+			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ReturnStatement{
+				Keyword:   NewKeywordByValue("return"),
+				Semicolon: ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseReturnStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ReturnStatement
+	}{
+		{
+			desc: "セミコロンのみ",
+			tokens: []*token.Token{
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ReturnStatement{
+				Keyword:   NewKeywordByValue("return"),
+				Semicolon: ConstSemicolon,
+			},
+		},
+		{
+			desc: "式とセミコロン",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ReturnStatement{
+				Keyword:   NewKeywordByValue("return"),
+				Expression: NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				Semicolon: ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseReturnStatement()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, err)
