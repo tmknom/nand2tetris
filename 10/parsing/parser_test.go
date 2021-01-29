@@ -216,6 +216,7 @@ func TestParserParseSubroutineDecs(t *testing.T) {
 				token.NewToken("(", token.TokenSymbol),
 				token.NewToken(")", token.TokenSymbol),
 				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
@@ -245,6 +246,7 @@ func TestParserParseSubroutineDecs(t *testing.T) {
 				token.NewToken("bar", token.TokenIdentifier),
 				token.NewToken(")", token.TokenSymbol),
 				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
@@ -390,6 +392,14 @@ func TestParserParseSubroutineBody(t *testing.T) {
 			},
 			want: &SubroutineBody{
 				VarDecs:             NewVarDecs(),
+				Statements: &Statements{
+					Items: []Statement{
+						&ReturnStatement{
+							StatementKeyword: NewStatementKeyword("return"),
+							Semicolon:        ConstSemicolon,
+						},
+					},
+				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
 				ClosingCurlyBracket: ConstClosingCurlyBracket,
 			},
@@ -421,6 +431,14 @@ func TestParserParseSubroutineBody(t *testing.T) {
 								},
 							},
 							Semicolon: ConstSemicolon,
+						},
+					},
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						&ReturnStatement{
+							StatementKeyword: NewStatementKeyword("return"),
+							Semicolon:        ConstSemicolon,
 						},
 					},
 				},
@@ -464,6 +482,14 @@ func TestParserParseSubroutineBody(t *testing.T) {
 								CommaAndVarNames: []*CommaAndVarName{},
 							},
 							Semicolon: ConstSemicolon,
+						},
+					},
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						&ReturnStatement{
+							StatementKeyword: NewStatementKeyword("return"),
+							Semicolon:        ConstSemicolon,
 						},
 					},
 				},
@@ -575,8 +601,8 @@ func TestParserParseStatement(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ReturnStatement{
-				Keyword:   NewKeywordByValue("return"),
-				Semicolon: ConstSemicolon,
+				StatementKeyword: NewStatementKeyword("return"),
+				Semicolon:        ConstSemicolon,
 			},
 		},
 	}
@@ -612,8 +638,8 @@ func TestParserParseReturnStatement(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ReturnStatement{
-				Keyword:   NewKeywordByValue("return"),
-				Semicolon: ConstSemicolon,
+				StatementKeyword: NewStatementKeyword("return"),
+				Semicolon:        ConstSemicolon,
 			},
 		},
 		{
@@ -623,9 +649,9 @@ func TestParserParseReturnStatement(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ReturnStatement{
-				Keyword:   NewKeywordByValue("return"),
-				Expression: NewExpression(token.NewToken("foo", token.TokenIdentifier)),
-				Semicolon: ConstSemicolon,
+				StatementKeyword: NewStatementKeyword("return"),
+				Expression:       NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				Semicolon:        ConstSemicolon,
 			},
 		},
 	}
