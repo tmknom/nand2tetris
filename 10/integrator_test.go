@@ -163,10 +163,10 @@ func TestIntegratorProvisional(t *testing.T) {
 	}{
 		{
 			desc:             "途中状態のXMLファイルをリグレッションテスト",
-			src:              "Fixture/Square/Main.jack",
-			destTokenizedXML: "Fixture/Square/MainT.xml",
-			destParsedXML:    "Fixture/Square/Main.xml",
-			wantParsedXML:    "Fixture/Square/provisional/Main.xml",
+			src:              "Fixture/ExpressionLessSquare/Main.jack",
+			destTokenizedXML: "Fixture/ExpressionLessSquare/MainT.xml",
+			destParsedXML:    "Fixture/ExpressionLessSquare/Main.xml",
+			wantParsedXML:    "Fixture/ExpressionLessSquare/provisional/Main.xml",
 		},
 	}
 
