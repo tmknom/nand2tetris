@@ -1,4 +1,4 @@
-package main
+package io
 
 import (
 	"bufio"
@@ -8,19 +8,19 @@ import (
 
 // コンパイル対象のソースファイルを読み込む
 type Src struct {
-	filename  string
-	org       []string
-	lines     []string
+	Filename  string
+	Org       []string
+	Lines     []string
 	isComment bool
 }
 
 func NewSrc(filename string) *Src {
-	return &Src{filename: filename, isComment: false}
+	return &Src{Filename: filename, isComment: false}
 }
 
 func (s *Src) Setup() error {
 	// ファイルを読み込んで、一度全部メモリに展開する
-	err := s.readFile(s.filename)
+	err := s.readFile(s.Filename)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (s *Src) readFile(filename string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		s.org = append(s.org, line)
+		s.Org = append(s.Org, line)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -50,10 +50,10 @@ func (s *Src) readFile(filename string) error {
 }
 
 func (s *Src) setupLines() {
-	for _, line := range s.org {
+	for _, line := range s.Org {
 		withoutComment := s.deleteCommentAndWhitespace(line)
 		if withoutComment != "" {
-			s.lines = append(s.lines, withoutComment)
+			s.Lines = append(s.Lines, withoutComment)
 		}
 	}
 }

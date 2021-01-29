@@ -1,4 +1,4 @@
-package main
+package io
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -39,8 +39,8 @@ func TestSrcSetup(t *testing.T) {
 			src.Setup()
 
 			// 全行チェックが面倒なので、lengthで指定した行数だけチェックする
-			if diff := cmp.Diff(src.lines[:tc.length], tc.want); diff != "" {
-				t.Errorf("failed src.lines: diff (-got +want):\n%s", diff)
+			if diff := cmp.Diff(src.Lines[:tc.length], tc.want); diff != "" {
+				t.Errorf("failed src.Lines: diff (-got +want):\n%s", diff)
 			}
 		})
 	}

@@ -1,4 +1,4 @@
-package main
+package token
 
 import (
 	"github.com/google/go-cmp/cmp"
