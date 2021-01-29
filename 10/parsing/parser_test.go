@@ -1,8 +1,8 @@
 package parsing
 
 import (
+	"../token"
 	"github.com/google/go-cmp/cmp"
-	"./token"
 	"testing"
 )
 
