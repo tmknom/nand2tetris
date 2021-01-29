@@ -260,7 +260,7 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 	return varDec, nil
 }
 
-func (p *Parser) parseStatement() (*Statement, error) {
+func (p *Parser) parseStatement() (Statement, error) {
 	keyword := p.advanceToken()
 	switch keyword.Value {
 	case "let":
@@ -272,29 +272,42 @@ func (p *Parser) parseStatement() (*Statement, error) {
 	case "do":
 		return p.parseNotImplementedStatement()
 	case "return":
-		return p.parseNotImplementedStatement()
+		return p.parseReturnStatement()
 	default:
 		message := fmt.Sprintf("Invalid Statement: got = %s", keyword.Debug())
 		return nil, errors.New(message)
 	}
 }
 
-func (p *Parser) parseNotImplementedStatement() (*Statement, error) {
-	for {
-		// TODO とりあえず実装が完了するまで「return;」まで読み込んで終了する
-		t := p.advanceToken()
-		if t.Value == "return" {
-			end := p.advanceToken() // セミコロンをスキップ
-			if end.Value != ";" {
-				p.advanceToken() // リターンで値を返す場合にはさらにもう一つトークンをスキップする
-			}
-			break
+func (p *Parser) parseReturnStatement() (Statement, error) {
+	returnStatement := NewReturnStatement()
+
+	if !ConstSemicolon.IsCheck(p.readFirstToken()) {
+		// TODO expressionなので本当は複数のトークンがくる可能性があるが、当面一個しかトークンが来ない前提で実装する
+		expression := p.advanceToken()
+		if err := returnStatement.SetExpression(expression); err != nil {
+			return nil, err
 		}
 	}
 
+	semicolon := p.advanceToken()
+	if err := ConstSemicolon.Check(semicolon); err != nil {
+		return nil, err
+	}
+
+	return returnStatement, nil
+}
+
+func (p *Parser) parseNotImplementedStatement() (Statement, error) {
 	//p.readFirstToken()
 	//fmt.Println(p.tokens.Debug())
 	//fmt.Println(p.readFirstToken().Debug())
 
-	return NewStatement(), nil
+	for {
+		// TODO とりあえず実装が完了するまでreturn文まで読み込んで終了する
+		t := p.advanceToken()
+		if t.Value == "return" {
+			return p.parseReturnStatement()
+		}
+	}
 }

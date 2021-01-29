@@ -3,16 +3,16 @@ package parsing
 import "../token"
 
 type Statements struct {
-	Items []*Statement
+	Items []Statement
 }
 
 func NewStatements() *Statements {
 	return &Statements{
-		Items: []*Statement{},
+		Items: []Statement{},
 	}
 }
 
-func (s *Statements) AddStatement(item *Statement) {
+func (s *Statements) AddStatement(item Statement) {
 	s.Items = append(s.Items, item)
 }
 
@@ -43,14 +43,63 @@ func (s *Statements) IsStatementKeyword(token *token.Token) bool {
 	return err == nil
 }
 
-type Statement struct {
-	*NotImplemented
+type ReturnStatement struct {
+	*Keyword
+	*Expression
+	*Semicolon
 }
 
-func NewStatement() *Statement {
-	return &Statement{}
+func NewReturnStatement() *ReturnStatement {
+	return &ReturnStatement{
+		Keyword:   NewKeywordByValue("return"),
+		Semicolon: ConstSemicolon,
+	}
 }
 
-func (s *Statement) ToXML() []string {
-	return []string{}
+func (r *ReturnStatement) SetExpression(token *token.Token) error {
+	expression := NewExpression(token)
+	if err := expression.Check(); err != nil {
+		return err
+	}
+
+	r.Expression = expression
+	return nil
+}
+
+func (r *ReturnStatement) ToXML() []string {
+	result := []string{}
+	result = append(result, "<returnStatement>")
+	result = append(result, r.Keyword.ToXML())
+
+	if r.Expression != nil {
+		result = append(result, r.Expression.ToXML())
+	}
+
+	result = append(result, r.Semicolon.ToXML())
+	result = append(result, "</returnStatement>")
+	return result
+}
+
+func (r *ReturnStatement) Type() string {
+	return r.Keyword.Value
+}
+
+type Statement interface {
+	Type() string
+	ToXML() []string
+}
+
+type Expression struct {
+	*token.Token
+}
+
+func NewExpression(token *token.Token) *Expression {
+	return &Expression{
+		Token: token,
+	}
+}
+
+func (e *Expression) Check() error {
+	// TODO Expression実装時にちゃんと書く
+	return nil
 }
