@@ -73,7 +73,7 @@ func (p *Parser) parseClass() (*Class, error) {
 func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 	classVarDecs := NewClassVarDecs()
 
-	for classVarDecs.hasClassVarDec(p.readFirstToken()) {
+	for classVarDecs.HasClassVarDec(p.readFirstToken()) {
 		classVarDec := NewClassVarDec()
 
 		keyword := p.advanceToken()
