@@ -1,6 +1,9 @@
 package parsing
 
-import "../token"
+import (
+	"../token"
+	"fmt"
+)
 
 type Statements struct {
 	Items []Statement
@@ -43,16 +46,47 @@ func (s *Statements) IsStatementKeyword(token *token.Token) bool {
 	return err == nil
 }
 
-type ReturnStatement struct {
-	*Keyword
+type DoStatement struct {
+	*StatementKeyword
 	*Expression
 	*Semicolon
 }
 
+var _ Statement = (*DoStatement)(nil)
+
+func NewDoStatement() *DoStatement {
+	return &DoStatement{
+		StatementKeyword: NewStatementKeyword("do"),
+		Semicolon:        ConstSemicolon,
+	}
+}
+
+func (d *DoStatement) ToXML() []string {
+	result := []string{}
+	result = append(result, d.OpenTag())
+	result = append(result, d.Keyword.ToXML())
+
+	if d.Expression != nil {
+		result = append(result, d.Expression.ToXML()...)
+	}
+
+	result = append(result, d.Semicolon.ToXML())
+	result = append(result, d.CloseTag())
+	return result
+}
+
+type ReturnStatement struct {
+	*StatementKeyword
+	*Expression
+	*Semicolon
+}
+
+var _ Statement = (*ReturnStatement)(nil)
+
 func NewReturnStatement() *ReturnStatement {
 	return &ReturnStatement{
-		Keyword:   NewKeywordByValue("return"),
-		Semicolon: ConstSemicolon,
+		StatementKeyword: NewStatementKeyword("return"),
+		Semicolon:        ConstSemicolon,
 	}
 }
 
@@ -68,38 +102,38 @@ func (r *ReturnStatement) SetExpression(token *token.Token) error {
 
 func (r *ReturnStatement) ToXML() []string {
 	result := []string{}
-	result = append(result, "<returnStatement>")
+	result = append(result, r.OpenTag())
 	result = append(result, r.Keyword.ToXML())
 
 	if r.Expression != nil {
-		result = append(result, r.Expression.ToXML())
+		result = append(result, r.Expression.ToXML()...)
 	}
 
 	result = append(result, r.Semicolon.ToXML())
-	result = append(result, "</returnStatement>")
+	result = append(result, r.CloseTag())
 	return result
 }
 
-func (r *ReturnStatement) Type() string {
-	return r.Keyword.Value
+type StatementKeyword struct {
+	*Keyword
 }
 
-type Statement interface {
-	Type() string
-	ToXML() []string
-}
-
-type Expression struct {
-	*token.Token
-}
-
-func NewExpression(token *token.Token) *Expression {
-	return &Expression{
-		Token: token,
+func NewStatementKeyword(value string) *StatementKeyword {
+	return &StatementKeyword{
+		Keyword: NewKeywordByValue(value),
 	}
 }
 
-func (e *Expression) Check() error {
-	// TODO Expression実装時にちゃんと書く
-	return nil
+func (s *StatementKeyword) OpenTag() string {
+	return fmt.Sprintf("<%sStatement>", s.Keyword.Value)
+}
+
+func (s *StatementKeyword) CloseTag() string {
+	return fmt.Sprintf("</%sStatement>", s.Keyword.Value)
+}
+
+type Statement interface {
+	ToXML() []string
+	OpenTag() string
+	CloseTag() string
 }
