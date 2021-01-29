@@ -20,47 +20,47 @@ func TestIntegratorIntegrate(t *testing.T) {
 		{
 			desc: "Square",
 			src: []string{
-				"Square/Main.jack",
-				"Square/Square.jack",
-				"Square/SquareGame.jack",
+				"Fixture/Square/Main.jack",
+				"Fixture/Square/Square.jack",
+				"Fixture/Square/SquareGame.jack",
 			},
 			destTokenizedXML: []string{
-				"Square/MainT.xml",
-				"Square/SquareT.xml",
-				"Square/SquareGameT.xml",
+				"Fixture/Square/MainT.xml",
+				"Fixture/Square/SquareT.xml",
+				"Fixture/Square/SquareGameT.xml",
 			},
 			destParsedXML: []string{
-				"Square/Main.xml",
-				"Square/Square.xml",
-				"Square/SquareGame.xml",
+				"Fixture/Square/Main.xml",
+				"Fixture/Square/Square.xml",
+				"Fixture/Square/SquareGame.xml",
 			},
 			wantTokenizedXML: []string{
-				"Square/cmp/MainT.xml",
-				"Square/cmp/SquareT.xml",
-				"Square/cmp/SquareGameT.xml",
+				"Fixture/Square/cmp/MainT.xml",
+				"Fixture/Square/cmp/SquareT.xml",
+				"Fixture/Square/cmp/SquareGameT.xml",
 			},
 			wantParsedXML: []string{
-				"Square/cmp/Main.xml",
-				"Square/cmp/Square.xml",
-				"Square/cmp/SquareGame.xml",
+				"Fixture/Square/cmp/Main.xml",
+				"Fixture/Square/cmp/Square.xml",
+				"Fixture/Square/cmp/SquareGame.xml",
 			},
 		},
 		{
 			desc: "ArrayTest",
 			src: []string{
-				"ArrayTest/Main.jack",
+				"Fixture/ArrayTest/Main.jack",
 			},
 			destTokenizedXML: []string{
-				"ArrayTest/MainT.xml",
+				"Fixture/ArrayTest/MainT.xml",
 			},
 			destParsedXML: []string{
-				"ArrayTest/Main.xml",
+				"Fixture/ArrayTest/Main.xml",
 			},
 			wantTokenizedXML: []string{
-				"ArrayTest/cmp/MainT.xml",
+				"Fixture/ArrayTest/cmp/MainT.xml",
 			},
 			wantParsedXML: []string{
-				"ArrayTest/cmp/Main.xml",
+				"Fixture/ArrayTest/cmp/Main.xml",
 			},
 		},
 	}
@@ -114,11 +114,11 @@ func TestIntegratorIntegrateFile(t *testing.T) {
 	}{
 		{
 			desc:             "指定したファイルのトークナイズが実行できる",
-			src:              "Square/Square.jack",
-			destTokenizedXML: "Square/SquareT.xml",
-			destParsedXML:    "Square/Square.xml",
-			wantTokenizedXML: "Square/cmp/SquareT.xml",
-			wantParsedXML:    "Square/cmp/Square.xml",
+			src:              "Fixture/Square/Square.jack",
+			destTokenizedXML: "Fixture/Square/SquareT.xml",
+			destParsedXML:    "Fixture/Square/Square.xml",
+			wantTokenizedXML: "Fixture/Square/cmp/SquareT.xml",
+			wantParsedXML:    "Fixture/Square/cmp/Square.xml",
 		},
 	}
 
@@ -163,10 +163,10 @@ func TestIntegratorProvisional(t *testing.T) {
 	}{
 		{
 			desc:             "途中状態のXMLファイルをリグレッションテスト",
-			src:              "Square/Main.jack",
-			destTokenizedXML: "Square/MainT.xml",
-			destParsedXML:    "Square/Main.xml",
-			wantParsedXML:    "Square/provisional/Main.xml",
+			src:              "Fixture/Square/Main.jack",
+			destTokenizedXML: "Fixture/Square/MainT.xml",
+			destParsedXML:    "Fixture/Square/Main.xml",
+			wantParsedXML:    "Fixture/Square/provisional/Main.xml",
 		},
 	}
 
