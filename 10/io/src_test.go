@@ -16,7 +16,7 @@ func TestSrcSetup(t *testing.T) {
 	}{
 		{
 			desc:     "Setup",
-			filename: "Square/SquareGame.jack",
+			filename: "../Fixture/Square/SquareGame.jack",
 			length:   10,
 			want: []string{
 				"class SquareGame {",
