@@ -23,7 +23,7 @@ func TestParserParseClass(t *testing.T) {
 				Keyword:        NewKeywordByValue("class"),
 				ClassName:      NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:     ConstOpeningCurlyBracket,
-				CloseSymbol:    ConstClosingCurlyBrackets,
+				CloseSymbol:    ConstClosingCurlyBracket,
 				ClassVarDecs:   NewClassVarDecs(),
 				SubroutineDecs: NewSubroutineDecs(),
 			},
@@ -44,7 +44,7 @@ func TestParserParseClass(t *testing.T) {
 				Keyword:     NewKeywordByValue("class"),
 				ClassName:   NewClassName(NewToken("Main", TokenIdentifier)),
 				OpenSymbol:  ConstOpeningCurlyBracket,
-				CloseSymbol: ConstClosingCurlyBrackets,
+				CloseSymbol: ConstClosingCurlyBracket,
 				ClassVarDecs: &ClassVarDecs{
 					Items: []*ClassVarDec{
 						&ClassVarDec{
@@ -214,6 +214,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 				NewToken("main", TokenIdentifier),
 				NewToken("(", TokenSymbol),
 				NewToken(")", TokenSymbol),
+				NewToken("{", TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
@@ -224,6 +225,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 						OpeningRoundBracket: ConstOpeningRoundBracket,
 						ClosingRoundBracket: ConstClosingRoundBracket,
 						ParameterList:       NewParameterList(),
+						SubroutineBody:      NewSubroutineBody(),
 					},
 				},
 			},
@@ -241,6 +243,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 				NewToken("int", TokenKeyword),
 				NewToken("bar", TokenIdentifier),
 				NewToken(")", TokenSymbol),
+				NewToken("{", TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
@@ -262,6 +265,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 								),
 							},
 						},
+						SubroutineBody: NewSubroutineBody(),
 					},
 				},
 			},
@@ -277,11 +281,11 @@ func TestParserSubroutineDecs(t *testing.T) {
 			got, err := parser.parseSubroutineDecs()
 
 			if err != nil {
-				t.Fatalf("failed: %+v", err)
+				t.Fatalf("failed %s: %+v", tc.desc, err)
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
-				t.Errorf("failed: diff (-got +want):\n%s", diff)
+				t.Errorf("failed %s: diff (-got +want):\n%s", tc.desc, diff)
 			}
 		})
 	}
@@ -359,6 +363,195 @@ func TestParserParameterList(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("failed: %+v", err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+// '{' varDec* statements* '}'
+func TestSubroutineBody(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*Token
+		want   *SubroutineBody
+	}{
+		{
+			desc: "ローカル変数の定義がない",
+			tokens: []*Token{
+				NewToken("{", TokenSymbol),
+				NewToken("return", TokenKeyword),
+				NewToken(";", TokenSymbol),
+				NewToken("}", TokenSymbol),
+			},
+			want: &SubroutineBody{
+				VarDecs:             NewVarDecs(),
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+		{
+			desc: "ローカル変数の定義が一行ある",
+			tokens: []*Token{
+				NewToken("{", TokenSymbol),
+				NewToken("var", TokenKeyword),
+				NewToken("boolean", TokenKeyword),
+				NewToken("foo", TokenIdentifier),
+				NewToken(",", TokenSymbol),
+				NewToken("bar", TokenIdentifier),
+				NewToken(";", TokenSymbol),
+				NewToken("return", TokenKeyword),
+				NewToken(";", TokenSymbol),
+				NewToken("}", TokenSymbol),
+			},
+			want: &SubroutineBody{
+				VarDecs: &VarDecs{
+					Items: []*VarDec{
+						&VarDec{
+							Keyword: NewKeywordByValue("var"),
+							VarType: NewVarType(NewToken("boolean", TokenKeyword)),
+							VarNames: &VarNames{
+								First: NewVarNameByValue("foo"),
+								CommaAndVarNames: []*CommaAndVarName{
+									NewCommaAndVarNameByValue("bar"),
+								},
+							},
+							Semicolon: ConstSemicolon,
+						},
+					},
+				},
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+		{
+			desc: "ローカル変数の定義が複数行ある",
+			tokens: []*Token{
+				NewToken("{", TokenSymbol),
+				NewToken("var", TokenKeyword),
+				NewToken("int", TokenKeyword),
+				NewToken("foo", TokenIdentifier),
+				NewToken(";", TokenSymbol),
+				NewToken("var", TokenKeyword),
+				NewToken("Array", TokenIdentifier),
+				NewToken("elements", TokenIdentifier),
+				NewToken(";", TokenSymbol),
+				NewToken("return", TokenKeyword),
+				NewToken(";", TokenSymbol),
+				NewToken("}", TokenSymbol),
+			},
+			want: &SubroutineBody{
+				VarDecs: &VarDecs{
+					Items: []*VarDec{
+						&VarDec{
+							Keyword: NewKeywordByValue("var"),
+							VarType: NewVarType(NewToken("int", TokenKeyword)),
+							VarNames: &VarNames{
+								First:            NewVarNameByValue("foo"),
+								CommaAndVarNames: []*CommaAndVarName{},
+							},
+							Semicolon: ConstSemicolon,
+						},
+						&VarDec{
+							Keyword: NewKeywordByValue("var"),
+							VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+							VarNames: &VarNames{
+								First:            NewVarNameByValue("elements"),
+								CommaAndVarNames: []*CommaAndVarName{},
+							},
+							Semicolon: ConstSemicolon,
+						},
+					},
+				},
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseSubroutineBody()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserVarDec(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*Token
+		want   *VarDec
+	}{
+		{
+			desc: "ローカル変数の定義がひとつ",
+			tokens: []*Token{
+				NewToken("var", TokenKeyword),
+				NewToken("Array", TokenIdentifier),
+				NewToken("elements", TokenIdentifier),
+				NewToken(";", TokenSymbol),
+			},
+			want: &VarDec{
+				Keyword: NewKeywordByValue("var"),
+				VarType: NewVarType(NewToken("Array", TokenIdentifier)),
+				VarNames: &VarNames{
+					First:            NewVarNameByValue("elements"),
+					CommaAndVarNames: []*CommaAndVarName{},
+				},
+				Semicolon: ConstSemicolon,
+			},
+		},
+		{
+			desc: "ローカル変数の定義が複数",
+			tokens: []*Token{
+				NewToken("var", TokenKeyword),
+				NewToken("char", TokenKeyword),
+				NewToken("foo", TokenIdentifier),
+				NewToken(",", TokenSymbol),
+				NewToken("bar", TokenIdentifier),
+				NewToken(",", TokenSymbol),
+				NewToken("baz", TokenIdentifier),
+				NewToken(";", TokenSymbol),
+			},
+			want: &VarDec{
+				Keyword: NewKeywordByValue("var"),
+				VarType: NewVarType(NewToken("char", TokenKeyword)),
+				VarNames: &VarNames{
+					First: NewVarNameByValue("foo"),
+					CommaAndVarNames: []*CommaAndVarName{
+						NewCommaAndVarNameByValue("bar"),
+						NewCommaAndVarNameByValue("baz"),
+					},
+				},
+				Semicolon: ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseVarDec()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
