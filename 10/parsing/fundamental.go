@@ -190,6 +190,7 @@ var ConstClosingRoundBracket = NewClosingRoundBracket()
 var ConstComma = NewComma()
 var ConstPeriod = NewPeriod()
 var ConstSemicolon = NewSemicolon()
+var ConstEqual = NewEqual()
 
 type OpeningCurlyBracket struct {
 	*Symbol
@@ -299,6 +300,20 @@ func (s *Semicolon) IsCheck(token *token.Token) bool {
 
 func (s *Semicolon) Check(token *token.Token) error {
 	return NewSymbol(token).Check(s.Value)
+}
+
+type Equal struct {
+	*Symbol
+}
+
+func NewEqual() *Equal {
+	return &Equal{
+		Symbol: NewSymbolByValue("="),
+	}
+}
+
+func (e *Equal) Check(token *token.Token) error {
+	return NewSymbol(token).Check(e.Value)
 }
 
 type NotImplemented struct {
