@@ -34,6 +34,10 @@ func (s *SubroutineCall) ToXML() []string {
 	return result
 }
 
+func (s *SubroutineCall) TermType() TermType {
+	return TermSubroutineCall
+}
+
 type SubroutineCallName struct {
 	*CallerName
 	*Period
