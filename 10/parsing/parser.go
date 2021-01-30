@@ -401,11 +401,13 @@ func (p *Parser) parseNotImplementedStatement() (Statement, error) {
 	//fmt.Println(p.tokens.Debug())
 	//fmt.Println(p.readFirstToken().Debug())
 
+	// TODO parseStatementの実装が完了するまで辻褄をあわせる
 	for {
-		// TODO とりあえず実装が完了するまでreturn文まで読み込んで終了する
-		t := p.advanceToken()
-		if t.Value == "return" {
-			return p.parseReturnStatement()
+		switch p.readFirstToken().Value {
+		case "let", "if", "while", "do", "return":
+			return p.parseStatement()
+		default:
+			p.advanceToken()
 		}
 	}
 }
