@@ -188,6 +188,7 @@ var ConstClosingCurlyBracket = NewClosingCurlyBracket()
 var ConstOpeningRoundBracket = NewOpeningRoundBracket()
 var ConstClosingRoundBracket = NewClosingRoundBracket()
 var ConstComma = NewComma()
+var ConstPeriod = NewPeriod()
 var ConstSemicolon = NewSemicolon()
 
 type OpeningCurlyBracket struct {
@@ -262,6 +263,24 @@ func (c *Comma) IsCheck(token *token.Token) bool {
 
 func (c *Comma) Check(token *token.Token) error {
 	return NewSymbol(token).Check(c.Value)
+}
+
+type Period struct {
+	*Symbol
+}
+
+func NewPeriod() *Period {
+	return &Period{
+		Symbol: NewSymbolByValue("."),
+	}
+}
+
+func (p *Period) IsCheck(token *token.Token) bool {
+	return p.Check(token) == nil
+}
+
+func (p *Period) Check(token *token.Token) error {
+	return NewSymbol(token).Check(p.Value)
 }
 
 type Semicolon struct {
