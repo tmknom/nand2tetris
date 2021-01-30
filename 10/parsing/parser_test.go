@@ -74,7 +74,7 @@ func TestParserParseClass(t *testing.T) {
 			got, err := parser.parseClass()
 
 			if err != nil {
-				t.Fatalf("failed: %+v", err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(*got, *tc.want); diff != "" {
@@ -185,7 +185,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 			got, err := parser.parseClassVarDecs()
 
 			if err != nil {
-				t.Fatalf("failed: %+v", err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -285,7 +285,7 @@ func TestParserParseSubroutineDecs(t *testing.T) {
 			got, err := parser.parseSubroutineDecs()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -509,7 +509,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 			got, err := parser.parseSubroutineBody()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -579,7 +579,7 @@ func TestParserParseVarDec(t *testing.T) {
 			got, err := parser.parseVarDec()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -617,7 +617,7 @@ func TestParserParseStatement(t *testing.T) {
 			got, err := parser.parseStatement()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -771,7 +771,7 @@ func TestParserParseDoStatement(t *testing.T) {
 			got, err := parser.parseDoStatement()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -820,7 +820,7 @@ func TestParserParseReturnStatement(t *testing.T) {
 			got, err := parser.parseReturnStatement()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -895,7 +895,7 @@ func TestParserParseSubroutineCall(t *testing.T) {
 			got, err := parser.parseSubroutineCall()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -961,7 +961,7 @@ func TestParserParseSubroutineCallName(t *testing.T) {
 			got, err := parser.parseSubroutineCallName()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
@@ -1035,7 +1035,7 @@ func TestParserParseExpressionList(t *testing.T) {
 			got, err := parser.parseExpressionList()
 
 			if err != nil {
-				t.Fatalf("failed %s: %+v", tc.desc, err)
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
