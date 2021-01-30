@@ -187,6 +187,8 @@ var ConstOpeningCurlyBracket = NewOpeningCurlyBracket()
 var ConstClosingCurlyBracket = NewClosingCurlyBracket()
 var ConstOpeningRoundBracket = NewOpeningRoundBracket()
 var ConstClosingRoundBracket = NewClosingRoundBracket()
+var ConstOpeningSquareBracket = NewOpeningSquareBracket()
+var ConstClosingSquareBracket = NewClosingSquareBracket()
 var ConstComma = NewComma()
 var ConstPeriod = NewPeriod()
 var ConstSemicolon = NewSemicolon()
@@ -250,6 +252,38 @@ func (c *ClosingRoundBracket) Check(token *token.Token) error {
 
 type Comma struct {
 	*Symbol
+}
+
+type OpeningSquareBracket struct {
+	*Symbol
+}
+
+func NewOpeningSquareBracket() *OpeningSquareBracket {
+	return &OpeningSquareBracket{
+		Symbol: NewSymbolByValue("["),
+	}
+}
+
+func (o *OpeningSquareBracket) IsCheck(token *token.Token) bool {
+	return o.Check(token) == nil
+}
+
+func (o *OpeningSquareBracket) Check(token *token.Token) error {
+	return NewSymbol(token).Check(o.Value)
+}
+
+type ClosingSquareBracket struct {
+	*Symbol
+}
+
+func NewClosingSquareBracket() *ClosingSquareBracket {
+	return &ClosingSquareBracket{
+		Symbol: NewSymbolByValue("]"),
+	}
+}
+
+func (c *ClosingSquareBracket) Check(token *token.Token) error {
+	return NewSymbol(token).Check(c.Value)
 }
 
 func NewComma() *Comma {
