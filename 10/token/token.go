@@ -66,6 +66,32 @@ func (t *Tokens) Debug() string {
 		result += fmt.Sprintf("    [%d] = %s\n", i, item.Debug())
 	}
 	result += "}\n"
+	result += fmt.Sprintf("HeadIndex = %d\n", t.HeadIndex)
+	return result
+}
+
+func (t *Tokens) DebugForError() string {
+	const indexSize = 15
+	start := t.HeadIndex
+	if t.HeadIndex > indexSize {
+		start = t.HeadIndex - indexSize
+	}
+	end := len(t.Items[start:])
+	if end > indexSize*2 {
+		end = t.HeadIndex + indexSize
+	}
+
+	result := "&Tokens{\n"
+	for i, item := range t.Items[start:end] {
+		index := i + start
+		mark := ""
+		if index == t.HeadIndex {
+			mark = "<==============="
+		}
+		result += fmt.Sprintf("    [%d] = %s %s\n", index, item.Debug(), mark)
+	}
+	result += "}\n"
+	result += fmt.Sprintf("HeadIndex = %d\n", t.HeadIndex)
 	return result
 }
 

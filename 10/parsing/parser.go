@@ -28,7 +28,12 @@ func (p *Parser) readFirstToken() *token.Token {
 }
 
 func (p *Parser) Parse() (*Class, error) {
-	return p.parseClass()
+	class, err := p.parseClass()
+	if err != nil {
+		return nil, errors.WithMessage(err, p.tokens.DebugForError())
+	}
+
+	return class, nil
 }
 
 // 'class' className '{' classVarDec* subroutineDec* '}'
