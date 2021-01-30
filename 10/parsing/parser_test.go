@@ -3,6 +3,7 @@ package parsing
 import (
 	"../token"
 	"github.com/google/go-cmp/cmp"
+	"github.com/pkg/errors"
 	"testing"
 )
 
@@ -617,6 +618,85 @@ func TestParserParseStatement(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseLetStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *LetStatement
+	}{
+		{
+			desc: "VarNameの代入",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("=", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &LetStatement{
+				StatementKeyword: NewStatementKeyword("let"),
+				VarName:          NewVarNameByValue("foo"),
+				Expression:       NewExpression(token.NewToken("bar", token.TokenIdentifier)),
+				Equal:            ConstEqual,
+				Semicolon:        ConstSemicolon,
+			},
+		},
+		{
+			desc: "KeywordConstantの代入",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("=", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &LetStatement{
+				StatementKeyword: NewStatementKeyword("let"),
+				VarName:          NewVarNameByValue("foo"),
+				Expression:       NewExpression(token.NewToken("true", token.TokenKeyword)),
+				Equal:            ConstEqual,
+				Semicolon:        ConstSemicolon,
+			},
+		},
+		{
+			desc: "配列に対する代入",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("[", token.TokenSymbol),
+				token.NewToken("index", token.TokenIdentifier),
+				token.NewToken("]", token.TokenSymbol),
+				token.NewToken("=", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &LetStatement{
+				StatementKeyword: NewStatementKeyword("let"),
+				VarName:          NewVarNameByValue("foo"),
+				ArrayIndex:       NewArrayIndex(token.NewToken("index", token.TokenIdentifier)),
+				Expression:       NewExpression(token.NewToken("bar", token.TokenIdentifier)),
+				Equal:            ConstEqual,
+				Semicolon:        ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseLetStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
 			}
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
