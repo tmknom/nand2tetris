@@ -161,8 +161,12 @@ func NewSymbolByValue(value string) *Symbol {
 	return NewSymbol(token.NewToken(value, token.TokenSymbol))
 }
 
-func (s *Symbol) Check(expected string) error {
-	return s.CheckSymbolValue(expected)
+func (s *Symbol) IsCheck(token *token.Token) bool {
+	return s.Check(token) == nil
+}
+
+func (s *Symbol) Check(token *token.Token) error {
+	return NewSymbol(token).CheckSymbolValue(s.Value)
 }
 
 type Identifier struct {
@@ -204,10 +208,6 @@ func NewOpeningCurlyBracket() *OpeningCurlyBracket {
 	}
 }
 
-func (o *OpeningCurlyBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(o.Value)
-}
-
 type ClosingCurlyBracket struct {
 	*Symbol
 }
@@ -216,10 +216,6 @@ func NewClosingCurlyBracket() *ClosingCurlyBracket {
 	return &ClosingCurlyBracket{
 		Symbol: NewSymbolByValue("}"),
 	}
-}
-
-func (c *ClosingCurlyBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
 }
 
 type OpeningRoundBracket struct {
@@ -232,10 +228,6 @@ func NewOpeningRoundBracket() *OpeningRoundBracket {
 	}
 }
 
-func (o *OpeningRoundBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(o.Value)
-}
-
 type ClosingRoundBracket struct {
 	*Symbol
 }
@@ -244,14 +236,6 @@ func NewClosingRoundBracket() *ClosingRoundBracket {
 	return &ClosingRoundBracket{
 		Symbol: NewSymbolByValue(")"),
 	}
-}
-
-func (c *ClosingRoundBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
-}
-
-type Comma struct {
-	*Symbol
 }
 
 type OpeningSquareBracket struct {
@@ -264,14 +248,6 @@ func NewOpeningSquareBracket() *OpeningSquareBracket {
 	}
 }
 
-func (o *OpeningSquareBracket) IsCheck(token *token.Token) bool {
-	return o.Check(token) == nil
-}
-
-func (o *OpeningSquareBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(o.Value)
-}
-
 type ClosingSquareBracket struct {
 	*Symbol
 }
@@ -282,22 +258,14 @@ func NewClosingSquareBracket() *ClosingSquareBracket {
 	}
 }
 
-func (c *ClosingSquareBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
+type Comma struct {
+	*Symbol
 }
 
 func NewComma() *Comma {
 	return &Comma{
 		Symbol: NewSymbolByValue(","),
 	}
-}
-
-func (c *Comma) IsCheck(token *token.Token) bool {
-	return c.Check(token) == nil
-}
-
-func (c *Comma) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
 }
 
 type Period struct {
@@ -310,14 +278,6 @@ func NewPeriod() *Period {
 	}
 }
 
-func (p *Period) IsCheck(token *token.Token) bool {
-	return p.Check(token) == nil
-}
-
-func (p *Period) Check(token *token.Token) error {
-	return NewSymbol(token).Check(p.Value)
-}
-
 type Semicolon struct {
 	*Symbol
 }
@@ -328,14 +288,6 @@ func NewSemicolon() *Semicolon {
 	}
 }
 
-func (s *Semicolon) IsCheck(token *token.Token) bool {
-	return s.Check(token) == nil
-}
-
-func (s *Semicolon) Check(token *token.Token) error {
-	return NewSymbol(token).Check(s.Value)
-}
-
 type Equal struct {
 	*Symbol
 }
@@ -344,10 +296,6 @@ func NewEqual() *Equal {
 	return &Equal{
 		Symbol: NewSymbolByValue("="),
 	}
-}
-
-func (e *Equal) Check(token *token.Token) error {
-	return NewSymbol(token).Check(e.Value)
 }
 
 type NotImplemented struct {
