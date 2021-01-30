@@ -1044,3 +1044,120 @@ func TestParserParseExpressionList(t *testing.T) {
 		})
 	}
 }
+
+func TestParserParseTerm(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "IntegerConstant",
+			tokens: []*token.Token{
+				token.NewToken("123", token.TokenIntConst),
+			},
+			want: &IntegerConstant{
+				Token: token.NewToken("123", token.TokenIntConst),
+			},
+		},
+		{
+			desc: "StringConstant",
+			tokens: []*token.Token{
+				token.NewToken("foo bar", token.TokenStringConst),
+			},
+			want: &StringConstant{
+				Token: token.NewToken("foo bar", token.TokenStringConst),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseIntegerConstant(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "IntegerConstantの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("123", token.TokenIntConst),
+			},
+			want: &IntegerConstant{
+				Token: token.NewToken("123", token.TokenIntConst),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseIntegerConstant()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseStringConstant(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "StringConstantの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo bar", token.TokenStringConst),
+			},
+			want: &StringConstant{
+				Token: token.NewToken("foo bar", token.TokenStringConst),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseStringConstant()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}

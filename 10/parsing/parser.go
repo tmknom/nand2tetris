@@ -442,6 +442,40 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	return expressionList, nil
 }
 
+// integerConstant | stringConstant | keywordConstant
+// varName | subroutineCall | varName '[' expression ']' |
+// '(' expression ')' |unaryOp term
+func (p *Parser) parseTerm() (Term, error) {
+	term := p.readFirstToken()
+	switch term.TokenType {
+	case token.TokenIntConst:
+		return p.parseIntegerConstant()
+	case token.TokenStringConst:
+		return p.parseStringConstant()
+	default:
+		message := fmt.Sprintf("error parseTerm: got = %s", term.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+// integerConstant
+func (p *Parser) parseIntegerConstant() (*IntegerConstant, error) {
+	integerConstant := NewIntegerConstant(p.advanceToken())
+	if err := integerConstant.Check(); err != nil {
+		return nil, err
+	}
+	return integerConstant, nil
+}
+
+// stringConstant
+func (p *Parser) parseStringConstant() (*StringConstant, error) {
+	stringConstant := NewStringConstant(p.advanceToken())
+	if err := stringConstant.Check(); err != nil {
+		return nil, err
+	}
+	return stringConstant, nil
+}
+
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {
 	//p.readFirstToken()
 	//fmt.Println(p.tokens.Debug())
