@@ -236,6 +236,24 @@ var ConstThis = &ThisKeywordConstant{
 	KeywordConstant: NewKeywordConstant("this"),
 }
 
+type StringConstant struct {
+	*token.Token
+}
+
+func NewStringConstant(token *token.Token) *StringConstant {
+	return &StringConstant{
+		Token: token,
+	}
+}
+
+func (s *StringConstant) TermType() TermType {
+	return TermStringConstant
+}
+
+func (s *StringConstant) ToXML() []string {
+	return []string{s.Token.ToXML()}
+}
+
 type IntegerConstant struct {
 	*token.Token
 }
