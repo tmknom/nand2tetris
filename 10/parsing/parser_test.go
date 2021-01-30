@@ -905,13 +905,24 @@ func TestParserParseExpressionList(t *testing.T) {
 			want: NewExpressionList(),
 		},
 		{
-			desc: "Expressionの定義がひとつ",
+			desc: "Identifierの定義がひとつ",
 			tokens: []*token.Token{
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ExpressionList{
 				First:               NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				CommaAndExpressions: []*CommaAndExpression{},
+			},
+		},
+		{
+			desc: "Keywordの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("this", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ExpressionList{
+				First:               NewExpression(token.NewToken("this", token.TokenKeyword)),
 				CommaAndExpressions: []*CommaAndExpression{},
 			},
 		},

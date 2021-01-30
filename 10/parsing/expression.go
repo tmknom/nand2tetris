@@ -165,7 +165,17 @@ func (e *Expression) IsCheck() bool {
 
 func (e *Expression) Check() error {
 	// TODO Expression実装時にちゃんと書く
-	return NewIdentifier("Expression", e.Token).Check()
+	if err := NewIdentifier("Expression", e.Token).Check(); err == nil {
+		return nil
+	}
+
+	expected := []string{
+		"true",
+		"false",
+		"null",
+		"this",
+	}
+	return NewKeyword(e.Token).Check(expected...)
 }
 
 func (e *Expression) ToXML() []string {
