@@ -23,7 +23,7 @@ func (p *Parser) advanceToken() *token.Token {
 //}
 
 func (p *Parser) readFirstToken() *token.Token {
-	p.tokens = p.tokens.SubList()
+	//p.tokens = p.tokens.SubList()
 	return p.tokens.First()
 }
 
