@@ -2,6 +2,33 @@ package parsing
 
 import "../token"
 
+type Term struct {
+	TermType
+	*token.Token
+}
+
+func NewTerm(termType TermType, token *token.Token) *Term {
+	return &Term{
+		TermType: termType,
+		Token:    token,
+	}
+}
+
+type TermType int
+
+const (
+	_ TermType = iota
+	TermKeywordConstant
+	TermIntegerConstant
+	TermStringConstant
+	TermVarName
+	TermSubroutineCall
+	TermArray          // varName '[' expression ']'
+	TermExpression     // '(' expression ')'
+	TermWithUnary      // unaryOp term
+	TermNotImplemented // TODO TermとExpressionを正しく実装したら消す
+)
+
 type SubroutineCall struct {
 	*SubroutineCallName
 	*ExpressionList
@@ -150,12 +177,12 @@ func (c *CommaAndExpression) ToXML() []string {
 }
 
 type Expression struct {
-	*token.Token
+	*Term
 }
 
 func NewExpression(token *token.Token) *Expression {
 	return &Expression{
-		Token: token,
+		Term: NewTerm(TermNotImplemented, token),
 	}
 }
 
@@ -169,15 +196,69 @@ func (e *Expression) Check() error {
 		return nil
 	}
 
-	expected := []string{
-		"true",
-		"false",
-		"null",
-		"this",
-	}
-	return NewKeyword(e.Token).Check(expected...)
+	return ConstKeywordConstantChecker.Check(e.Token)
 }
 
 func (e *Expression) ToXML() []string {
 	return []string{e.Token.ToXML()}
+}
+
+type KeywordConstantChecker struct{}
+
+func (k *KeywordConstantChecker) IsCheck(token *token.Token) bool {
+	return k.Check(token) == nil
+}
+
+func (k *KeywordConstantChecker) Check(token *token.Token) error {
+	expected := []string{
+		ConstTrue.Value,
+		ConstFalse.Value,
+		ConstNull.Value,
+		ConstThis.Value,
+	}
+	return NewKeywordConstant(token.Value).Check(expected...)
+}
+
+var ConstKeywordConstantChecker = &KeywordConstantChecker{}
+
+type KeywordConstant struct {
+	*Keyword
+}
+
+func NewKeywordConstant(value string) *KeywordConstant {
+	return &KeywordConstant{
+		Keyword: NewKeywordByValue(value),
+	}
+}
+
+type TrueKeywordConstant struct {
+	*KeywordConstant
+}
+
+var ConstTrue = &TrueKeywordConstant{
+	KeywordConstant: NewKeywordConstant("true"),
+}
+
+type FalseKeywordConstant struct {
+	*KeywordConstant
+}
+
+var ConstFalse = &FalseKeywordConstant{
+	KeywordConstant: NewKeywordConstant("false"),
+}
+
+type NullKeywordConstant struct {
+	*KeywordConstant
+}
+
+var ConstNull = &NullKeywordConstant{
+	KeywordConstant: NewKeywordConstant("null"),
+}
+
+type ThisKeywordConstant struct {
+	*KeywordConstant
+}
+
+var ConstThis = &ThisKeywordConstant{
+	KeywordConstant: NewKeywordConstant("this"),
 }

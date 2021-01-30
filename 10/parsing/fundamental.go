@@ -161,8 +161,12 @@ func NewSymbolByValue(value string) *Symbol {
 	return NewSymbol(token.NewToken(value, token.TokenSymbol))
 }
 
-func (s *Symbol) Check(expected string) error {
-	return s.CheckSymbolValue(expected)
+func (s *Symbol) IsCheck(token *token.Token) bool {
+	return s.Check(token) == nil
+}
+
+func (s *Symbol) Check(token *token.Token) error {
+	return NewSymbol(token).CheckSymbolValue(s.Value)
 }
 
 type Identifier struct {
@@ -182,174 +186,82 @@ func (i *Identifier) Check() error {
 }
 
 // よく使われるシンボル
-// [] - Square brackets
-var ConstOpeningCurlyBracket = NewOpeningCurlyBracket()
-var ConstClosingCurlyBracket = NewClosingCurlyBracket()
-var ConstOpeningRoundBracket = NewOpeningRoundBracket()
-var ConstClosingRoundBracket = NewClosingRoundBracket()
-var ConstOpeningSquareBracket = NewOpeningSquareBracket()
-var ConstClosingSquareBracket = NewClosingSquareBracket()
-var ConstComma = NewComma()
-var ConstPeriod = NewPeriod()
-var ConstSemicolon = NewSemicolon()
-var ConstEqual = NewEqual()
-
 type OpeningCurlyBracket struct {
 	*Symbol
 }
 
-func NewOpeningCurlyBracket() *OpeningCurlyBracket {
-	return &OpeningCurlyBracket{
-		Symbol: NewSymbolByValue("{"),
-	}
-}
-
-func (o *OpeningCurlyBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(o.Value)
+var ConstOpeningCurlyBracket = &OpeningCurlyBracket{
+	Symbol: NewSymbolByValue("{"),
 }
 
 type ClosingCurlyBracket struct {
 	*Symbol
 }
 
-func NewClosingCurlyBracket() *ClosingCurlyBracket {
-	return &ClosingCurlyBracket{
-		Symbol: NewSymbolByValue("}"),
-	}
-}
-
-func (c *ClosingCurlyBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
+var ConstClosingCurlyBracket = &ClosingCurlyBracket{
+	Symbol: NewSymbolByValue("}"),
 }
 
 type OpeningRoundBracket struct {
 	*Symbol
 }
 
-func NewOpeningRoundBracket() *OpeningRoundBracket {
-	return &OpeningRoundBracket{
-		Symbol: NewSymbolByValue("("),
-	}
-}
-
-func (o *OpeningRoundBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(o.Value)
+var ConstOpeningRoundBracket = &OpeningRoundBracket{
+	Symbol: NewSymbolByValue("("),
 }
 
 type ClosingRoundBracket struct {
 	*Symbol
 }
 
-func NewClosingRoundBracket() *ClosingRoundBracket {
-	return &ClosingRoundBracket{
-		Symbol: NewSymbolByValue(")"),
-	}
-}
-
-func (c *ClosingRoundBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
-}
-
-type Comma struct {
-	*Symbol
+var ConstClosingRoundBracket = &ClosingRoundBracket{
+	Symbol: NewSymbolByValue(")"),
 }
 
 type OpeningSquareBracket struct {
 	*Symbol
 }
 
-func NewOpeningSquareBracket() *OpeningSquareBracket {
-	return &OpeningSquareBracket{
-		Symbol: NewSymbolByValue("["),
-	}
-}
-
-func (o *OpeningSquareBracket) IsCheck(token *token.Token) bool {
-	return o.Check(token) == nil
-}
-
-func (o *OpeningSquareBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(o.Value)
+var ConstOpeningSquareBracket = &OpeningSquareBracket{
+	Symbol: NewSymbolByValue("["),
 }
 
 type ClosingSquareBracket struct {
 	*Symbol
 }
 
-func NewClosingSquareBracket() *ClosingSquareBracket {
-	return &ClosingSquareBracket{
-		Symbol: NewSymbolByValue("]"),
-	}
+var ConstClosingSquareBracket = &ClosingSquareBracket{
+	Symbol: NewSymbolByValue("]"),
 }
 
-func (c *ClosingSquareBracket) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
+type Comma struct {
+	*Symbol
 }
 
-func NewComma() *Comma {
-	return &Comma{
-		Symbol: NewSymbolByValue(","),
-	}
-}
-
-func (c *Comma) IsCheck(token *token.Token) bool {
-	return c.Check(token) == nil
-}
-
-func (c *Comma) Check(token *token.Token) error {
-	return NewSymbol(token).Check(c.Value)
+var ConstComma = &Comma{
+	Symbol: NewSymbolByValue(","),
 }
 
 type Period struct {
 	*Symbol
 }
 
-func NewPeriod() *Period {
-	return &Period{
-		Symbol: NewSymbolByValue("."),
-	}
-}
-
-func (p *Period) IsCheck(token *token.Token) bool {
-	return p.Check(token) == nil
-}
-
-func (p *Period) Check(token *token.Token) error {
-	return NewSymbol(token).Check(p.Value)
+var ConstPeriod = &Period{
+	Symbol: NewSymbolByValue("."),
 }
 
 type Semicolon struct {
 	*Symbol
 }
 
-func NewSemicolon() *Semicolon {
-	return &Semicolon{
-		Symbol: NewSymbolByValue(";"),
-	}
-}
-
-func (s *Semicolon) IsCheck(token *token.Token) bool {
-	return s.Check(token) == nil
-}
-
-func (s *Semicolon) Check(token *token.Token) error {
-	return NewSymbol(token).Check(s.Value)
+var ConstSemicolon = &Semicolon{
+	Symbol: NewSymbolByValue(";"),
 }
 
 type Equal struct {
 	*Symbol
 }
 
-func NewEqual() *Equal {
-	return &Equal{
-		Symbol: NewSymbolByValue("="),
-	}
-}
-
-func (e *Equal) Check(token *token.Token) error {
-	return NewSymbol(token).Check(e.Value)
-}
-
-type NotImplemented struct {
-	*token.Token
+var ConstEqual = &Equal{
+	Symbol: NewSymbolByValue("="),
 }
