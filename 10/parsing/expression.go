@@ -169,13 +169,7 @@ func (e *Expression) Check() error {
 		return nil
 	}
 
-	expected := []string{
-		"true",
-		"false",
-		"null",
-		"this",
-	}
-	return NewKeyword(e.Token).Check(expected...)
+	return ConstKeywordConstantChecker.Check(e.Token)
 }
 
 func (e *Expression) ToXML() []string {
