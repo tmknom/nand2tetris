@@ -63,7 +63,11 @@ func (t *Tokens) ToXML() []string {
 func (t *Tokens) Debug() string {
 	result := "&Tokens{\n"
 	for i, item := range t.Items {
-		result += fmt.Sprintf("    [%d] = %s\n", i, item.Debug())
+		mark := ""
+		if i == t.HeadIndex {
+			mark = "<==============="
+		}
+		result += fmt.Sprintf("    [%d] = %s %s\n", i, item.Debug(), mark)
 	}
 	result += "}\n"
 	result += fmt.Sprintf("HeadIndex = %d\n", t.HeadIndex)
