@@ -2,33 +2,6 @@ package parsing
 
 import "../token"
 
-type Term struct {
-	TermType
-	*token.Token
-}
-
-func NewTerm(termType TermType, token *token.Token) *Term {
-	return &Term{
-		TermType: termType,
-		Token:    token,
-	}
-}
-
-type TermType int
-
-const (
-	_ TermType = iota
-	TermKeywordConstant
-	TermIntegerConstant
-	TermStringConstant
-	TermVarName
-	TermSubroutineCall
-	TermArray          // varName '[' expression ']'
-	TermExpression     // '(' expression ')'
-	TermWithUnary      // unaryOp term
-	TermNotImplemented // TODO TermとExpressionを正しく実装したら消す
-)
-
 type SubroutineCall struct {
 	*SubroutineCallName
 	*ExpressionList
@@ -177,12 +150,12 @@ func (c *CommaAndExpression) ToXML() []string {
 }
 
 type Expression struct {
-	*Term
+	*token.Token
 }
 
 func NewExpression(token *token.Token) *Expression {
 	return &Expression{
-		Term: NewTerm(TermNotImplemented, token),
+		Token: token,
 	}
 }
 
@@ -262,3 +235,24 @@ type ThisKeywordConstant struct {
 var ConstThis = &ThisKeywordConstant{
 	KeywordConstant: NewKeywordConstant("this"),
 }
+
+type Term interface {
+	TermType() TermType
+	ToXML() []string
+	Debug() string
+}
+
+type TermType int
+
+const (
+	_ TermType = iota
+	TermIntegerConstant
+	TermStringConstant
+	TermKeywordConstant
+	TermVarName
+	TermSubroutineCall
+	TermArray          // varName '[' expression ']'
+	TermExpression     // '(' expression ')'
+	TermWithUnary      // unaryOp term
+	TermNotImplemented // TODO TermとExpressionを正しく実装したら消す
+)
