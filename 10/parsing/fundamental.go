@@ -17,8 +17,7 @@ func NewVarType(token *token.Token) *VarType {
 }
 
 func (v *VarType) IsCheck() bool {
-	err := v.Check()
-	return err == nil
+	return v.Check() == nil
 }
 
 func (v *VarType) Check() error {
@@ -258,8 +257,7 @@ func NewComma() *Comma {
 }
 
 func (c *Comma) IsCheck(token *token.Token) bool {
-	err := c.Check(token)
-	return err == nil
+	return c.Check(token) == nil
 }
 
 func (c *Comma) Check(token *token.Token) error {
@@ -277,8 +275,7 @@ func NewSemicolon() *Semicolon {
 }
 
 func (s *Semicolon) IsCheck(token *token.Token) bool {
-	err := s.Check(token)
-	return err == nil
+	return s.Check(token) == nil
 }
 
 func (s *Semicolon) Check(token *token.Token) error {

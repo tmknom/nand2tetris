@@ -70,6 +70,10 @@ func NewExpression(token *token.Token) *Expression {
 	}
 }
 
+func (e *Expression) IsCheck() bool {
+	return e.Check() == nil
+}
+
 func (e *Expression) Check() error {
 	// TODO Expression実装時にちゃんと書く
 	return nil
