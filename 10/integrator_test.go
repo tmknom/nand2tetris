@@ -20,29 +20,29 @@ func TestIntegratorIntegrate(t *testing.T) {
 		{
 			desc: "Square",
 			src: []string{
-				"Fixture/Square/Main.jack",
-				"Fixture/Square/Square.jack",
-				"Fixture/Square/SquareGame.jack",
+				"Fixture/ExpressionLessSquare/Main.jack",
+				"Fixture/ExpressionLessSquare/Square.jack",
+				"Fixture/ExpressionLessSquare/SquareGame.jack",
 			},
 			destTokenizedXML: []string{
-				"Fixture/Square/MainT.xml",
-				"Fixture/Square/SquareT.xml",
-				"Fixture/Square/SquareGameT.xml",
+				"Fixture/ExpressionLessSquare/MainT.xml",
+				"Fixture/ExpressionLessSquare/SquareT.xml",
+				"Fixture/ExpressionLessSquare/SquareGameT.xml",
 			},
 			destParsedXML: []string{
-				"Fixture/Square/Main.xml",
-				"Fixture/Square/Square.xml",
-				"Fixture/Square/SquareGame.xml",
+				"Fixture/ExpressionLessSquare/Main.xml",
+				"Fixture/ExpressionLessSquare/Square.xml",
+				"Fixture/ExpressionLessSquare/SquareGame.xml",
 			},
 			wantTokenizedXML: []string{
-				"Fixture/Square/cmp/MainT.xml",
-				"Fixture/Square/cmp/SquareT.xml",
-				"Fixture/Square/cmp/SquareGameT.xml",
+				"Fixture/ExpressionLessSquare/cmp/MainT.xml",
+				"Fixture/ExpressionLessSquare/cmp/SquareT.xml",
+				"Fixture/ExpressionLessSquare/cmp/SquareGameT.xml",
 			},
 			wantParsedXML: []string{
-				"Fixture/Square/cmp/Main.xml",
-				"Fixture/Square/cmp/Square.xml",
-				"Fixture/Square/cmp/SquareGame.xml",
+				"Fixture/ExpressionLessSquare/cmp/Main.xml",
+				"Fixture/ExpressionLessSquare/cmp/Square.xml",
+				"Fixture/ExpressionLessSquare/cmp/SquareGame.xml",
 			},
 		},
 		{
@@ -114,11 +114,11 @@ func TestIntegratorIntegrateFile(t *testing.T) {
 	}{
 		{
 			desc:             "指定したファイルのトークナイズが実行できる",
-			src:              "Fixture/Square/Square.jack",
-			destTokenizedXML: "Fixture/Square/SquareT.xml",
-			destParsedXML:    "Fixture/Square/Square.xml",
-			wantTokenizedXML: "Fixture/Square/cmp/SquareT.xml",
-			wantParsedXML:    "Fixture/Square/cmp/Square.xml",
+			src:              "Fixture/ExpressionLessSquare/Square.jack",
+			destTokenizedXML: "Fixture/ExpressionLessSquare/SquareT.xml",
+			destParsedXML:    "Fixture/ExpressionLessSquare/Square.xml",
+			wantTokenizedXML: "Fixture/ExpressionLessSquare/cmp/SquareT.xml",
+			wantParsedXML:    "Fixture/ExpressionLessSquare/cmp/Square.xml",
 		},
 	}
 
