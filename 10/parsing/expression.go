@@ -2,6 +2,33 @@ package parsing
 
 import "../token"
 
+type Term struct {
+	TermType
+	*token.Token
+}
+
+func NewTerm(termType TermType, token *token.Token) *Term {
+	return &Term{
+		TermType: termType,
+		Token:    token,
+	}
+}
+
+type TermType int
+
+const (
+	_ TermType = iota
+	TermKeywordConstant
+	TermIntegerConstant
+	TermStringConstant
+	TermVarName
+	TermSubroutineCall
+	TermArray          // varName '[' expression ']'
+	TermExpression     // '(' expression ')'
+	TermWithUnary      // unaryOp term
+	TermNotImplemented // TODO TermとExpressionを正しく実装したら消す
+)
+
 type SubroutineCall struct {
 	*SubroutineCallName
 	*ExpressionList
@@ -150,12 +177,12 @@ func (c *CommaAndExpression) ToXML() []string {
 }
 
 type Expression struct {
-	*token.Token
+	*Term
 }
 
 func NewExpression(token *token.Token) *Expression {
 	return &Expression{
-		Token: token,
+		Term: NewTerm(TermNotImplemented, token),
 	}
 }
 
