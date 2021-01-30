@@ -204,6 +204,14 @@ func NewKeywordConstant(value string) *KeywordConstant {
 	}
 }
 
+func (k *KeywordConstant) TermType() TermType {
+	return TermKeywordConstant
+}
+
+func (k *KeywordConstant) ToXML() []string {
+	return []string{k.Token.ToXML()}
+}
+
 type TrueKeywordConstant struct {
 	*KeywordConstant
 }
