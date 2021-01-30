@@ -71,7 +71,7 @@ func (v *VarNames) AddCommaAndVarName(commaToken *token.Token, varNameToken *tok
 
 func (v *VarNames) ToXML() []string {
 	result := []string{}
-	result = append(result, v.First.ToXML())
+	result = append(result, v.First.ToXML()...)
 	for _, commaAndVarName := range v.CommaAndVarNames {
 		result = append(result, commaAndVarName.ToXML()...)
 	}
@@ -95,10 +95,10 @@ func NewCommaAndVarNameByValue(value string) *CommaAndVarName {
 }
 
 func (c *CommaAndVarName) ToXML() []string {
-	return []string{
-		c.Comma.ToXML(),
-		c.VarName.ToXML(),
-	}
+	result := []string{}
+	result = append(result, c.Comma.ToXML())
+	result = append(result, c.VarName.ToXML()...)
+	return result
 }
 
 type SubroutineName struct {
@@ -127,6 +127,14 @@ func NewVarName(token *token.Token) *VarName {
 
 func NewVarNameByValue(value string) *VarName {
 	return NewVarName(token.NewToken(value, token.TokenIdentifier))
+}
+
+func (v *VarName) TermType() TermType {
+	return TermVarName
+}
+
+func (v *VarName) ToXML() []string {
+	return []string{v.Token.ToXML()}
 }
 
 type Keyword struct {

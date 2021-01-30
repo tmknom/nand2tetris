@@ -99,7 +99,7 @@ func (l *LetStatement) ToXML() []string {
 	result := []string{}
 	result = append(result, l.OpenTag())
 	result = append(result, l.Keyword.ToXML())
-	result = append(result, l.VarName.ToXML())
+	result = append(result, l.VarName.ToXML()...)
 
 	if l.ArrayIndex != nil {
 		result = append(result, l.ArrayIndex.ToXML()...)

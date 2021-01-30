@@ -97,6 +97,6 @@ func (p *Parameter) Check() error {
 func (p *Parameter) ToXML() []string {
 	result := []string{}
 	result = append(result, p.VarType.ToXML())
-	result = append(result, p.VarName.ToXML())
+	result = append(result, p.VarName.ToXML()...)
 	return result
 }
