@@ -675,6 +675,72 @@ func TestParserParseReturnStatement(t *testing.T) {
 	}
 }
 
+func TestParserParseSubroutineCallName(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *SubroutineCallName
+	}{
+		{
+			desc: "サブルーチン名のみ",
+			tokens: []*token.Token{
+				token.NewToken("max", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+			},
+			want: &SubroutineCallName{
+				Period:         ConstPeriod,
+				SubroutineName: NewSubroutineName(token.NewToken("max", token.TokenIdentifier)),
+			},
+		},
+		{
+			desc: "クラス名＋サブルーチン名",
+			tokens: []*token.Token{
+				token.NewToken("Array", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("new", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+			},
+			want: &SubroutineCallName{
+				CallerName:     NewCallerName(token.NewToken("Array", token.TokenIdentifier)),
+				Period:         ConstPeriod,
+				SubroutineName: NewSubroutineName(token.NewToken("new", token.TokenIdentifier)),
+			},
+		},
+		{
+			desc: "インスタンス名＋サブルーチン名",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("run", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+			},
+			want: &SubroutineCallName{
+				CallerName:     NewCallerName(token.NewToken("foo", token.TokenIdentifier)),
+				Period:         ConstPeriod,
+				SubroutineName: NewSubroutineName(token.NewToken("run", token.TokenIdentifier)),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseSubroutineCallName()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseExpressionList(t *testing.T) {
 	cases := []struct {
 		desc   string

@@ -298,6 +298,32 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	return returnStatement, nil
 }
 
+// subroutineName
+// (className | varName) '.' subroutineName
+func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {
+	subroutineCallName := NewSubroutineCallName()
+	name := p.advanceToken()
+
+	if ConstPeriod.IsCheck(p.readFirstToken()) {
+		if err := subroutineCallName.SetCallerName(name); err != nil {
+			return nil, err
+		}
+
+		period := p.advanceToken()
+		if err := ConstPeriod.Check(period); err != nil {
+			return nil, err
+		}
+
+		name = p.advanceToken()
+	}
+
+	if err := subroutineCallName.SetSubroutineName(name); err != nil {
+		return nil, err
+	}
+
+	return subroutineCallName, nil
+}
+
 func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	// 式がひとつも定義されていない場合は即終了
 	expressionList := NewExpressionList()
