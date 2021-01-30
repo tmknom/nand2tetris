@@ -23,7 +23,7 @@ func (p *Parser) advanceToken() *token.Token {
 //}
 
 func (p *Parser) readFirstToken() *token.Token {
-	p.tokens = p.tokens.SubList()
+	//p.tokens = p.tokens.SubList()
 	return p.tokens.First()
 }
 
@@ -282,6 +282,47 @@ func (p *Parser) parseStatement() (Statement, error) {
 		message := fmt.Sprintf("Invalid Statement: got = %s", keyword.Debug())
 		return nil, errors.New(message)
 	}
+}
+
+// (let) varName ('[' expression ']')? '=' expression ';'
+func (p *Parser) parseLetStatement() (Statement, error) {
+	letStatement := NewLetStatement()
+
+	varName := p.advanceToken()
+	if err := letStatement.SetVarName(varName); err != nil {
+		return nil, err
+	}
+
+	if ConstOpeningSquareBracket.IsCheck(p.readFirstToken()) {
+		p.advanceToken() // '[' を飛ばす
+
+		arrayExpression := p.advanceToken()
+		if err := letStatement.SetArrayIndex(arrayExpression); err != nil {
+			return nil, err
+		}
+
+		closingSquareBracket := p.advanceToken()
+		if err := ConstClosingSquareBracket.Check(closingSquareBracket); err != nil {
+			return nil, err
+		}
+	}
+
+	equal := p.advanceToken()
+	if err := ConstEqual.Check(equal); err != nil {
+		return nil, err
+	}
+
+	expression := p.advanceToken()
+	if err := letStatement.SetExpression(expression); err != nil {
+		return nil, err
+	}
+
+	semicolon := p.advanceToken()
+	if err := ConstSemicolon.Check(semicolon); err != nil {
+		return nil, err
+	}
+
+	return letStatement, nil
 }
 
 // (do) subroutineCall ';'

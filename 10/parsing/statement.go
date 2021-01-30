@@ -46,6 +46,98 @@ func (s *Statements) IsStatementKeyword(token *token.Token) bool {
 	return err == nil
 }
 
+type LetStatement struct {
+	*StatementKeyword
+	*VarName
+	*ArrayIndex
+	*Equal
+	*Expression
+	*Semicolon
+}
+
+var _ Statement = (*LetStatement)(nil)
+
+func NewLetStatement() *LetStatement {
+	return &LetStatement{
+		StatementKeyword: NewStatementKeyword("let"),
+		Equal:            ConstEqual,
+		Semicolon:        ConstSemicolon,
+	}
+}
+
+func (l *LetStatement) SetVarName(token *token.Token) error {
+	varName := NewVarName(token)
+	if err := varName.Check(); err != nil {
+		return err
+	}
+
+	l.VarName = varName
+	return nil
+}
+
+func (l *LetStatement) SetArrayIndex(token *token.Token) error {
+	arrayIndex := NewArrayIndex(token)
+	if err := arrayIndex.Check(); err != nil {
+		return err
+	}
+
+	l.ArrayIndex = arrayIndex
+	return nil
+}
+
+func (l *LetStatement) SetExpression(token *token.Token) error {
+	expression := NewExpression(token)
+	if err := expression.Check(); err != nil {
+		return err
+	}
+
+	l.Expression = expression
+	return nil
+}
+
+func (l *LetStatement) ToXML() []string {
+	result := []string{}
+	result = append(result, l.OpenTag())
+	result = append(result, l.Keyword.ToXML())
+	result = append(result, l.VarName.ToXML())
+
+	if l.ArrayIndex != nil {
+		result = append(result, l.ArrayIndex.ToXML()...)
+	}
+
+	result = append(result, l.Equal.ToXML())
+	result = append(result, l.Expression.ToXML()...)
+	result = append(result, l.Semicolon.ToXML())
+	result = append(result, l.CloseTag())
+	return result
+}
+
+type ArrayIndex struct {
+	*Expression
+	*OpeningSquareBracket
+	*ClosingSquareBracket
+}
+
+func NewArrayIndex(token *token.Token) *ArrayIndex {
+	return &ArrayIndex{
+		Expression:           NewExpression(token),
+		OpeningSquareBracket: ConstOpeningSquareBracket,
+		ClosingSquareBracket: ConstClosingSquareBracket,
+	}
+}
+
+func (a *ArrayIndex) Check() error {
+	return a.Expression.Check()
+}
+
+func (a *ArrayIndex) ToXML() []string {
+	result := []string{}
+	result = append(result, a.OpeningSquareBracket.ToXML())
+	result = append(result, a.Expression.ToXML()...)
+	result = append(result, a.ClosingSquareBracket.ToXML())
+	return result
+}
+
 type DoStatement struct {
 	*StatementKeyword
 	*SubroutineCall
