@@ -298,6 +298,36 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	return returnStatement, nil
 }
 
+// subroutineName '(' expressionList ')'
+// (className | varName) '.' subroutineName '(' expressionList ')'
+func (p *Parser) parseSubroutineCall() (*SubroutineCall, error) {
+	subroutineCall := NewSubroutineCall()
+
+	subroutineCallName, err := p.parseSubroutineCallName()
+	if err != nil {
+		return nil, err
+	}
+	subroutineCall.SetSubroutineCallName(subroutineCallName)
+
+	openingRoundBracket := p.advanceToken()
+	if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	expressionList, err := p.parseExpressionList()
+	if err != nil {
+		return nil, err
+	}
+	subroutineCall.SetExpressionList(expressionList)
+
+	closingRoundBracket := p.advanceToken()
+	if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	return subroutineCall, nil
+}
+
 // subroutineName
 // (className | varName) '.' subroutineName
 func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {

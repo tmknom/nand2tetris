@@ -675,6 +675,81 @@ func TestParserParseReturnStatement(t *testing.T) {
 	}
 }
 
+func TestParserParseSubroutineCall(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *SubroutineCall
+	}{
+		{
+			desc: "引数なし",
+			tokens: []*token.Token{
+				token.NewToken("Main", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					CallerName:     NewCallerName(token.NewToken("Main", token.TokenIdentifier)),
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("main", token.TokenIdentifier)),
+				},
+				ExpressionList:      NewExpressionList(),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+		{
+			desc: "引数あり",
+			tokens: []*token.Token{
+				token.NewToken("join", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("join", token.TokenIdentifier)),
+				},
+				ExpressionList: &ExpressionList{
+					First: NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+					CommaAndExpressions: []*CommaAndExpression{
+						NewCommaAndExpression(NewExpression(token.NewToken("bar", token.TokenIdentifier))),
+						NewCommaAndExpression(NewExpression(token.NewToken("baz", token.TokenIdentifier))),
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseSubroutineCall()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseSubroutineCallName(t *testing.T) {
 	cases := []struct {
 		desc   string
