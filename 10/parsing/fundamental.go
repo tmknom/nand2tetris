@@ -186,116 +186,84 @@ func (i *Identifier) Check() error {
 }
 
 // よく使われるシンボル
-// [] - Square brackets
-var ConstOpeningCurlyBracket = NewOpeningCurlyBracket()
-var ConstClosingCurlyBracket = NewClosingCurlyBracket()
-var ConstOpeningRoundBracket = NewOpeningRoundBracket()
-var ConstClosingRoundBracket = NewClosingRoundBracket()
-var ConstOpeningSquareBracket = NewOpeningSquareBracket()
-var ConstClosingSquareBracket = NewClosingSquareBracket()
-var ConstComma = NewComma()
-var ConstPeriod = NewPeriod()
-var ConstSemicolon = NewSemicolon()
-var ConstEqual = NewEqual()
-
 type OpeningCurlyBracket struct {
 	*Symbol
 }
 
-func NewOpeningCurlyBracket() *OpeningCurlyBracket {
-	return &OpeningCurlyBracket{
-		Symbol: NewSymbolByValue("{"),
-	}
+var ConstOpeningCurlyBracket = &OpeningCurlyBracket{
+	Symbol: NewSymbolByValue("{"),
 }
 
 type ClosingCurlyBracket struct {
 	*Symbol
 }
 
-func NewClosingCurlyBracket() *ClosingCurlyBracket {
-	return &ClosingCurlyBracket{
-		Symbol: NewSymbolByValue("}"),
-	}
+var ConstClosingCurlyBracket = &ClosingCurlyBracket{
+	Symbol: NewSymbolByValue("}"),
 }
 
 type OpeningRoundBracket struct {
 	*Symbol
 }
 
-func NewOpeningRoundBracket() *OpeningRoundBracket {
-	return &OpeningRoundBracket{
-		Symbol: NewSymbolByValue("("),
-	}
+var ConstOpeningRoundBracket = &OpeningRoundBracket{
+	Symbol: NewSymbolByValue("("),
 }
 
 type ClosingRoundBracket struct {
 	*Symbol
 }
 
-func NewClosingRoundBracket() *ClosingRoundBracket {
-	return &ClosingRoundBracket{
-		Symbol: NewSymbolByValue(")"),
-	}
+var ConstClosingRoundBracket = &ClosingRoundBracket{
+	Symbol: NewSymbolByValue(")"),
 }
 
 type OpeningSquareBracket struct {
 	*Symbol
 }
 
-func NewOpeningSquareBracket() *OpeningSquareBracket {
-	return &OpeningSquareBracket{
-		Symbol: NewSymbolByValue("["),
-	}
+var ConstOpeningSquareBracket = &OpeningSquareBracket{
+	Symbol: NewSymbolByValue("["),
 }
 
 type ClosingSquareBracket struct {
 	*Symbol
 }
 
-func NewClosingSquareBracket() *ClosingSquareBracket {
-	return &ClosingSquareBracket{
-		Symbol: NewSymbolByValue("]"),
-	}
+var ConstClosingSquareBracket = &ClosingSquareBracket{
+	Symbol: NewSymbolByValue("]"),
 }
 
 type Comma struct {
 	*Symbol
 }
 
-func NewComma() *Comma {
-	return &Comma{
-		Symbol: NewSymbolByValue(","),
-	}
+var ConstComma = &Comma{
+	Symbol: NewSymbolByValue(","),
 }
 
 type Period struct {
 	*Symbol
 }
 
-func NewPeriod() *Period {
-	return &Period{
-		Symbol: NewSymbolByValue("."),
-	}
+var ConstPeriod = &Period{
+	Symbol: NewSymbolByValue("."),
 }
 
 type Semicolon struct {
 	*Symbol
 }
 
-func NewSemicolon() *Semicolon {
-	return &Semicolon{
-		Symbol: NewSymbolByValue(";"),
-	}
+var ConstSemicolon = &Semicolon{
+	Symbol: NewSymbolByValue(";"),
 }
 
 type Equal struct {
 	*Symbol
 }
 
-func NewEqual() *Equal {
-	return &Equal{
-		Symbol: NewSymbolByValue("="),
-	}
+var ConstEqual = &Equal{
+	Symbol: NewSymbolByValue("="),
 }
 
 type NotImplemented struct {
