@@ -265,7 +265,3 @@ type Equal struct {
 var ConstEqual = &Equal{
 	Symbol: NewSymbolByValue("="),
 }
-
-type NotImplemented struct {
-	*token.Token
-}
