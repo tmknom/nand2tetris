@@ -13,7 +13,8 @@ func NewExpressionList() *ExpressionList {
 	}
 }
 
-func (e *ExpressionList) AddExpression(expression *Expression) error {
+func (e *ExpressionList) AddExpression(token *token.Token) error {
+	expression := NewExpression(token)
 	if err := expression.Check(); err != nil {
 		return err
 	}
@@ -76,7 +77,7 @@ func (e *Expression) IsCheck() bool {
 
 func (e *Expression) Check() error {
 	// TODO Expression実装時にちゃんと書く
-	return nil
+	return NewIdentifier(e.Value, e.Token).Check()
 }
 
 func (e *Expression) ToXML() []string {

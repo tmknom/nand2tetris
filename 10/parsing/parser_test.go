@@ -391,7 +391,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineBody{
-				VarDecs:             NewVarDecs(),
+				VarDecs: NewVarDecs(),
 				Statements: &Statements{
 					Items: []Statement{
 						&ReturnStatement{
@@ -663,6 +663,69 @@ func TestParserParseReturnStatement(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseReturnStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseExpressionList(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ExpressionList
+	}{
+		{
+			desc: "Expressionの定義がない",
+			tokens: []*token.Token{
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: NewExpressionList(),
+		},
+		{
+			desc: "Expressionの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ExpressionList{
+				First:               NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				CommaAndExpressions: []*CommaAndExpression{},
+			},
+		},
+		{
+			desc: "Expressionの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ExpressionList{
+				First: NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				CommaAndExpressions: []*CommaAndExpression{
+					NewCommaAndExpression(NewExpression(token.NewToken("bar", token.TokenIdentifier))),
+					NewCommaAndExpression(NewExpression(token.NewToken("baz", token.TokenIdentifier))),
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseExpressionList()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, err)

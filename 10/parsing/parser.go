@@ -298,6 +298,30 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	return returnStatement, nil
 }
 
+func (p *Parser) parseExpressionList() (*ExpressionList, error) {
+	// 式がひとつも定義されていない場合は即終了
+	expressionList := NewExpressionList()
+	if !NewExpression(p.readFirstToken()).IsCheck() {
+		return expressionList, nil
+	}
+
+	// 1つめのみカンマがないのでループに入る前に処理する
+	expression := p.advanceToken()
+	if err := expressionList.AddExpression(expression); err != nil {
+		return nil, err
+	}
+
+	// 2つめ以降はカンマが見つかった場合のみ処理する
+	for ConstComma.IsCheck(p.readFirstToken()) {
+		p.advanceToken() // カンマを飛ばす
+		expression := p.advanceToken()
+		if err := expressionList.AddExpression(expression); err != nil {
+			return nil, err
+		}
+	}
+	return expressionList, nil
+}
+
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {
 	//p.readFirstToken()
 	//fmt.Println(p.tokens.Debug())
