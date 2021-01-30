@@ -28,8 +28,8 @@ func (s *SubroutineCall) SetExpressionList(expressionList *ExpressionList) {
 func (s *SubroutineCall) ToXML() []string {
 	result := []string{}
 	result = append(result, s.SubroutineCallName.ToXML()...)
-	result = append(result, s.ExpressionList.ToXML()...)
 	result = append(result, s.OpeningRoundBracket.ToXML())
+	result = append(result, s.ExpressionList.ToXML()...)
 	result = append(result, s.ClosingRoundBracket.ToXML())
 	return result
 }
@@ -72,6 +72,10 @@ func (s *SubroutineCallName) Check() error {
 
 func (s *SubroutineCallName) ToXML() []string {
 	result := []string{}
+	if s.CallerName != nil {
+		result = append(result, s.CallerName.ToXML())
+		result = append(result, s.Period.ToXML())
+	}
 	result = append(result, s.SubroutineName.ToXML())
 	return result
 }

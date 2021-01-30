@@ -48,7 +48,7 @@ func (s *Statements) IsStatementKeyword(token *token.Token) bool {
 
 type DoStatement struct {
 	*StatementKeyword
-	*Expression
+	*SubroutineCall
 	*Semicolon
 }
 
@@ -61,15 +61,15 @@ func NewDoStatement() *DoStatement {
 	}
 }
 
+func (d *DoStatement) SetSubroutineCall(subroutineCall *SubroutineCall) {
+	d.SubroutineCall = subroutineCall
+}
+
 func (d *DoStatement) ToXML() []string {
 	result := []string{}
 	result = append(result, d.OpenTag())
 	result = append(result, d.Keyword.ToXML())
-
-	if d.Expression != nil {
-		result = append(result, d.Expression.ToXML()...)
-	}
-
+	result = append(result, d.SubroutineCall.ToXML()...)
 	result = append(result, d.Semicolon.ToXML())
 	result = append(result, d.CloseTag())
 	return result

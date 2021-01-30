@@ -279,11 +279,29 @@ func (p *Parser) parseStatement() (Statement, error) {
 	}
 }
 
+// (do) subroutineCall ';'
+func (p *Parser) parseDoStatement() (Statement, error) {
+	doStatement := NewDoStatement()
+
+	subroutineCall, err := p.parseSubroutineCall()
+	if err != nil {
+		return nil, err
+	}
+	doStatement.SetSubroutineCall(subroutineCall)
+
+	semicolon := p.advanceToken()
+	if err := ConstSemicolon.Check(semicolon); err != nil {
+		return nil, err
+	}
+
+	return doStatement, nil
+}
+
+// (return) expression? ';'
 func (p *Parser) parseReturnStatement() (Statement, error) {
 	returnStatement := NewReturnStatement()
 
 	if !ConstSemicolon.IsCheck(p.readFirstToken()) {
-		// TODO expressionなので本当は複数のトークンがくる可能性があるが、当面一個しかトークンが来ない前提で実装する
 		expression := p.advanceToken()
 		if err := returnStatement.SetExpression(expression); err != nil {
 			return nil, err
