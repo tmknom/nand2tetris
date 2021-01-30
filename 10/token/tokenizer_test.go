@@ -41,12 +41,12 @@ func TestTokenizerTokenize(t *testing.T) {
 			tokenizer := NewTokenizer(tc.lines)
 			tokenizer.Tokenize()
 
-			if len(tokenizer.tokens.items) > len(tc.want) {
-				want := &Tokens{items: tc.want}
+			if len(tokenizer.tokens.Items) > len(tc.want) {
+				want := &Tokens{Items: tc.want}
 				t.Fatalf("failed: size: got = %s,\nwant:%s\n", tokenizer.tokens.Debug(), want.Debug())
 			}
 
-			for i, token := range tokenizer.tokens.items {
+			for i, token := range tokenizer.tokens.Items {
 				if diff := cmp.Diff(token, tc.want[i]); diff != "" {
 					t.Errorf("failed: token[%d]: diff (-got +want):\n%s", i, diff)
 				}

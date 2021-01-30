@@ -194,7 +194,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 	}
 }
 
-func TestParserSubroutineDecs(t *testing.T) {
+func TestParserParseSubroutineDecs(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -216,6 +216,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 				token.NewToken("(", token.TokenSymbol),
 				token.NewToken(")", token.TokenSymbol),
 				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
@@ -245,6 +246,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 				token.NewToken("bar", token.TokenIdentifier),
 				token.NewToken(")", token.TokenSymbol),
 				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineDecs{
 				Items: []*SubroutineDec{
@@ -292,7 +294,7 @@ func TestParserSubroutineDecs(t *testing.T) {
 	}
 }
 
-func TestParserParameterList(t *testing.T) {
+func TestParserParseParameterList(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -374,7 +376,7 @@ func TestParserParameterList(t *testing.T) {
 }
 
 // '{' varDec* statements* '}'
-func TestSubroutineBody(t *testing.T) {
+func TestParserParseSubroutineBody(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -389,7 +391,15 @@ func TestSubroutineBody(t *testing.T) {
 				token.NewToken("}", token.TokenSymbol),
 			},
 			want: &SubroutineBody{
-				VarDecs:             NewVarDecs(),
+				VarDecs: NewVarDecs(),
+				Statements: &Statements{
+					Items: []Statement{
+						&ReturnStatement{
+							StatementKeyword: NewStatementKeyword("return"),
+							Semicolon:        ConstSemicolon,
+						},
+					},
+				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
 				ClosingCurlyBracket: ConstClosingCurlyBracket,
 			},
@@ -421,6 +431,14 @@ func TestSubroutineBody(t *testing.T) {
 								},
 							},
 							Semicolon: ConstSemicolon,
+						},
+					},
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						&ReturnStatement{
+							StatementKeyword: NewStatementKeyword("return"),
+							Semicolon:        ConstSemicolon,
 						},
 					},
 				},
@@ -467,6 +485,14 @@ func TestSubroutineBody(t *testing.T) {
 						},
 					},
 				},
+				Statements: &Statements{
+					Items: []Statement{
+						&ReturnStatement{
+							StatementKeyword: NewStatementKeyword("return"),
+							Semicolon:        ConstSemicolon,
+						},
+					},
+				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
 				ClosingCurlyBracket: ConstClosingCurlyBracket,
 			},
@@ -492,7 +518,7 @@ func TestSubroutineBody(t *testing.T) {
 	}
 }
 
-func TestParserVarDec(t *testing.T) {
+func TestParserParseVarDec(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
@@ -550,6 +576,383 @@ func TestParserVarDec(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseVarDec()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ReturnStatement
+	}{
+		{
+			desc: "return",
+			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ReturnStatement{
+				StatementKeyword: NewStatementKeyword("return"),
+				Semicolon:        ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseDoStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *DoStatement
+	}{
+		{
+			desc: "引数なしのサブルーチンの実行",
+			tokens: []*token.Token{
+				token.NewToken("max", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &DoStatement{
+				StatementKeyword: NewStatementKeyword("do"),
+				SubroutineCall: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						Period:         ConstPeriod,
+						SubroutineName: NewSubroutineName(token.NewToken("max", token.TokenIdentifier)),
+					},
+					ExpressionList:      NewExpressionList(),
+					OpeningRoundBracket: ConstOpeningRoundBracket,
+					ClosingRoundBracket: ConstClosingRoundBracket,
+				},
+				Semicolon: ConstSemicolon,
+			},
+		},
+		{
+			desc: "引数ありのサブルーチンの実行",
+			tokens: []*token.Token{
+				token.NewToken("run", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &DoStatement{
+				StatementKeyword: NewStatementKeyword("do"),
+				SubroutineCall: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						Period:         ConstPeriod,
+						SubroutineName: NewSubroutineName(token.NewToken("run", token.TokenIdentifier)),
+					},
+					ExpressionList: &ExpressionList{
+						First:               NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+						CommaAndExpressions: []*CommaAndExpression{},
+					},
+					OpeningRoundBracket: ConstOpeningRoundBracket,
+					ClosingRoundBracket: ConstClosingRoundBracket,
+				},
+				Semicolon: ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseDoStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseReturnStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ReturnStatement
+	}{
+		{
+			desc: "セミコロンのみ",
+			tokens: []*token.Token{
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ReturnStatement{
+				StatementKeyword: NewStatementKeyword("return"),
+				Semicolon:        ConstSemicolon,
+			},
+		},
+		{
+			desc: "式とセミコロン",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ReturnStatement{
+				StatementKeyword: NewStatementKeyword("return"),
+				Expression:       NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				Semicolon:        ConstSemicolon,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseReturnStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseSubroutineCall(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *SubroutineCall
+	}{
+		{
+			desc: "引数なし",
+			tokens: []*token.Token{
+				token.NewToken("Main", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					CallerName:     NewCallerName(token.NewToken("Main", token.TokenIdentifier)),
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("main", token.TokenIdentifier)),
+				},
+				ExpressionList:      NewExpressionList(),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+		{
+			desc: "引数あり",
+			tokens: []*token.Token{
+				token.NewToken("join", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("join", token.TokenIdentifier)),
+				},
+				ExpressionList: &ExpressionList{
+					First: NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+					CommaAndExpressions: []*CommaAndExpression{
+						NewCommaAndExpression(NewExpression(token.NewToken("bar", token.TokenIdentifier))),
+						NewCommaAndExpression(NewExpression(token.NewToken("baz", token.TokenIdentifier))),
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseSubroutineCall()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseSubroutineCallName(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *SubroutineCallName
+	}{
+		{
+			desc: "サブルーチン名のみ",
+			tokens: []*token.Token{
+				token.NewToken("max", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+			},
+			want: &SubroutineCallName{
+				Period:         ConstPeriod,
+				SubroutineName: NewSubroutineName(token.NewToken("max", token.TokenIdentifier)),
+			},
+		},
+		{
+			desc: "クラス名＋サブルーチン名",
+			tokens: []*token.Token{
+				token.NewToken("Array", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("new", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+			},
+			want: &SubroutineCallName{
+				CallerName:     NewCallerName(token.NewToken("Array", token.TokenIdentifier)),
+				Period:         ConstPeriod,
+				SubroutineName: NewSubroutineName(token.NewToken("new", token.TokenIdentifier)),
+			},
+		},
+		{
+			desc: "インスタンス名＋サブルーチン名",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("run", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+			},
+			want: &SubroutineCallName{
+				CallerName:     NewCallerName(token.NewToken("foo", token.TokenIdentifier)),
+				Period:         ConstPeriod,
+				SubroutineName: NewSubroutineName(token.NewToken("run", token.TokenIdentifier)),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseSubroutineCallName()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseExpressionList(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ExpressionList
+	}{
+		{
+			desc: "Expressionの定義がない",
+			tokens: []*token.Token{
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: NewExpressionList(),
+		},
+		{
+			desc: "Identifierの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ExpressionList{
+				First:               NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				CommaAndExpressions: []*CommaAndExpression{},
+			},
+		},
+		{
+			desc: "Keywordの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("this", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ExpressionList{
+				First:               NewExpression(token.NewToken("this", token.TokenKeyword)),
+				CommaAndExpressions: []*CommaAndExpression{},
+			},
+		},
+		{
+			desc: "Expressionの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(",", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &ExpressionList{
+				First: NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				CommaAndExpressions: []*CommaAndExpression{
+					NewCommaAndExpression(NewExpression(token.NewToken("bar", token.TokenIdentifier))),
+					NewCommaAndExpression(NewExpression(token.NewToken("baz", token.TokenIdentifier))),
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseExpressionList()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, err)

@@ -279,11 +279,29 @@ func (p *Parser) parseStatement() (Statement, error) {
 	}
 }
 
+// (do) subroutineCall ';'
+func (p *Parser) parseDoStatement() (Statement, error) {
+	doStatement := NewDoStatement()
+
+	subroutineCall, err := p.parseSubroutineCall()
+	if err != nil {
+		return nil, err
+	}
+	doStatement.SetSubroutineCall(subroutineCall)
+
+	semicolon := p.advanceToken()
+	if err := ConstSemicolon.Check(semicolon); err != nil {
+		return nil, err
+	}
+
+	return doStatement, nil
+}
+
+// (return) expression? ';'
 func (p *Parser) parseReturnStatement() (Statement, error) {
 	returnStatement := NewReturnStatement()
 
 	if !ConstSemicolon.IsCheck(p.readFirstToken()) {
-		// TODO expressionなので本当は複数のトークンがくる可能性があるが、当面一個しかトークンが来ない前提で実装する
 		expression := p.advanceToken()
 		if err := returnStatement.SetExpression(expression); err != nil {
 			return nil, err
@@ -298,16 +316,98 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	return returnStatement, nil
 }
 
+// subroutineName '(' expressionList ')'
+// (className | varName) '.' subroutineName '(' expressionList ')'
+func (p *Parser) parseSubroutineCall() (*SubroutineCall, error) {
+	subroutineCall := NewSubroutineCall()
+
+	subroutineCallName, err := p.parseSubroutineCallName()
+	if err != nil {
+		return nil, err
+	}
+	subroutineCall.SetSubroutineCallName(subroutineCallName)
+
+	openingRoundBracket := p.advanceToken()
+	if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	expressionList, err := p.parseExpressionList()
+	if err != nil {
+		return nil, err
+	}
+	subroutineCall.SetExpressionList(expressionList)
+
+	closingRoundBracket := p.advanceToken()
+	if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	return subroutineCall, nil
+}
+
+// subroutineName
+// (className | varName) '.' subroutineName
+func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {
+	subroutineCallName := NewSubroutineCallName()
+	name := p.advanceToken()
+
+	if ConstPeriod.IsCheck(p.readFirstToken()) {
+		if err := subroutineCallName.SetCallerName(name); err != nil {
+			return nil, err
+		}
+
+		period := p.advanceToken()
+		if err := ConstPeriod.Check(period); err != nil {
+			return nil, err
+		}
+
+		name = p.advanceToken()
+	}
+
+	if err := subroutineCallName.SetSubroutineName(name); err != nil {
+		return nil, err
+	}
+
+	return subroutineCallName, nil
+}
+
+func (p *Parser) parseExpressionList() (*ExpressionList, error) {
+	// 式がひとつも定義されていない場合は即終了
+	expressionList := NewExpressionList()
+	if !NewExpression(p.readFirstToken()).IsCheck() {
+		return expressionList, nil
+	}
+
+	// 1つめのみカンマがないのでループに入る前に処理する
+	expression := p.advanceToken()
+	if err := expressionList.AddExpression(expression); err != nil {
+		return nil, err
+	}
+
+	// 2つめ以降はカンマが見つかった場合のみ処理する
+	for ConstComma.IsCheck(p.readFirstToken()) {
+		p.advanceToken() // カンマを飛ばす
+		expression := p.advanceToken()
+		if err := expressionList.AddExpression(expression); err != nil {
+			return nil, err
+		}
+	}
+	return expressionList, nil
+}
+
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {
 	//p.readFirstToken()
 	//fmt.Println(p.tokens.Debug())
 	//fmt.Println(p.readFirstToken().Debug())
 
+	// TODO parseStatementの実装が完了するまで辻褄をあわせる
 	for {
-		// TODO とりあえず実装が完了するまでreturn文まで読み込んで終了する
-		t := p.advanceToken()
-		if t.Value == "return" {
-			return p.parseReturnStatement()
+		switch p.readFirstToken().Value {
+		case "let", "if", "while", "do", "return":
+			return p.parseStatement()
+		default:
+			p.advanceToken()
 		}
 	}
 }

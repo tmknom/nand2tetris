@@ -17,8 +17,7 @@ func NewVarType(token *token.Token) *VarType {
 }
 
 func (v *VarType) IsCheck() bool {
-	err := v.Check()
-	return err == nil
+	return v.Check() == nil
 }
 
 func (v *VarType) Check() error {
@@ -189,6 +188,7 @@ var ConstClosingCurlyBracket = NewClosingCurlyBracket()
 var ConstOpeningRoundBracket = NewOpeningRoundBracket()
 var ConstClosingRoundBracket = NewClosingRoundBracket()
 var ConstComma = NewComma()
+var ConstPeriod = NewPeriod()
 var ConstSemicolon = NewSemicolon()
 
 type OpeningCurlyBracket struct {
@@ -258,12 +258,29 @@ func NewComma() *Comma {
 }
 
 func (c *Comma) IsCheck(token *token.Token) bool {
-	err := c.Check(token)
-	return err == nil
+	return c.Check(token) == nil
 }
 
 func (c *Comma) Check(token *token.Token) error {
 	return NewSymbol(token).Check(c.Value)
+}
+
+type Period struct {
+	*Symbol
+}
+
+func NewPeriod() *Period {
+	return &Period{
+		Symbol: NewSymbolByValue("."),
+	}
+}
+
+func (p *Period) IsCheck(token *token.Token) bool {
+	return p.Check(token) == nil
+}
+
+func (p *Period) Check(token *token.Token) error {
+	return NewSymbol(token).Check(p.Value)
 }
 
 type Semicolon struct {
@@ -277,8 +294,7 @@ func NewSemicolon() *Semicolon {
 }
 
 func (s *Semicolon) IsCheck(token *token.Token) bool {
-	err := s.Check(token)
-	return err == nil
+	return s.Check(token) == nil
 }
 
 func (s *Semicolon) Check(token *token.Token) error {
