@@ -35,16 +35,16 @@ func TestTokensAdd(t *testing.T) {
 			tokens := NewTokens()
 			tokens.Add(tc.tokens)
 
-			if diff := cmp.Diff(tokens.items, tc.wantTokens); diff != "" {
+			if diff := cmp.Diff(tokens.Items, tc.wantTokens); diff != "" {
 				t.Errorf("failed tokens: diff (-got +want):\n%s", diff)
 			}
 
-			if tokens.headIndex != tc.wantHead {
-				t.Errorf("failed headIndex: got = %d, want %d", tokens.headIndex, tc.wantHead)
+			if tokens.HeadIndex != tc.wantHead {
+				t.Errorf("failed HeadIndex: got = %d, want %d", tokens.HeadIndex, tc.wantHead)
 			}
 
-			if tokens.tailIndex != tc.wantTail {
-				t.Errorf("failed tailIndex: got = %d, want %d", tokens.tailIndex, tc.wantTail)
+			if tokens.TailIndex != tc.wantTail {
+				t.Errorf("failed TailIndex: got = %d, want %d", tokens.TailIndex, tc.wantTail)
 			}
 		})
 	}
@@ -207,7 +207,7 @@ func TestTokensSubList(t *testing.T) {
 			tokens.Backward()
 
 			got := tokens.SubList()
-			if diff := cmp.Diff(got.items, tc.wantTokens); diff != "" {
+			if diff := cmp.Diff(got.Items, tc.wantTokens); diff != "" {
 				t.Errorf("failed: diff (-got +want):\n%s", diff)
 			}
 		})

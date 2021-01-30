@@ -6,54 +6,54 @@ import (
 )
 
 type Tokens struct {
-	items     []*Token
-	headIndex int
-	tailIndex int
+	Items     []*Token
+	HeadIndex int
+	TailIndex int
 }
 
 func NewTokens() *Tokens {
-	return &Tokens{items: []*Token{}, headIndex: 0}
+	return &Tokens{Items: []*Token{}, HeadIndex: 0}
 }
 
 func (t *Tokens) Add(items []*Token) {
 	for _, item := range items {
-		t.items = append(t.items, item)
+		t.Items = append(t.Items, item)
 	}
 	t.setupIndex()
 }
 
 func (t *Tokens) Advance() *Token {
-	t.headIndex += 1
-	return t.items[t.headIndex-1]
+	t.HeadIndex += 1
+	return t.Items[t.HeadIndex-1]
 }
 
 func (t *Tokens) Backward() *Token {
-	t.tailIndex -= 1
-	return t.items[t.tailIndex+1]
+	t.TailIndex -= 1
+	return t.Items[t.TailIndex+1]
 }
 
 func (t *Tokens) First() *Token {
-	if len(t.items) > t.headIndex {
-		return t.items[t.headIndex]
+	if len(t.Items) > t.HeadIndex {
+		return t.Items[t.HeadIndex]
 	}
 	return nil
 }
 
 func (t *Tokens) SubList() *Tokens {
 	tokens := NewTokens()
-	tokens.items = t.items[t.headIndex : t.tailIndex+1]
+	tokens.Items = t.Items[t.HeadIndex : t.TailIndex+1]
 	tokens.setupIndex()
 	return tokens
 }
 
 func (t *Tokens) setupIndex() {
-	t.headIndex = 0
-	t.tailIndex = len(t.items) - 1
+	t.HeadIndex = 0
+	t.TailIndex = len(t.Items) - 1
 }
 
 func (t *Tokens) ToXML() []string {
 	result := []string{"<tokens>"}
-	for _, item := range t.items {
+	for _, item := range t.Items {
 		result = append(result, item.ToXML())
 	}
 	result = append(result, "</tokens>")
@@ -62,7 +62,7 @@ func (t *Tokens) ToXML() []string {
 
 func (t *Tokens) Debug() string {
 	result := "&Tokens{\n"
-	for i, item := range t.items {
+	for i, item := range t.Items {
 		result += fmt.Sprintf("    [%d] = %s\n", i, item.Debug())
 	}
 	result += "}\n"
