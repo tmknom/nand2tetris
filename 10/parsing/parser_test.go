@@ -1354,3 +1354,107 @@ func TestParserParseArray(t *testing.T) {
 		})
 	}
 }
+
+func TestParserParseSymbolTerm(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *UnaryOpTerm
+	}{
+		{
+			desc: "Minusの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("-", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &UnaryOpTerm{
+				UnaryOp: ConstMinus,
+				Term:    NewVarNameByValue("foo"),
+			},
+		},
+		{
+			desc: "Tildeの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("~", token.TokenSymbol),
+				token.NewToken("123", token.TokenIntConst),
+			},
+			want: &UnaryOpTerm{
+				UnaryOp: ConstTilde,
+				Term: &IntegerConstant{
+					Token: token.NewToken("123", token.TokenIntConst),
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseSymbolTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseUnaryOpTerm(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *UnaryOpTerm
+	}{
+		{
+			desc: "Minusの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("-", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &UnaryOpTerm{
+				UnaryOp: ConstMinus,
+				Term:    NewVarNameByValue("foo"),
+			},
+		},
+		{
+			desc: "Tildeの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("~", token.TokenSymbol),
+				token.NewToken("123", token.TokenIntConst),
+			},
+			want: &UnaryOpTerm{
+				UnaryOp: ConstTilde,
+				Term: &IntegerConstant{
+					Token: token.NewToken("123", token.TokenIntConst),
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseUnaryOpTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}

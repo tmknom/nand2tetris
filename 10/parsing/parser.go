@@ -459,6 +459,8 @@ func (p *Parser) parseTerm() (Term, error) {
 		return p.parseKeywordConstant()
 	case token.TokenIdentifier:
 		return p.parseIdentifierTerm()
+	case token.TokenSymbol:
+		return p.parseSymbolTerm()
 	default:
 		message := fmt.Sprintf("error parseTerm: got = %s", term.Debug())
 		return nil, errors.New(message)
@@ -501,6 +503,37 @@ func (p *Parser) parseIdentifierTerm() (Term, error) {
 		varName := p.advanceToken()
 		return NewVarNameOrError(varName)
 	}
+}
+
+// '(' expression ')' | unaryOp term
+func (p *Parser) parseSymbolTerm() (Term, error) {
+	op := p.readFirstToken()
+
+	switch op.Value {
+	case ConstMinus.Value, ConstTilde.Value:
+		return p.parseUnaryOpTerm()
+	default:
+		// TODO '(' expression ')'
+		message := fmt.Sprintf("not implemented BinaryOp: got = %s", op.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+// unaryOp term
+func (p *Parser) parseUnaryOpTerm() (*UnaryOpTerm, error) {
+	unary, err := ConstUnaryOpFactory.Create(p.advanceToken())
+	if err != nil {
+		return nil, err
+	}
+	unaryOpTerm := NewUnaryOpTerm(unary)
+
+	term, err := p.parseTerm()
+	if err != nil {
+		return nil, err
+	}
+	unaryOpTerm.SetTerm(term)
+
+	return unaryOpTerm, nil
 }
 
 // varName '[' expression ']'
