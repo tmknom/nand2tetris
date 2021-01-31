@@ -181,6 +181,33 @@ func (c *CommaAndExpression) ToXML() []string {
 	return result
 }
 
+// '(' expression ')'
+type GroupingExpression struct {
+	*Expression
+	*OpeningRoundBracket
+	*ClosingRoundBracket
+}
+
+func NewGroupingExpression(expression *Expression) *GroupingExpression {
+	return &GroupingExpression{
+		Expression:          expression,
+		OpeningRoundBracket: ConstOpeningRoundBracket,
+		ClosingRoundBracket: ConstClosingRoundBracket,
+	}
+}
+
+func (g *GroupingExpression) TermType() TermType {
+	return TermGroupingExpression
+}
+
+func (g *GroupingExpression) ToXML() []string {
+	result := []string{}
+	result = append(result, g.OpeningRoundBracket.ToXML())
+	result = append(result, g.Expression.ToXML()...)
+	result = append(result, g.ClosingRoundBracket.ToXML())
+	return result
+}
+
 // varName '[' expression ']'
 type Array struct {
 	*VarName
@@ -265,7 +292,7 @@ func (u *UnaryOpTerm) SetTerm(term Term) {
 }
 
 func (u *UnaryOpTerm) TermType() TermType {
-	return TermWithUnaryOp
+	return TermUnaryOpTerm
 }
 
 func (u *UnaryOpTerm) ToXML() []string {
@@ -479,7 +506,7 @@ const (
 	TermKeywordConstant
 	TermVarName
 	TermSubroutineCall
-	TermArray       // varName '[' expression ']'
-	TermExpression  // '(' expression ')'
-	TermWithUnaryOp // unaryOp term
+	TermArray              // varName '[' expression ']'
+	TermGroupingExpression // '(' expression ')'
+	TermUnaryOpTerm        // unaryOp term
 )
