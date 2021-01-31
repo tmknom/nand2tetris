@@ -258,6 +258,10 @@ func NewStringConstant(token *token.Token) *StringConstant {
 	}
 }
 
+func (s *StringConstant) Check() error {
+	return s.Token.CheckStringConstant()
+}
+
 func (s *StringConstant) TermType() TermType {
 	return TermStringConstant
 }
@@ -274,6 +278,10 @@ func NewIntegerConstant(token *token.Token) *IntegerConstant {
 	return &IntegerConstant{
 		Token: token,
 	}
+}
+
+func (i *IntegerConstant) Check() error {
+	return i.Token.CheckIntegerConstant()
 }
 
 func (i *IntegerConstant) TermType() TermType {
