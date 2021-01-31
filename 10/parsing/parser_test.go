@@ -980,7 +980,7 @@ func TestParserParseExpressionList(t *testing.T) {
 		{
 			desc: "Expressionの定義がない",
 			tokens: []*token.Token{
-				token.NewToken(";", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
 			},
 			want: NewExpressionList(),
 		},

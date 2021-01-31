@@ -426,7 +426,7 @@ func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {
 func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	// 式がひとつも定義されていない場合は即終了
 	expressionList := NewExpressionList()
-	if !DeprecatedNewExpression(p.readFirstToken()).IsCheck() {
+	if ConstClosingRoundBracket.IsCheck(p.readFirstToken()) {
 		return expressionList, nil
 	}
 
