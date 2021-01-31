@@ -261,6 +261,98 @@ func (e *Expression) ToXML() []string {
 	return []string{e.Token.ToXML()}
 }
 
+type UnaryOpTerm struct {
+	UnaryOp
+	Term
+}
+
+func NewUnaryOpTerm(unaryOp UnaryOp) *UnaryOpTerm {
+	return &UnaryOpTerm{
+		UnaryOp: unaryOp,
+	}
+}
+
+func (u *UnaryOpTerm) SetTerm(term Term) {
+	u.Term = term
+}
+
+func (u *UnaryOpTerm) TermType() TermType {
+	return TermWithUnaryOp
+}
+
+func (u *UnaryOpTerm) ToXML() []string {
+	result := []string{}
+	result = append(result, u.UnaryOp.ToXML())
+	result = append(result, u.Term.ToXML()...)
+	return result
+}
+
+var ConstUnaryOpFactory = &UnaryOpFactory{}
+
+type UnaryOpFactory struct{}
+
+func (u *UnaryOpFactory) Check(token *token.Token) error {
+	if _, err := u.Create(token); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UnaryOpFactory) Create(token *token.Token) (UnaryOp, error) {
+	if err := NewSymbol(token).CheckSymbol(); err != nil {
+		return nil, err
+	}
+
+	switch token.Value {
+	case ConstMinus.Value:
+		return ConstMinus, nil
+	case ConstTilde.Value:
+		return ConstTilde, nil
+	default:
+		message := fmt.Sprintf("error create UnaryOp: got = %s", token.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+type Minus struct {
+	*Symbol
+}
+
+var ConstMinus = &Minus{
+	Symbol: NewSymbolByValue("-"),
+}
+
+func (m *Minus) OpType() UnaryOpType {
+	return MinusType
+}
+
+type Tilde struct {
+	*Symbol
+}
+
+var ConstTilde = &Tilde{
+	Symbol: NewSymbolByValue("~"),
+}
+
+func (t *Tilde) OpType() UnaryOpType {
+	return TildeType
+}
+
+type UnaryOp interface {
+	OpType() UnaryOpType
+	ToXML() string
+}
+
+type UnaryOpType int
+
+const (
+	_ UnaryOpType = iota
+	MinusType
+	TildeType
+)
+
+var ConstKeywordConstantFactory = &KeywordConstantFactory{}
+
 type KeywordConstantFactory struct{}
 
 func (k *KeywordConstantFactory) Check(token *token.Token) error {
@@ -289,8 +381,6 @@ func (k *KeywordConstantFactory) Create(token *token.Token) (Term, error) {
 		return nil, errors.New(message)
 	}
 }
-
-var ConstKeywordConstantFactory = &KeywordConstantFactory{}
 
 type KeywordConstant struct {
 	*Keyword
@@ -401,8 +491,7 @@ const (
 	TermKeywordConstant
 	TermVarName
 	TermSubroutineCall
-	TermArray          // varName '[' expression ']'
-	TermExpression     // '(' expression ')'
-	TermWithUnary      // unaryOp term
-	TermNotImplemented // TODO TermとExpressionを正しく実装したら消す
+	TermArray       // varName '[' expression ']'
+	TermExpression  // '(' expression ')'
+	TermWithUnaryOp // unaryOp term
 )
