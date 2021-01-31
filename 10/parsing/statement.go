@@ -102,6 +102,49 @@ func (l *LetStatement) ToXML() []string {
 	return result
 }
 
+type WhileStatement struct {
+	*StatementKeyword
+	*Expression
+	*Statements
+	*OpeningRoundBracket
+	*ClosingRoundBracket
+	*OpeningCurlyBracket
+	*ClosingCurlyBracket
+}
+
+var _ Statement = (*WhileStatement)(nil)
+
+func NewWhileStatement() *WhileStatement {
+	return &WhileStatement{
+		StatementKeyword:    NewStatementKeyword("while"),
+		OpeningRoundBracket: ConstOpeningRoundBracket,
+		ClosingRoundBracket: ConstClosingRoundBracket,
+		OpeningCurlyBracket: ConstOpeningCurlyBracket,
+		ClosingCurlyBracket: ConstClosingCurlyBracket,
+	}
+}
+func (w *WhileStatement) SetExpression(expression *Expression) {
+	w.Expression = expression
+}
+
+func (w *WhileStatement) SetStatements(statements *Statements) {
+	w.Statements = statements
+}
+
+func (w *WhileStatement) ToXML() []string {
+	result := []string{}
+	result = append(result, w.OpenTag())
+	result = append(result, w.Keyword.ToXML())
+	result = append(result, w.OpeningRoundBracket.ToXML())
+	result = append(result, w.Expression.ToXML()...)
+	result = append(result, w.ClosingRoundBracket.ToXML())
+	result = append(result, w.OpeningCurlyBracket.ToXML())
+	result = append(result, w.Statements.ToXML()...)
+	result = append(result, w.ClosingCurlyBracket.ToXML())
+	result = append(result, w.CloseTag())
+	return result
+}
+
 type DoStatement struct {
 	*StatementKeyword
 	*SubroutineCall

@@ -645,7 +645,7 @@ func TestParserParseLetStatement(t *testing.T) {
 				StatementKeyword: NewStatementKeyword("let"),
 				VarName:          NewVarNameByValue("foo"),
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+					Term: NewVarNameByValue("bar"),
 				},
 				Equal:     ConstEqual,
 				Semicolon: ConstSemicolon,
@@ -683,15 +683,15 @@ func TestParserParseLetStatement(t *testing.T) {
 			want: &LetStatement{
 				StatementKeyword: NewStatementKeyword("let"),
 				Array: &Array{
-					VarName: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					VarName: NewVarNameByValue("foo"),
 					Expression: &Expression{
-						Term: NewVarName(token.NewToken("index", token.TokenIdentifier)),
+						Term: NewVarNameByValue("index"),
 					},
 					OpeningSquareBracket: ConstOpeningSquareBracket,
 					ClosingSquareBracket: ConstClosingSquareBracket,
 				},
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+					Term: NewVarNameByValue("bar"),
 				},
 				Equal:     ConstEqual,
 				Semicolon: ConstSemicolon,
@@ -764,7 +764,7 @@ func TestParserParseDoStatement(t *testing.T) {
 					},
 					ExpressionList: &ExpressionList{
 						First: &Expression{
-							Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+							Term: NewVarNameByValue("foo"),
 						},
 						CommaAndExpressions: []*CommaAndExpression{},
 					},
@@ -820,7 +820,7 @@ func TestParserParseReturnStatement(t *testing.T) {
 			want: &ReturnStatement{
 				StatementKeyword: NewStatementKeyword("return"),
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Term: NewVarNameByValue("foo"),
 				},
 				Semicolon: ConstSemicolon,
 			},
@@ -891,14 +891,14 @@ func TestParserParseSubroutineCall(t *testing.T) {
 				},
 				ExpressionList: &ExpressionList{
 					First: &Expression{
-						Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+						Term: NewVarNameByValue("foo"),
 					},
 					CommaAndExpressions: []*CommaAndExpression{
 						NewCommaAndExpression(&Expression{
-							Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+							Term: NewVarNameByValue("bar"),
 						}),
 						NewCommaAndExpression(&Expression{
-							Term: NewVarName(token.NewToken("baz", token.TokenIdentifier)),
+							Term: NewVarNameByValue("baz"),
 						}),
 					},
 				},
@@ -1014,7 +1014,7 @@ func TestParserParseExpressionList(t *testing.T) {
 			},
 			want: &ExpressionList{
 				First: &Expression{
-					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Term: NewVarNameByValue("foo"),
 				},
 				CommaAndExpressions: []*CommaAndExpression{},
 			},
@@ -1044,14 +1044,14 @@ func TestParserParseExpressionList(t *testing.T) {
 			},
 			want: &ExpressionList{
 				First: &Expression{
-					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Term: NewVarNameByValue("foo"),
 				},
 				CommaAndExpressions: []*CommaAndExpression{
 					NewCommaAndExpression(&Expression{
-						Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+						Term: NewVarNameByValue("bar"),
 					}),
 					NewCommaAndExpression(&Expression{
-						Term: NewVarName(token.NewToken("baz", token.TokenIdentifier)),
+						Term: NewVarNameByValue("baz"),
 					}),
 				},
 			},
@@ -1279,9 +1279,9 @@ func TestParserParseIdentifierTerm(t *testing.T) {
 				token.NewToken("]", token.TokenSymbol),
 			},
 			want: &Array{
-				VarName: NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				VarName: NewVarNameByValue("array"),
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("index", token.TokenIdentifier)),
+					Term: NewVarNameByValue("index"),
 				},
 				OpeningSquareBracket: ConstOpeningSquareBracket,
 				ClosingSquareBracket: ConstClosingSquareBracket,
@@ -1362,9 +1362,9 @@ func TestParserParseArray(t *testing.T) {
 				token.NewToken("]", token.TokenSymbol),
 			},
 			want: &Array{
-				VarName: NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				VarName: NewVarNameByValue("array"),
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("index", token.TokenIdentifier)),
+					Term: NewVarNameByValue("index"),
 				},
 				OpeningSquareBracket: ConstOpeningSquareBracket,
 				ClosingSquareBracket: ConstClosingSquareBracket,
@@ -1431,7 +1431,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 			},
 			want: &GroupingExpression{
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Term: NewVarNameByValue("foo"),
 				},
 				OpeningRoundBracket: ConstOpeningRoundBracket,
 				ClosingRoundBracket: ConstClosingRoundBracket,
@@ -1525,7 +1525,7 @@ func TestParserParseGroupingExpression(t *testing.T) {
 			},
 			want: &GroupingExpression{
 				Expression: &Expression{
-					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Term: NewVarNameByValue("foo"),
 				},
 				OpeningRoundBracket: ConstOpeningRoundBracket,
 				ClosingRoundBracket: ConstClosingRoundBracket,
