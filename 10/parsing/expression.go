@@ -250,6 +250,7 @@ func (a *Array) ToXML() []string {
 }
 
 type Expression struct {
+	Term
 	*token.Token
 }
 
@@ -274,6 +275,13 @@ func (e *Expression) Check() error {
 
 func (e *Expression) ToXML() []string {
 	return []string{e.Token.ToXML()}
+}
+
+func (e *Expression) Debug() string {
+	if e.Token != nil {
+		return e.Token.Debug()
+	}
+	return e.Term.Debug()
 }
 
 type UnaryOpTerm struct {
