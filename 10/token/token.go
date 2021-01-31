@@ -39,6 +39,13 @@ func (t *Tokens) First() *Token {
 	return nil
 }
 
+func (t *Tokens) Second() *Token {
+	if len(t.Items) > t.HeadIndex+1 {
+		return t.Items[t.HeadIndex+1]
+	}
+	return nil
+}
+
 func (t *Tokens) SubList() *Tokens {
 	tokens := NewTokens()
 	tokens.Items = t.Items[t.HeadIndex : t.TailIndex+1]
