@@ -5,13 +5,15 @@ SHELL=/bin/bash
 .PHONY: $(shell grep --no-filename -E '^[a-zA-Z0-9_-]+:' $(MAKEFILE_LIST) | sed 's/://')
 
 # Phony Targets
-all: fmt clean-test ## Format, Clean and Test
+all: fmt clean-test vet ## Format, Clean and Test
 
 clean-test: clean test ## Clean and Test
 
-test: ## Test
-	go vet ./...
+test: fmt ## Test
 	go test ./...
+
+vet: ## Vet
+	go vet ./...
 
 fmt: ## Format
 	go fmt ./...
