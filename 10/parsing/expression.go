@@ -38,6 +38,17 @@ func (s *SubroutineCall) ToXML() []string {
 	return result
 }
 
+func (s *SubroutineCall) Debug() string {
+	baseIndent := 0
+	indent := baseIndent + 2
+
+	result := "\n"
+	result += IndentSprintf(baseIndent, "&SubroutineCall{")
+	result += s.SubroutineCallName.Debug(indent)
+	result += IndentSprintf(baseIndent, "}")
+	return result
+}
+
 func (s *SubroutineCall) TermType() TermType {
 	return TermSubroutineCall
 }
@@ -88,6 +99,17 @@ func (s *SubroutineCallName) ToXML() []string {
 	return result
 }
 
+func (s *SubroutineCallName) Debug(baseIndent int) string {
+	indent := baseIndent + 2
+	result := IndentSprintf(baseIndent, "&SubroutineCallName{")
+	if s.CallerName != nil {
+		result += s.CallerName.Debug(indent)
+	}
+	result += s.SubroutineName.Debug(indent)
+	result += IndentSprintf(baseIndent, "}")
+	return result
+}
+
 type CallerName struct {
 	*Identifier
 }
@@ -96,6 +118,14 @@ func NewCallerName(token *token.Token) *CallerName {
 	return &CallerName{
 		Identifier: NewIdentifier("CallerName", token),
 	}
+}
+
+func (c *CallerName) Debug(baseIndent int) string {
+	indent := baseIndent + 2
+	result := IndentSprintf(baseIndent, "&CallerName{")
+	result += IndentSprintf(indent, c.Token.Debug())
+	result += IndentSprintf(baseIndent, "}")
+	return result
 }
 
 type ExpressionList struct {
