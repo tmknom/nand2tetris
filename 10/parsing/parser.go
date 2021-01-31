@@ -291,21 +291,16 @@ func (p *Parser) parseStatement() (Statement, error) {
 func (p *Parser) parseLetStatement() (Statement, error) {
 	letStatement := NewLetStatement()
 
-	varName := p.advanceToken()
-	if err := letStatement.SetVarName(varName); err != nil {
-		return nil, err
-	}
-
-	if ConstOpeningSquareBracket.IsCheck(p.readFirstToken()) {
-		p.advanceToken() // '[' を飛ばす
-
-		arrayExpression := p.advanceToken()
-		if err := letStatement.SetArrayIndex(arrayExpression); err != nil {
+	second := p.readSecondToken()
+	if ConstOpeningSquareBracket.IsCheck(second) {
+		array, err := p.parseArray()
+		if err != nil {
 			return nil, err
 		}
-
-		closingSquareBracket := p.advanceToken()
-		if err := ConstClosingSquareBracket.Check(closingSquareBracket); err != nil {
+		letStatement.SetArray(array)
+	} else {
+		varName := p.advanceToken()
+		if err := letStatement.SetVarName(varName); err != nil {
 			return nil, err
 		}
 	}
@@ -426,7 +421,7 @@ func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {
 func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	// 式がひとつも定義されていない場合は即終了
 	expressionList := NewExpressionList()
-	if !NewExpression(p.readFirstToken()).IsCheck() {
+	if ConstClosingRoundBracket.IsCheck(p.readFirstToken()) {
 		return expressionList, nil
 	}
 
@@ -449,13 +444,14 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	return expressionList, nil
 }
 
-// TODO Expression実装時に正しく実装する
+// TODO (op term)* を実装する
+// term (op term)*
 func (p *Parser) parseExpression() (*Expression, error) {
-	expression := NewExpression(p.advanceToken())
-	if err := expression.Check(); err != nil {
+	term, err := p.parseTerm()
+	if err != nil {
 		return nil, err
 	}
-	return expression, nil
+	return NewExpression(term), nil
 }
 
 // integerConstant | stringConstant | keywordConstant |

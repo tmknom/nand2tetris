@@ -250,30 +250,13 @@ func (a *Array) ToXML() []string {
 }
 
 type Expression struct {
-	*token.Token
+	Term
 }
 
-func NewExpression(token *token.Token) *Expression {
+func NewExpression(term Term) *Expression {
 	return &Expression{
-		Token: token,
+		Term: term,
 	}
-}
-
-func (e *Expression) IsCheck() bool {
-	return e.Check() == nil
-}
-
-func (e *Expression) Check() error {
-	// TODO Expression実装時にちゃんと書く
-	if err := NewIdentifier("Expression", e.Token).Check(); err == nil {
-		return nil
-	}
-
-	return ConstKeywordConstantFactory.Check(e.Token)
-}
-
-func (e *Expression) ToXML() []string {
-	return []string{e.Token.ToXML()}
 }
 
 type UnaryOpTerm struct {
