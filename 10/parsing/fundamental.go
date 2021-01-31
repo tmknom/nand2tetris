@@ -129,6 +129,15 @@ func NewVarNameByValue(value string) *VarName {
 	return NewVarName(token.NewToken(value, token.TokenIdentifier))
 }
 
+// TODO VarNameの生成処理をこのメソッドに差し替える
+func NewVarNameOrError(token *token.Token) (*VarName, error) {
+	varName := NewVarName(token)
+	if err := varName.Check(); err != nil {
+		return nil, err
+	}
+	return varName, nil
+}
+
 func (v *VarName) TermType() TermType {
 	return TermVarName
 }
