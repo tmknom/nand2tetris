@@ -1359,7 +1359,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 	cases := []struct {
 		desc   string
 		tokens []*token.Token
-		want   *UnaryOpTerm
+		want   Term
 	}{
 		{
 			desc: "Minusの定義がひとつ",
@@ -1384,6 +1384,19 @@ func TestParserParseSymbolTerm(t *testing.T) {
 				Term: &IntegerConstant{
 					Token: token.NewToken("123", token.TokenIntConst),
 				},
+			},
+		},
+		{
+			desc: "GroupingExpressionの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &GroupingExpression{
+				Expression:          NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
 			},
 		},
 	}
@@ -1447,6 +1460,46 @@ func TestParserParseUnaryOpTerm(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseUnaryOpTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseGroupingExpression(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *GroupingExpression
+	}{
+		{
+			desc: "Expressionの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &GroupingExpression{
+				Expression:          NewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseGroupingExpression()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))

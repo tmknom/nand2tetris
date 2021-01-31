@@ -525,9 +525,10 @@ func (p *Parser) parseSymbolTerm() (Term, error) {
 	switch op.Value {
 	case ConstMinus.Value, ConstTilde.Value:
 		return p.parseUnaryOpTerm()
+	case ConstOpeningRoundBracket.Value:
+		return p.parseGroupingExpression()
 	default:
-		// TODO '(' expression ')'
-		message := fmt.Sprintf("not implemented BinaryOp: got = %s", op.Debug())
+		message := fmt.Sprintf("error parseSymbolTerm: got = %s", op.Debug())
 		return nil, errors.New(message)
 	}
 }
@@ -547,6 +548,25 @@ func (p *Parser) parseUnaryOpTerm() (*UnaryOpTerm, error) {
 	unaryOpTerm.SetTerm(term)
 
 	return unaryOpTerm, nil
+}
+
+// '(' expression ')'
+func (p *Parser) parseGroupingExpression() (*GroupingExpression, error) {
+	if err := ConstOpeningRoundBracket.Check(p.advanceToken()); err != nil {
+		return nil, err
+	}
+
+	expression, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	groupingExpression := NewGroupingExpression(expression)
+
+	if err := ConstClosingRoundBracket.Check(p.advanceToken()); err != nil {
+		return nil, err
+	}
+
+	return groupingExpression, nil
 }
 
 // varName '[' expression ']'
