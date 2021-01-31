@@ -315,10 +315,11 @@ func (p *Parser) parseLetStatement() (Statement, error) {
 		return nil, err
 	}
 
-	expression := p.advanceToken()
-	if err := letStatement.SetExpression(expression); err != nil {
+	expression, err := p.parseExpression()
+	if err != nil {
 		return nil, err
 	}
+	letStatement.SetExpression(expression)
 
 	semicolon := p.advanceToken()
 	if err := ConstSemicolon.Check(semicolon); err != nil {
@@ -351,10 +352,11 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	returnStatement := NewReturnStatement()
 
 	if !ConstSemicolon.IsCheck(p.readFirstToken()) {
-		expression := p.advanceToken()
-		if err := returnStatement.SetExpression(expression); err != nil {
+		expression, err := p.parseExpression()
+		if err != nil {
 			return nil, err
 		}
+		returnStatement.SetExpression(expression)
 	}
 
 	semicolon := p.advanceToken()
@@ -429,20 +431,31 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	}
 
 	// 1つめのみカンマがないのでループに入る前に処理する
-	expression := p.advanceToken()
-	if err := expressionList.AddExpression(expression); err != nil {
+	expression, err := p.parseExpression()
+	if err != nil {
 		return nil, err
 	}
+	expressionList.AddExpression(expression)
 
 	// 2つめ以降はカンマが見つかった場合のみ処理する
 	for ConstComma.IsCheck(p.readFirstToken()) {
 		p.advanceToken() // カンマを飛ばす
-		expression := p.advanceToken()
-		if err := expressionList.AddExpression(expression); err != nil {
+		expression, err := p.parseExpression()
+		if err != nil {
 			return nil, err
 		}
+		expressionList.AddExpression(expression)
 	}
 	return expressionList, nil
+}
+
+// TODO Expression実装時に正しく実装する
+func (p *Parser) parseExpression() (*Expression, error) {
+	expression := NewExpression(p.advanceToken())
+	if err := expression.Check(); err != nil {
+		return nil, err
+	}
+	return expression, nil
 }
 
 // integerConstant | stringConstant | keywordConstant |
@@ -548,10 +561,11 @@ func (p *Parser) parseArray() (*Array, error) {
 		return nil, err
 	}
 
-	expression := p.advanceToken()
-	if err := array.SetExpression(expression); err != nil {
+	expression, err := p.parseExpression()
+	if err != nil {
 		return nil, err
 	}
+	array.SetExpression(expression)
 
 	closingSquareBracket := p.advanceToken()
 	if err := ConstClosingSquareBracket.Check(closingSquareBracket); err != nil {

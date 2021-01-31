@@ -139,18 +139,12 @@ func NewExpressionList() *ExpressionList {
 	}
 }
 
-func (e *ExpressionList) AddExpression(token *token.Token) error {
-	expression := NewExpression(token)
-	if err := expression.Check(); err != nil {
-		return err
-	}
-
+func (e *ExpressionList) AddExpression(expression *Expression) {
 	if e.First == nil {
 		e.First = expression
-	} else {
-		e.CommaAndExpressions = append(e.CommaAndExpressions, NewCommaAndExpression(expression))
+		return
 	}
-	return nil
+	e.CommaAndExpressions = append(e.CommaAndExpressions, NewCommaAndExpression(expression))
 }
 
 func (e *ExpressionList) ToXML() []string {
@@ -211,14 +205,8 @@ func NewArrayOrError(token *token.Token) (*Array, error) {
 	return NewArray(varName), nil
 }
 
-func (a *Array) SetExpression(token *token.Token) error {
-	expression := NewExpression(token)
-	if err := expression.Check(); err != nil {
-		return err
-	}
-
+func (a *Array) SetExpression(expression *Expression) {
 	a.Expression = expression
-	return nil
 }
 
 func (a *Array) TermType() TermType {

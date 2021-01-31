@@ -85,14 +85,8 @@ func (l *LetStatement) SetArrayIndex(token *token.Token) error {
 	return nil
 }
 
-func (l *LetStatement) SetExpression(token *token.Token) error {
-	expression := NewExpression(token)
-	if err := expression.Check(); err != nil {
-		return err
-	}
-
+func (l *LetStatement) SetExpression(expression *Expression) {
 	l.Expression = expression
-	return nil
 }
 
 func (l *LetStatement) ToXML() []string {
@@ -112,6 +106,7 @@ func (l *LetStatement) ToXML() []string {
 	return result
 }
 
+// TODO Arrayに集約する
 type ArrayIndex struct {
 	*Expression
 	*OpeningSquareBracket
@@ -182,14 +177,8 @@ func NewReturnStatement() *ReturnStatement {
 	}
 }
 
-func (r *ReturnStatement) SetExpression(token *token.Token) error {
-	expression := NewExpression(token)
-	if err := expression.Check(); err != nil {
-		return err
-	}
-
+func (r *ReturnStatement) SetExpression(expression *Expression) {
 	r.Expression = expression
-	return nil
 }
 
 func (r *ReturnStatement) ToXML() []string {
