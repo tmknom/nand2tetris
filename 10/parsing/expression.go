@@ -1,6 +1,10 @@
 package parsing
 
-import "../token"
+import (
+	"../token"
+	"fmt"
+	"github.com/pkg/errors"
+)
 
 type SubroutineCall struct {
 	*SubroutineCallName
@@ -173,30 +177,43 @@ func (e *Expression) Check() error {
 		return nil
 	}
 
-	return ConstKeywordConstantChecker.Check(e.Token)
+	return ConstKeywordConstantFactory.Check(e.Token)
 }
 
 func (e *Expression) ToXML() []string {
 	return []string{e.Token.ToXML()}
 }
 
-type KeywordConstantChecker struct{}
+type KeywordConstantFactory struct{}
 
-func (k *KeywordConstantChecker) IsCheck(token *token.Token) bool {
-	return k.Check(token) == nil
-}
-
-func (k *KeywordConstantChecker) Check(token *token.Token) error {
-	expected := []string{
-		ConstTrue.Value,
-		ConstFalse.Value,
-		ConstNull.Value,
-		ConstThis.Value,
+func (k *KeywordConstantFactory) Check(token *token.Token) error {
+	if _, err := k.Create(token); err != nil {
+		return err
 	}
-	return NewKeywordConstant(token.Value).Check(expected...)
+	return nil
 }
 
-var ConstKeywordConstantChecker = &KeywordConstantChecker{}
+func (k *KeywordConstantFactory) Create(token *token.Token) (Term, error) {
+	if err := NewKeyword(token).CheckKeyword(); err != nil {
+		return nil, err
+	}
+
+	switch token.Value {
+	case ConstTrue.Value:
+		return ConstTrue, nil
+	case ConstFalse.Value:
+		return ConstFalse, nil
+	case ConstNull.Value:
+		return ConstNull, nil
+	case ConstThis.Value:
+		return ConstThis, nil
+	default:
+		message := fmt.Sprintf("error create KeywordConstant: got = %s", token.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+var ConstKeywordConstantFactory = &KeywordConstantFactory{}
 
 type KeywordConstant struct {
 	*Keyword
