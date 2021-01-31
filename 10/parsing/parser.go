@@ -496,13 +496,36 @@ func (p *Parser) parseIdentifierTerm() (Term, error) {
 	case ConstOpeningRoundBracket.Value, ConstPeriod.Value:
 		return p.parseSubroutineCall()
 	case ConstOpeningSquareBracket.Value:
-		// varName '[' expression ']'
-		message := fmt.Sprintf("not implemented: got = %s", p.readFirstToken().Debug())
-		return nil, errors.New(message)
+		return p.parseArray()
 	default:
 		varName := p.advanceToken()
 		return NewVarNameOrError(varName)
 	}
+}
+
+// varName '[' expression ']'
+func (p *Parser) parseArray() (*Array, error) {
+	array, err := NewArrayOrError(p.advanceToken())
+	if err != nil {
+		return nil, err
+	}
+
+	openingSquareBracket := p.advanceToken()
+	if err := ConstOpeningSquareBracket.Check(openingSquareBracket); err != nil {
+		return nil, err
+	}
+
+	expression := p.advanceToken()
+	if err := array.SetExpression(expression); err != nil {
+		return nil, err
+	}
+
+	closingSquareBracket := p.advanceToken()
+	if err := ConstClosingSquareBracket.Check(closingSquareBracket); err != nil {
+		return nil, err
+	}
+
+	return array, nil
 }
 
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {

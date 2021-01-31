@@ -1239,6 +1239,21 @@ func TestParserParseIdentifierTerm(t *testing.T) {
 			want: NewVarNameByValue("foo"),
 		},
 		{
+			desc: "Arrayの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("array", token.TokenIdentifier),
+				token.NewToken("[", token.TokenSymbol),
+				token.NewToken("index", token.TokenIdentifier),
+				token.NewToken("]", token.TokenSymbol),
+			},
+			want: &Array{
+				VarName:              NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				Expression:           NewExpression(token.NewToken("index", token.TokenIdentifier)),
+				OpeningSquareBracket: ConstOpeningSquareBracket,
+				ClosingSquareBracket: ConstClosingSquareBracket,
+			},
+		},
+		{
 			desc: "クラス内のSubroutineCallの定義がひとつ",
 			tokens: []*token.Token{
 				token.NewToken("main", token.TokenIdentifier),
@@ -1286,6 +1301,48 @@ func TestParserParseIdentifierTerm(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseIdentifierTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseArray(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *Array
+	}{
+		{
+			desc: "Arrayの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("array", token.TokenIdentifier),
+				token.NewToken("[", token.TokenSymbol),
+				token.NewToken("index", token.TokenIdentifier),
+				token.NewToken("]", token.TokenSymbol),
+			},
+			want: &Array{
+				VarName:              NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				Expression:           NewExpression(token.NewToken("index", token.TokenIdentifier)),
+				OpeningSquareBracket: ConstOpeningSquareBracket,
+				ClosingSquareBracket: ConstClosingSquareBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseArray()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
