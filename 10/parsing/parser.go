@@ -269,7 +269,7 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 }
 
 func (p *Parser) parseStatement() (Statement, error) {
-	keyword := p.advanceToken()
+	keyword := p.readFirstToken()
 	switch keyword.Value {
 	case "let":
 		return p.parseNotImplementedStatement()
@@ -290,6 +290,11 @@ func (p *Parser) parseStatement() (Statement, error) {
 // (let) varName ('[' expression ']')? '=' expression ';'
 func (p *Parser) parseLetStatement() (Statement, error) {
 	letStatement := NewLetStatement()
+
+	keyword := p.advanceToken()
+	if err := letStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
 
 	second := p.readSecondToken()
 	if ConstOpeningSquareBracket.IsCheck(second) {
@@ -328,6 +333,11 @@ func (p *Parser) parseLetStatement() (Statement, error) {
 func (p *Parser) parseDoStatement() (Statement, error) {
 	doStatement := NewDoStatement()
 
+	keyword := p.advanceToken()
+	if err := doStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
+
 	subroutineCall, err := p.parseSubroutineCall()
 	if err != nil {
 		return nil, err
@@ -342,9 +352,14 @@ func (p *Parser) parseDoStatement() (Statement, error) {
 	return doStatement, nil
 }
 
-// (return) expression? ';'
+// return expression? ';'
 func (p *Parser) parseReturnStatement() (Statement, error) {
 	returnStatement := NewReturnStatement()
+
+	keyword := p.advanceToken()
+	if err := returnStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
 
 	if !ConstSemicolon.IsCheck(p.readFirstToken()) {
 		expression, err := p.parseExpression()
@@ -597,6 +612,7 @@ func (p *Parser) parseNotImplementedStatement() (Statement, error) {
 	//fmt.Println(p.readFirstToken().Debug())
 
 	// TODO parseStatementの実装が完了するまで辻褄をあわせる
+	p.advanceToken()
 	for {
 		switch p.readFirstToken().Value {
 		case "let", "if", "while", "do", "return":

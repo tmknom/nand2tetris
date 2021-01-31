@@ -636,6 +636,7 @@ func TestParserParseLetStatement(t *testing.T) {
 		{
 			desc: "VarNameの代入",
 			tokens: []*token.Token{
+				token.NewToken("let", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken("=", token.TokenSymbol),
 				token.NewToken("bar", token.TokenIdentifier),
@@ -654,6 +655,7 @@ func TestParserParseLetStatement(t *testing.T) {
 		{
 			desc: "KeywordConstantの代入",
 			tokens: []*token.Token{
+				token.NewToken("let", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken("=", token.TokenSymbol),
 				token.NewToken("true", token.TokenKeyword),
@@ -672,6 +674,7 @@ func TestParserParseLetStatement(t *testing.T) {
 		{
 			desc: "配列に対する代入",
 			tokens: []*token.Token{
+				token.NewToken("let", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken("[", token.TokenSymbol),
 				token.NewToken("index", token.TokenIdentifier),
@@ -727,6 +730,7 @@ func TestParserParseDoStatement(t *testing.T) {
 		{
 			desc: "引数なしのサブルーチンの実行",
 			tokens: []*token.Token{
+				token.NewToken("do", token.TokenKeyword),
 				token.NewToken("max", token.TokenIdentifier),
 				token.NewToken("(", token.TokenSymbol),
 				token.NewToken(")", token.TokenSymbol),
@@ -749,6 +753,7 @@ func TestParserParseDoStatement(t *testing.T) {
 		{
 			desc: "引数ありのサブルーチンの実行",
 			tokens: []*token.Token{
+				token.NewToken("do", token.TokenKeyword),
 				token.NewToken("run", token.TokenIdentifier),
 				token.NewToken("(", token.TokenSymbol),
 				token.NewToken("foo", token.TokenIdentifier),
@@ -804,6 +809,7 @@ func TestParserParseReturnStatement(t *testing.T) {
 		{
 			desc: "セミコロンのみ",
 			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ReturnStatement{
@@ -814,6 +820,7 @@ func TestParserParseReturnStatement(t *testing.T) {
 		{
 			desc: "式とセミコロン",
 			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken(";", token.TokenSymbol),
 			},
