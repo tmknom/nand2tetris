@@ -1052,7 +1052,7 @@ func TestParserParseTerm(t *testing.T) {
 		want   Term
 	}{
 		{
-			desc: "IntegerConstant",
+			desc: "IntegerConstantへの分岐",
 			tokens: []*token.Token{
 				token.NewToken("123", token.TokenIntConst),
 			},
@@ -1061,13 +1061,20 @@ func TestParserParseTerm(t *testing.T) {
 			},
 		},
 		{
-			desc: "StringConstant",
+			desc: "StringConstantへの分岐",
 			tokens: []*token.Token{
 				token.NewToken("foo bar", token.TokenStringConst),
 			},
 			want: &StringConstant{
 				Token: token.NewToken("foo bar", token.TokenStringConst),
 			},
+		},
+		{
+			desc: "KeywordConstantへの分岐",
+			tokens: []*token.Token{
+				token.NewToken("true", token.TokenKeyword),
+			},
+			want: ConstTrue,
 		},
 	}
 
@@ -1150,6 +1157,61 @@ func TestParserParseStringConstant(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseStringConstant()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseKeywordConstant(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "trueの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("true", token.TokenKeyword),
+			},
+			want: ConstTrue,
+		},
+		{
+			desc: "falseの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("false", token.TokenKeyword),
+			},
+			want: ConstFalse,
+		},
+		{
+			desc: "nullの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("null", token.TokenKeyword),
+			},
+			want: ConstNull,
+		},
+		{
+			desc: "thisの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("this", token.TokenKeyword),
+			},
+			want: ConstThis,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseKeywordConstant()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))

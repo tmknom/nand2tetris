@@ -442,9 +442,9 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	return expressionList, nil
 }
 
-// integerConstant | stringConstant | keywordConstant
+// integerConstant | stringConstant | keywordConstant |
 // varName | subroutineCall | varName '[' expression ']' |
-// '(' expression ')' |unaryOp term
+// '(' expression ')' | unaryOp term
 func (p *Parser) parseTerm() (Term, error) {
 	term := p.readFirstToken()
 	switch term.TokenType {
@@ -452,6 +452,8 @@ func (p *Parser) parseTerm() (Term, error) {
 		return p.parseIntegerConstant()
 	case token.TokenStringConst:
 		return p.parseStringConstant()
+	case token.TokenKeyword:
+		return p.parseKeywordConstant()
 	default:
 		message := fmt.Sprintf("error parseTerm: got = %s", term.Debug())
 		return nil, errors.New(message)
@@ -474,6 +476,11 @@ func (p *Parser) parseStringConstant() (*StringConstant, error) {
 		return nil, err
 	}
 	return stringConstant, nil
+}
+
+// keywordConstant
+func (p *Parser) parseKeywordConstant() (Term, error) {
+	return ConstKeywordConstantFactory.Create(p.advanceToken())
 }
 
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {
