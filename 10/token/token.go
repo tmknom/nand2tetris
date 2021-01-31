@@ -161,12 +161,22 @@ func (t *Token) CheckIdentifier() error {
 	return t.CheckTokenType(TokenIdentifier, tokenName)
 }
 
+func (t *Token) CheckIntegerConstant() error {
+	tokenName := fmt.Sprintf("IntegerConstant '%s'", t.Value)
+	return t.CheckTokenType(TokenIntConst, tokenName)
+}
+
+func (t *Token) CheckStringConstant() error {
+	tokenName := fmt.Sprintf("StringConstant '%s'", t.Value)
+	return t.CheckTokenType(TokenStringConst, tokenName)
+}
+
 func (t *Token) CheckTokenType(tokenType TokenType, tokenName string) error {
 	if t.TokenType == tokenType {
 		return nil
 	}
 
-	message := fmt.Sprintf("%s: got = %s", tokenName, t.Debug())
+	message := fmt.Sprintf("error TokenType: expected = %s: got = %s", tokenName, t.Debug())
 	return errors.New(message)
 }
 
