@@ -187,6 +187,53 @@ func (c *CommaAndExpression) ToXML() []string {
 	return result
 }
 
+// varName '[' expression ']'
+type Array struct {
+	*VarName
+	*Expression
+	*OpeningSquareBracket
+	*ClosingSquareBracket
+}
+
+func NewArray(varName *VarName) *Array {
+	return &Array{
+		VarName:              varName,
+		OpeningSquareBracket: ConstOpeningSquareBracket,
+		ClosingSquareBracket: ConstClosingSquareBracket,
+	}
+}
+
+func NewArrayOrError(token *token.Token) (*Array, error) {
+	varName := NewVarName(token)
+	if err := varName.Check(); err != nil {
+		return nil, err
+	}
+	return NewArray(varName), nil
+}
+
+func (a *Array) SetExpression(token *token.Token) error {
+	expression := NewExpression(token)
+	if err := expression.Check(); err != nil {
+		return err
+	}
+
+	a.Expression = expression
+	return nil
+}
+
+func (a *Array) TermType() TermType {
+	return TermArray
+}
+
+func (a *Array) ToXML() []string {
+	result := []string{}
+	result = append(result, a.VarName.ToXML()...)
+	result = append(result, a.OpeningSquareBracket.ToXML())
+	result = append(result, a.Expression.ToXML()...)
+	result = append(result, a.ClosingSquareBracket.ToXML())
+	return result
+}
+
 type Expression struct {
 	*token.Token
 }
