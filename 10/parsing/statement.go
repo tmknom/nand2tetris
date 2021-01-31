@@ -217,6 +217,10 @@ func NewStatementKeyword(value string) *StatementKeyword {
 	}
 }
 
+func (s *StatementKeyword) CheckKeyword(token *token.Token) error {
+	return NewKeyword(token).Check(s.Keyword.Value)
+}
+
 func (s *StatementKeyword) OpenTag() string {
 	return fmt.Sprintf("<%sStatement>", s.Keyword.Value)
 }
