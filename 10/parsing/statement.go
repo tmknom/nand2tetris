@@ -115,7 +115,7 @@ type ArrayIndex struct {
 
 func NewArrayIndex(token *token.Token) *ArrayIndex {
 	return &ArrayIndex{
-		Expression:           NewExpression(token),
+		Expression:           DeprecatedNewExpression(token),
 		OpeningSquareBracket: ConstOpeningSquareBracket,
 		ClosingSquareBracket: ConstClosingSquareBracket,
 	}

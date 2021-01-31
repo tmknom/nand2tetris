@@ -426,7 +426,7 @@ func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {
 func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	// 式がひとつも定義されていない場合は即終了
 	expressionList := NewExpressionList()
-	if !NewExpression(p.readFirstToken()).IsCheck() {
+	if !DeprecatedNewExpression(p.readFirstToken()).IsCheck() {
 		return expressionList, nil
 	}
 
@@ -451,7 +451,7 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 
 // TODO Expression実装時に正しく実装する
 func (p *Parser) parseExpression() (*Expression, error) {
-	expression := NewExpression(p.advanceToken())
+	expression := DeprecatedNewExpression(p.advanceToken())
 	if err := expression.Check(); err != nil {
 		return nil, err
 	}

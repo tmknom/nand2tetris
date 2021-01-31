@@ -254,7 +254,7 @@ type Expression struct {
 	*token.Token
 }
 
-func NewExpression(token *token.Token) *Expression {
+func DeprecatedNewExpression(token *token.Token) *Expression {
 	return &Expression{
 		Token: token,
 	}
