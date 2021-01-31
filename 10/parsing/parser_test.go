@@ -1044,3 +1044,313 @@ func TestParserParseExpressionList(t *testing.T) {
 		})
 	}
 }
+
+func TestParserParseTerm(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "IntegerConstantへの分岐",
+			tokens: []*token.Token{
+				token.NewToken("123", token.TokenIntConst),
+			},
+			want: &IntegerConstant{
+				Token: token.NewToken("123", token.TokenIntConst),
+			},
+		},
+		{
+			desc: "StringConstantへの分岐",
+			tokens: []*token.Token{
+				token.NewToken("foo bar", token.TokenStringConst),
+			},
+			want: &StringConstant{
+				Token: token.NewToken("foo bar", token.TokenStringConst),
+			},
+		},
+		{
+			desc: "KeywordConstantへの分岐",
+			tokens: []*token.Token{
+				token.NewToken("true", token.TokenKeyword),
+			},
+			want: ConstTrue,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseIntegerConstant(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "IntegerConstantの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("123", token.TokenIntConst),
+			},
+			want: &IntegerConstant{
+				Token: token.NewToken("123", token.TokenIntConst),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseIntegerConstant()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseStringConstant(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "StringConstantの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo bar", token.TokenStringConst),
+			},
+			want: &StringConstant{
+				Token: token.NewToken("foo bar", token.TokenStringConst),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseStringConstant()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseKeywordConstant(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "trueの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("true", token.TokenKeyword),
+			},
+			want: ConstTrue,
+		},
+		{
+			desc: "falseの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("false", token.TokenKeyword),
+			},
+			want: ConstFalse,
+		},
+		{
+			desc: "nullの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("null", token.TokenKeyword),
+			},
+			want: ConstNull,
+		},
+		{
+			desc: "thisの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("this", token.TokenKeyword),
+			},
+			want: ConstThis,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseKeywordConstant()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseIdentifierTerm(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "VarNameの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: NewVarNameByValue("foo"),
+		},
+		{
+			desc: "Arrayの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("array", token.TokenIdentifier),
+				token.NewToken("[", token.TokenSymbol),
+				token.NewToken("index", token.TokenIdentifier),
+				token.NewToken("]", token.TokenSymbol),
+			},
+			want: &Array{
+				VarName:              NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				Expression:           NewExpression(token.NewToken("index", token.TokenIdentifier)),
+				OpeningSquareBracket: ConstOpeningSquareBracket,
+				ClosingSquareBracket: ConstClosingSquareBracket,
+			},
+		},
+		{
+			desc: "クラス内のSubroutineCallの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("main", token.TokenIdentifier)),
+				},
+				ExpressionList:      NewExpressionList(),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+		{
+			desc: "クラス外のSubroutineCallの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("Main", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					CallerName:     NewCallerName(token.NewToken("Main", token.TokenIdentifier)),
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("main", token.TokenIdentifier)),
+				},
+				ExpressionList:      NewExpressionList(),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseIdentifierTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseArray(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *Array
+	}{
+		{
+			desc: "Arrayの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("array", token.TokenIdentifier),
+				token.NewToken("[", token.TokenSymbol),
+				token.NewToken("index", token.TokenIdentifier),
+				token.NewToken("]", token.TokenSymbol),
+			},
+			want: &Array{
+				VarName:              NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				Expression:           NewExpression(token.NewToken("index", token.TokenIdentifier)),
+				OpeningSquareBracket: ConstOpeningSquareBracket,
+				ClosingSquareBracket: ConstClosingSquareBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseArray()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}

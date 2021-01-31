@@ -23,8 +23,11 @@ func (p *Parser) advanceToken() *token.Token {
 //}
 
 func (p *Parser) readFirstToken() *token.Token {
-	//p.tokens = p.tokens.SubList()
 	return p.tokens.First()
+}
+
+func (p *Parser) readSecondToken() *token.Token {
+	return p.tokens.Second()
 }
 
 func (p *Parser) Parse() (*Class, error) {
@@ -440,6 +443,89 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 		}
 	}
 	return expressionList, nil
+}
+
+// integerConstant | stringConstant | keywordConstant |
+// varName | subroutineCall | varName '[' expression ']' |
+// '(' expression ')' | unaryOp term
+func (p *Parser) parseTerm() (Term, error) {
+	term := p.readFirstToken()
+	switch term.TokenType {
+	case token.TokenIntConst:
+		return p.parseIntegerConstant()
+	case token.TokenStringConst:
+		return p.parseStringConstant()
+	case token.TokenKeyword:
+		return p.parseKeywordConstant()
+	case token.TokenIdentifier:
+		return p.parseIdentifierTerm()
+	default:
+		message := fmt.Sprintf("error parseTerm: got = %s", term.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+// integerConstant
+func (p *Parser) parseIntegerConstant() (Term, error) {
+	integerConstant := NewIntegerConstant(p.advanceToken())
+	if err := integerConstant.Check(); err != nil {
+		return nil, err
+	}
+	return integerConstant, nil
+}
+
+// stringConstant
+func (p *Parser) parseStringConstant() (Term, error) {
+	stringConstant := NewStringConstant(p.advanceToken())
+	if err := stringConstant.Check(); err != nil {
+		return nil, err
+	}
+	return stringConstant, nil
+}
+
+// keywordConstant
+func (p *Parser) parseKeywordConstant() (Term, error) {
+	return ConstKeywordConstantFactory.Create(p.advanceToken())
+}
+
+// varName | subroutineCall | varName '[' expression ']'
+func (p *Parser) parseIdentifierTerm() (Term, error) {
+	second := p.readSecondToken()
+
+	switch second.Value {
+	case ConstOpeningRoundBracket.Value, ConstPeriod.Value:
+		return p.parseSubroutineCall()
+	case ConstOpeningSquareBracket.Value:
+		return p.parseArray()
+	default:
+		varName := p.advanceToken()
+		return NewVarNameOrError(varName)
+	}
+}
+
+// varName '[' expression ']'
+func (p *Parser) parseArray() (*Array, error) {
+	array, err := NewArrayOrError(p.advanceToken())
+	if err != nil {
+		return nil, err
+	}
+
+	openingSquareBracket := p.advanceToken()
+	if err := ConstOpeningSquareBracket.Check(openingSquareBracket); err != nil {
+		return nil, err
+	}
+
+	expression := p.advanceToken()
+	if err := array.SetExpression(expression); err != nil {
+		return nil, err
+	}
+
+	closingSquareBracket := p.advanceToken()
+	if err := ConstClosingSquareBracket.Check(closingSquareBracket); err != nil {
+		return nil, err
+	}
+
+	return array, nil
 }
 
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {

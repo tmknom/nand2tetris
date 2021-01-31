@@ -71,7 +71,7 @@ func (v *VarNames) AddCommaAndVarName(commaToken *token.Token, varNameToken *tok
 
 func (v *VarNames) ToXML() []string {
 	result := []string{}
-	result = append(result, v.First.ToXML())
+	result = append(result, v.First.ToXML()...)
 	for _, commaAndVarName := range v.CommaAndVarNames {
 		result = append(result, commaAndVarName.ToXML()...)
 	}
@@ -95,10 +95,10 @@ func NewCommaAndVarNameByValue(value string) *CommaAndVarName {
 }
 
 func (c *CommaAndVarName) ToXML() []string {
-	return []string{
-		c.Comma.ToXML(),
-		c.VarName.ToXML(),
-	}
+	result := []string{}
+	result = append(result, c.Comma.ToXML())
+	result = append(result, c.VarName.ToXML()...)
+	return result
 }
 
 type SubroutineName struct {
@@ -115,6 +115,14 @@ func NewSubroutineNameByValue(value string) *SubroutineName {
 	return NewSubroutineName(token.NewToken(value, token.TokenIdentifier))
 }
 
+func (s *SubroutineName) Debug(baseIndent int) string {
+	indent := baseIndent + 2
+	result := IndentSprintf(baseIndent, "&SubroutineName{")
+	result += IndentSprintf(indent, s.Token.Debug())
+	result += IndentSprintf(baseIndent, "}")
+	return result
+}
+
 type VarName struct {
 	*Identifier
 }
@@ -127,6 +135,23 @@ func NewVarName(token *token.Token) *VarName {
 
 func NewVarNameByValue(value string) *VarName {
 	return NewVarName(token.NewToken(value, token.TokenIdentifier))
+}
+
+// TODO VarNameの生成処理をこのメソッドに差し替える
+func NewVarNameOrError(token *token.Token) (*VarName, error) {
+	varName := NewVarName(token)
+	if err := varName.Check(); err != nil {
+		return nil, err
+	}
+	return varName, nil
+}
+
+func (v *VarName) TermType() TermType {
+	return TermVarName
+}
+
+func (v *VarName) ToXML() []string {
+	return []string{v.Token.ToXML()}
 }
 
 type Keyword struct {
@@ -264,4 +289,19 @@ type Equal struct {
 
 var ConstEqual = &Equal{
 	Symbol: NewSymbolByValue("="),
+}
+
+func IndentSprintf(indent int, value string) string {
+	return fmt.Sprintf("%s%s\n", indentMap[indent], value)
+}
+
+var indentMap = map[int]string{
+	2:  "  ",
+	4:  "    ",
+	6:  "      ",
+	8:  "        ",
+	10: "          ",
+	12: "            ",
+	14: "              ",
+	16: "                ",
 }
