@@ -1223,3 +1223,77 @@ func TestParserParseKeywordConstant(t *testing.T) {
 		})
 	}
 }
+
+func TestParserParseIdentifierTerm(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   Term
+	}{
+		{
+			desc: "VarNameの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: NewVarNameByValue("foo"),
+		},
+		{
+			desc: "クラス内のSubroutineCallの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("main", token.TokenIdentifier)),
+				},
+				ExpressionList:      NewExpressionList(),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+		{
+			desc: "クラス外のSubroutineCallの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("Main", token.TokenIdentifier),
+				token.NewToken(".", token.TokenSymbol),
+				token.NewToken("main", token.TokenIdentifier),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &SubroutineCall{
+				SubroutineCallName: &SubroutineCallName{
+					CallerName:     NewCallerName(token.NewToken("Main", token.TokenIdentifier)),
+					Period:         ConstPeriod,
+					SubroutineName: NewSubroutineName(token.NewToken("main", token.TokenIdentifier)),
+				},
+				ExpressionList:      NewExpressionList(),
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseIdentifierTerm()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}

@@ -23,8 +23,11 @@ func (p *Parser) advanceToken() *token.Token {
 //}
 
 func (p *Parser) readFirstToken() *token.Token {
-	//p.tokens = p.tokens.SubList()
 	return p.tokens.First()
+}
+
+func (p *Parser) readSecondToken() *token.Token {
+	return p.tokens.Second()
 }
 
 func (p *Parser) Parse() (*Class, error) {
@@ -454,6 +457,8 @@ func (p *Parser) parseTerm() (Term, error) {
 		return p.parseStringConstant()
 	case token.TokenKeyword:
 		return p.parseKeywordConstant()
+	case token.TokenIdentifier:
+		return p.parseIdentifierTerm()
 	default:
 		message := fmt.Sprintf("error parseTerm: got = %s", term.Debug())
 		return nil, errors.New(message)
@@ -461,7 +466,7 @@ func (p *Parser) parseTerm() (Term, error) {
 }
 
 // integerConstant
-func (p *Parser) parseIntegerConstant() (*IntegerConstant, error) {
+func (p *Parser) parseIntegerConstant() (Term, error) {
 	integerConstant := NewIntegerConstant(p.advanceToken())
 	if err := integerConstant.Check(); err != nil {
 		return nil, err
@@ -470,7 +475,7 @@ func (p *Parser) parseIntegerConstant() (*IntegerConstant, error) {
 }
 
 // stringConstant
-func (p *Parser) parseStringConstant() (*StringConstant, error) {
+func (p *Parser) parseStringConstant() (Term, error) {
 	stringConstant := NewStringConstant(p.advanceToken())
 	if err := stringConstant.Check(); err != nil {
 		return nil, err
@@ -481,6 +486,23 @@ func (p *Parser) parseStringConstant() (*StringConstant, error) {
 // keywordConstant
 func (p *Parser) parseKeywordConstant() (Term, error) {
 	return ConstKeywordConstantFactory.Create(p.advanceToken())
+}
+
+// varName | subroutineCall | varName '[' expression ']'
+func (p *Parser) parseIdentifierTerm() (Term, error) {
+	second := p.readSecondToken()
+
+	switch second.Value {
+	case ConstOpeningRoundBracket.Value, ConstPeriod.Value:
+		return p.parseSubroutineCall()
+	case ConstOpeningSquareBracket.Value:
+		// varName '[' expression ']'
+		message := fmt.Sprintf("not implemented: got = %s", p.readFirstToken().Debug())
+		return nil, errors.New(message)
+	default:
+		varName := p.advanceToken()
+		return NewVarNameOrError(varName)
+	}
 }
 
 func (p *Parser) parseNotImplementedStatement() (Statement, error) {
