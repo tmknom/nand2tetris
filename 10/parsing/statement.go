@@ -66,8 +66,8 @@ func NewLetStatement() *LetStatement {
 }
 
 func (l *LetStatement) SetVarName(token *token.Token) error {
-	varName := NewVarName(token)
-	if err := varName.Check(); err != nil {
+	varName, err := NewVarNameOrError(token)
+	if err != nil {
 		return err
 	}
 

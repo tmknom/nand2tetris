@@ -46,8 +46,8 @@ func NewVarNames() *VarNames {
 }
 
 func (v *VarNames) SetFirstVarName(token *token.Token) error {
-	varName := NewVarName(token)
-	if err := varName.Check(); err != nil {
+	varName, err := NewVarNameOrError(token)
+	if err != nil {
 		return err
 	}
 
@@ -60,8 +60,8 @@ func (v *VarNames) AddCommaAndVarName(commaToken *token.Token, varNameToken *tok
 		return err
 	}
 
-	varName := NewVarName(varNameToken)
-	if err := varName.Check(); err != nil {
+	varName, err := NewVarNameOrError(varNameToken)
+	if err != nil {
 		return err
 	}
 
@@ -137,7 +137,6 @@ func NewVarNameByValue(value string) *VarName {
 	return NewVarName(token.NewToken(value, token.TokenIdentifier))
 }
 
-// TODO VarNameの生成処理をこのメソッドに差し替える
 func NewVarNameOrError(token *token.Token) (*VarName, error) {
 	varName := NewVarName(token)
 	if err := varName.Check(); err != nil {
