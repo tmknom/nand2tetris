@@ -291,21 +291,16 @@ func (p *Parser) parseStatement() (Statement, error) {
 func (p *Parser) parseLetStatement() (Statement, error) {
 	letStatement := NewLetStatement()
 
-	varName := p.advanceToken()
-	if err := letStatement.SetVarName(varName); err != nil {
-		return nil, err
-	}
-
-	if ConstOpeningSquareBracket.IsCheck(p.readFirstToken()) {
-		p.advanceToken() // '[' を飛ばす
-
-		arrayExpression := p.advanceToken()
-		if err := letStatement.SetArrayIndex(arrayExpression); err != nil {
+	second := p.readSecondToken()
+	if ConstOpeningSquareBracket.IsCheck(second) {
+		array, err := p.parseArray()
+		if err != nil {
 			return nil, err
 		}
-
-		closingSquareBracket := p.advanceToken()
-		if err := ConstClosingSquareBracket.Check(closingSquareBracket); err != nil {
+		letStatement.SetArray(array)
+	} else {
+		varName := p.advanceToken()
+		if err := letStatement.SetVarName(varName); err != nil {
 			return nil, err
 		}
 	}

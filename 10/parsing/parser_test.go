@@ -678,11 +678,15 @@ func TestParserParseLetStatement(t *testing.T) {
 			},
 			want: &LetStatement{
 				StatementKeyword: NewStatementKeyword("let"),
-				VarName:          NewVarNameByValue("foo"),
-				ArrayIndex:       NewArrayIndex(token.NewToken("index", token.TokenIdentifier)),
-				Expression:       DeprecatedNewExpression(token.NewToken("bar", token.TokenIdentifier)),
-				Equal:            ConstEqual,
-				Semicolon:        ConstSemicolon,
+				Array: &Array{
+					VarName:              NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Expression:           DeprecatedNewExpression(token.NewToken("index", token.TokenIdentifier)),
+					OpeningSquareBracket: ConstOpeningSquareBracket,
+					ClosingSquareBracket: ConstClosingSquareBracket,
+				},
+				Expression: DeprecatedNewExpression(token.NewToken("bar", token.TokenIdentifier)),
+				Equal:      ConstEqual,
+				Semicolon:  ConstSemicolon,
 			},
 		},
 	}

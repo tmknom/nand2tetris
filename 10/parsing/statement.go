@@ -49,7 +49,7 @@ func (s *Statements) IsStatementKeyword(token *token.Token) bool {
 type LetStatement struct {
 	*StatementKeyword
 	*VarName
-	*ArrayIndex
+	*Array
 	*Equal
 	*Expression
 	*Semicolon
@@ -75,14 +75,8 @@ func (l *LetStatement) SetVarName(token *token.Token) error {
 	return nil
 }
 
-func (l *LetStatement) SetArrayIndex(token *token.Token) error {
-	arrayIndex := NewArrayIndex(token)
-	if err := arrayIndex.Check(); err != nil {
-		return err
-	}
-
-	l.ArrayIndex = arrayIndex
-	return nil
+func (l *LetStatement) SetArray(array *Array) {
+	l.Array = array
 }
 
 func (l *LetStatement) SetExpression(expression *Expression) {
@@ -93,43 +87,18 @@ func (l *LetStatement) ToXML() []string {
 	result := []string{}
 	result = append(result, l.OpenTag())
 	result = append(result, l.Keyword.ToXML())
-	result = append(result, l.VarName.ToXML()...)
 
-	if l.ArrayIndex != nil {
-		result = append(result, l.ArrayIndex.ToXML()...)
+	if l.VarName != nil {
+		result = append(result, l.VarName.ToXML()...)
+	}
+	if l.Array != nil {
+		result = append(result, l.Array.ToXML()...)
 	}
 
 	result = append(result, l.Equal.ToXML())
 	result = append(result, l.Expression.ToXML()...)
 	result = append(result, l.Semicolon.ToXML())
 	result = append(result, l.CloseTag())
-	return result
-}
-
-// TODO Arrayに集約する
-type ArrayIndex struct {
-	*Expression
-	*OpeningSquareBracket
-	*ClosingSquareBracket
-}
-
-func NewArrayIndex(token *token.Token) *ArrayIndex {
-	return &ArrayIndex{
-		Expression:           DeprecatedNewExpression(token),
-		OpeningSquareBracket: ConstOpeningSquareBracket,
-		ClosingSquareBracket: ConstClosingSquareBracket,
-	}
-}
-
-func (a *ArrayIndex) Check() error {
-	return a.Expression.Check()
-}
-
-func (a *ArrayIndex) ToXML() []string {
-	result := []string{}
-	result = append(result, a.OpeningSquareBracket.ToXML())
-	result = append(result, a.Expression.ToXML()...)
-	result = append(result, a.ClosingSquareBracket.ToXML())
 	return result
 }
 
