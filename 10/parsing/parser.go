@@ -444,13 +444,14 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	return expressionList, nil
 }
 
-// TODO Expression実装時に正しく実装する
+// TODO (op term)* を実装する
+// term (op term)*
 func (p *Parser) parseExpression() (*Expression, error) {
-	expression := DeprecatedNewExpression(p.advanceToken())
-	if err := expression.Check(); err != nil {
+	term, err := p.parseTerm()
+	if err != nil {
 		return nil, err
 	}
-	return expression, nil
+	return NewExpression(term), nil
 }
 
 // integerConstant | stringConstant | keywordConstant |

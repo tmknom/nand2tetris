@@ -644,9 +644,11 @@ func TestParserParseLetStatement(t *testing.T) {
 			want: &LetStatement{
 				StatementKeyword: NewStatementKeyword("let"),
 				VarName:          NewVarNameByValue("foo"),
-				Expression:       DeprecatedNewExpression(token.NewToken("bar", token.TokenIdentifier)),
-				Equal:            ConstEqual,
-				Semicolon:        ConstSemicolon,
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+				},
+				Equal:     ConstEqual,
+				Semicolon: ConstSemicolon,
 			},
 		},
 		{
@@ -660,9 +662,11 @@ func TestParserParseLetStatement(t *testing.T) {
 			want: &LetStatement{
 				StatementKeyword: NewStatementKeyword("let"),
 				VarName:          NewVarNameByValue("foo"),
-				Expression:       DeprecatedNewExpression(token.NewToken("true", token.TokenKeyword)),
-				Equal:            ConstEqual,
-				Semicolon:        ConstSemicolon,
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Equal:     ConstEqual,
+				Semicolon: ConstSemicolon,
 			},
 		},
 		{
@@ -679,14 +683,18 @@ func TestParserParseLetStatement(t *testing.T) {
 			want: &LetStatement{
 				StatementKeyword: NewStatementKeyword("let"),
 				Array: &Array{
-					VarName:              NewVarName(token.NewToken("foo", token.TokenIdentifier)),
-					Expression:           DeprecatedNewExpression(token.NewToken("index", token.TokenIdentifier)),
+					VarName: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					Expression: &Expression{
+						Term: NewVarName(token.NewToken("index", token.TokenIdentifier)),
+					},
 					OpeningSquareBracket: ConstOpeningSquareBracket,
 					ClosingSquareBracket: ConstClosingSquareBracket,
 				},
-				Expression: DeprecatedNewExpression(token.NewToken("bar", token.TokenIdentifier)),
-				Equal:      ConstEqual,
-				Semicolon:  ConstSemicolon,
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+				},
+				Equal:     ConstEqual,
+				Semicolon: ConstSemicolon,
 			},
 		},
 	}
@@ -755,7 +763,9 @@ func TestParserParseDoStatement(t *testing.T) {
 						SubroutineName: NewSubroutineName(token.NewToken("run", token.TokenIdentifier)),
 					},
 					ExpressionList: &ExpressionList{
-						First:               DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
+						First: &Expression{
+							Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+						},
 						CommaAndExpressions: []*CommaAndExpression{},
 					},
 					OpeningRoundBracket: ConstOpeningRoundBracket,
@@ -809,8 +819,10 @@ func TestParserParseReturnStatement(t *testing.T) {
 			},
 			want: &ReturnStatement{
 				StatementKeyword: NewStatementKeyword("return"),
-				Expression:       DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
-				Semicolon:        ConstSemicolon,
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+				},
+				Semicolon: ConstSemicolon,
 			},
 		},
 	}
@@ -878,10 +890,16 @@ func TestParserParseSubroutineCall(t *testing.T) {
 					SubroutineName: NewSubroutineName(token.NewToken("join", token.TokenIdentifier)),
 				},
 				ExpressionList: &ExpressionList{
-					First: DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
+					First: &Expression{
+						Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+					},
 					CommaAndExpressions: []*CommaAndExpression{
-						NewCommaAndExpression(DeprecatedNewExpression(token.NewToken("bar", token.TokenIdentifier))),
-						NewCommaAndExpression(DeprecatedNewExpression(token.NewToken("baz", token.TokenIdentifier))),
+						NewCommaAndExpression(&Expression{
+							Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+						}),
+						NewCommaAndExpression(&Expression{
+							Term: NewVarName(token.NewToken("baz", token.TokenIdentifier)),
+						}),
 					},
 				},
 				OpeningRoundBracket: ConstOpeningRoundBracket,
@@ -995,7 +1013,9 @@ func TestParserParseExpressionList(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ExpressionList{
-				First:               DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				First: &Expression{
+					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+				},
 				CommaAndExpressions: []*CommaAndExpression{},
 			},
 		},
@@ -1006,7 +1026,9 @@ func TestParserParseExpressionList(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ExpressionList{
-				First:               DeprecatedNewExpression(token.NewToken("this", token.TokenKeyword)),
+				First: &Expression{
+					Term: ConstThis,
+				},
 				CommaAndExpressions: []*CommaAndExpression{},
 			},
 		},
@@ -1021,10 +1043,16 @@ func TestParserParseExpressionList(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &ExpressionList{
-				First: DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				First: &Expression{
+					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+				},
 				CommaAndExpressions: []*CommaAndExpression{
-					NewCommaAndExpression(DeprecatedNewExpression(token.NewToken("bar", token.TokenIdentifier))),
-					NewCommaAndExpression(DeprecatedNewExpression(token.NewToken("baz", token.TokenIdentifier))),
+					NewCommaAndExpression(&Expression{
+						Term: NewVarName(token.NewToken("bar", token.TokenIdentifier)),
+					}),
+					NewCommaAndExpression(&Expression{
+						Term: NewVarName(token.NewToken("baz", token.TokenIdentifier)),
+					}),
 				},
 			},
 		},
@@ -1251,8 +1279,10 @@ func TestParserParseIdentifierTerm(t *testing.T) {
 				token.NewToken("]", token.TokenSymbol),
 			},
 			want: &Array{
-				VarName:              NewVarName(token.NewToken("array", token.TokenIdentifier)),
-				Expression:           DeprecatedNewExpression(token.NewToken("index", token.TokenIdentifier)),
+				VarName: NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("index", token.TokenIdentifier)),
+				},
 				OpeningSquareBracket: ConstOpeningSquareBracket,
 				ClosingSquareBracket: ConstClosingSquareBracket,
 			},
@@ -1332,8 +1362,10 @@ func TestParserParseArray(t *testing.T) {
 				token.NewToken("]", token.TokenSymbol),
 			},
 			want: &Array{
-				VarName:              NewVarName(token.NewToken("array", token.TokenIdentifier)),
-				Expression:           DeprecatedNewExpression(token.NewToken("index", token.TokenIdentifier)),
+				VarName: NewVarName(token.NewToken("array", token.TokenIdentifier)),
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("index", token.TokenIdentifier)),
+				},
 				OpeningSquareBracket: ConstOpeningSquareBracket,
 				ClosingSquareBracket: ConstClosingSquareBracket,
 			},
@@ -1398,7 +1430,9 @@ func TestParserParseSymbolTerm(t *testing.T) {
 				token.NewToken(")", token.TokenSymbol),
 			},
 			want: &GroupingExpression{
-				Expression:          DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+				},
 				OpeningRoundBracket: ConstOpeningRoundBracket,
 				ClosingRoundBracket: ConstClosingRoundBracket,
 			},
@@ -1490,7 +1524,9 @@ func TestParserParseGroupingExpression(t *testing.T) {
 				token.NewToken(")", token.TokenSymbol),
 			},
 			want: &GroupingExpression{
-				Expression:          DeprecatedNewExpression(token.NewToken("foo", token.TokenIdentifier)),
+				Expression: &Expression{
+					Term: NewVarName(token.NewToken("foo", token.TokenIdentifier)),
+				},
 				OpeningRoundBracket: ConstOpeningRoundBracket,
 				ClosingRoundBracket: ConstClosingRoundBracket,
 			},
