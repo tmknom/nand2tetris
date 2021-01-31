@@ -115,6 +115,14 @@ func NewSubroutineNameByValue(value string) *SubroutineName {
 	return NewSubroutineName(token.NewToken(value, token.TokenIdentifier))
 }
 
+func (s *SubroutineName) Debug(baseIndent int) string {
+	indent := baseIndent + 2
+	result := IndentSprintf(baseIndent, "&SubroutineName{")
+	result += IndentSprintf(indent, s.Token.Debug())
+	result += IndentSprintf(baseIndent, "}")
+	return result
+}
+
 type VarName struct {
 	*Identifier
 }
@@ -281,4 +289,19 @@ type Equal struct {
 
 var ConstEqual = &Equal{
 	Symbol: NewSymbolByValue("="),
+}
+
+func IndentSprintf(indent int, value string) string {
+	return fmt.Sprintf("%s%s\n", indentMap[indent], value)
+}
+
+var indentMap = map[int]string{
+	2:  "  ",
+	4:  "    ",
+	6:  "      ",
+	8:  "        ",
+	10: "          ",
+	12: "            ",
+	14: "              ",
+	16: "                ",
 }
