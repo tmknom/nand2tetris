@@ -341,6 +341,50 @@ func (p *Parser) parseLetStatement() (Statement, error) {
 	return letStatement, nil
 }
 
+// while '(' expression ')' '{' statements '}'
+func (p *Parser) parseWhileStatement() (Statement, error) {
+	whileStatement := NewWhileStatement()
+
+	keyword := p.advanceToken()
+	if err := whileStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
+
+	openingRoundBracket := p.advanceToken()
+	if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	expression, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	whileStatement.SetExpression(expression)
+
+	closingRoundBracket := p.advanceToken()
+	if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
+	}
+	whileStatement.SetStatements(statements)
+
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	return whileStatement, nil
+}
+
 // (do) subroutineCall ';'
 func (p *Parser) parseDoStatement() (Statement, error) {
 	doStatement := NewDoStatement()

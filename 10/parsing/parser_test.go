@@ -405,10 +405,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				VarDecs: NewVarDecs(),
 				Statements: &Statements{
 					Items: []Statement{
-						&ReturnStatement{
-							StatementKeyword: NewStatementKeyword("return"),
-							Semicolon:        ConstSemicolon,
-						},
+						NewReturnStatement(),
 					},
 				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
@@ -447,10 +444,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				},
 				Statements: &Statements{
 					Items: []Statement{
-						&ReturnStatement{
-							StatementKeyword: NewStatementKeyword("return"),
-							Semicolon:        ConstSemicolon,
-						},
+						NewReturnStatement(),
 					},
 				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
@@ -498,10 +492,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				},
 				Statements: &Statements{
 					Items: []Statement{
-						&ReturnStatement{
-							StatementKeyword: NewStatementKeyword("return"),
-							Semicolon:        ConstSemicolon,
-						},
+						NewReturnStatement(),
 					},
 				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
@@ -621,10 +612,7 @@ func TestParserParseStatements(t *testing.T) {
 			},
 			want: &Statements{
 				Items: []Statement{
-					&ReturnStatement{
-						StatementKeyword: NewStatementKeyword("return"),
-						Semicolon:        ConstSemicolon,
-					},
+					NewReturnStatement(),
 				},
 			},
 		},
@@ -645,12 +633,9 @@ func TestParserParseStatements(t *testing.T) {
 						Expression: &Expression{
 							Term: NewVarNameByValue("foo"),
 						},
-						Semicolon:        ConstSemicolon,
+						Semicolon: ConstSemicolon,
 					},
-					&ReturnStatement{
-						StatementKeyword: NewStatementKeyword("return"),
-						Semicolon:        ConstSemicolon,
-					},
+					NewReturnStatement(),
 				},
 			},
 		},
@@ -687,10 +672,7 @@ func TestParserParseStatement(t *testing.T) {
 				token.NewToken("return", token.TokenKeyword),
 				token.NewToken(";", token.TokenSymbol),
 			},
-			want: &ReturnStatement{
-				StatementKeyword: NewStatementKeyword("return"),
-				Semicolon:        ConstSemicolon,
-			},
+			want: NewReturnStatement(),
 		},
 	}
 
@@ -807,6 +789,61 @@ func TestParserParseLetStatement(t *testing.T) {
 	}
 }
 
+func TestParserParseWhileStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *WhileStatement
+	}{
+		{
+			desc: "単一のwhile定義",
+			tokens: []*token.Token{
+				token.NewToken("while", token.TokenKeyword),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &WhileStatement{
+				StatementKeyword: NewStatementKeyword("while"),
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseWhileStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseDoStatement(t *testing.T) {
 	cases := []struct {
 		desc   string
@@ -898,10 +935,7 @@ func TestParserParseReturnStatement(t *testing.T) {
 				token.NewToken("return", token.TokenKeyword),
 				token.NewToken(";", token.TokenSymbol),
 			},
-			want: &ReturnStatement{
-				StatementKeyword: NewStatementKeyword("return"),
-				Semicolon:        ConstSemicolon,
-			},
+			want: NewReturnStatement(),
 		},
 		{
 			desc: "式とセミコロン",
