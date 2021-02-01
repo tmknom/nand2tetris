@@ -277,10 +277,14 @@ type BinaryOpTerms struct {
 	Items []*BinaryOpTerm
 }
 
-func NewBinaryOpTerms(term Term) *BinaryOpTerms {
+func NewBinaryOpTerms() *BinaryOpTerms {
 	return &BinaryOpTerms{
 		Items: []*BinaryOpTerm{},
 	}
+}
+
+func (b *BinaryOpTerms) Add(binaryOpTerm *BinaryOpTerm) {
+	b.Items = append(b.Items, binaryOpTerm)
 }
 
 func (b *BinaryOpTerms) ToXML() []string {
@@ -296,6 +300,13 @@ type BinaryOpTerm struct {
 	Term
 }
 
+func NewBinaryOpTerm(binaryOp BinaryOp, term Term) *BinaryOpTerm {
+	return &BinaryOpTerm{
+		BinaryOp: binaryOp,
+		Term:     term,
+	}
+}
+
 func (b *BinaryOpTerm) ToXML() []string {
 	result := []string{}
 	result = append(result, b.BinaryOp.ToXML())
@@ -306,6 +317,10 @@ func (b *BinaryOpTerm) ToXML() []string {
 var ConstBinaryOpFactory = &BinaryOpFactory{}
 
 type BinaryOpFactory struct{}
+
+func (b *BinaryOpFactory) IsCheck(token *token.Token) bool {
+	return b.Check(token) == nil
+}
 
 func (b *BinaryOpFactory) Check(token *token.Token) error {
 	if _, err := b.Create(token); err != nil {

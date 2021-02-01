@@ -596,14 +596,44 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	return expressionList, nil
 }
 
-// TODO (op term)* を実装する
 // term (op term)*
 func (p *Parser) parseExpression() (*Expression, error) {
 	term, err := p.parseTerm()
 	if err != nil {
 		return nil, err
 	}
-	return NewExpression(term), nil
+	expression := NewExpression(term)
+
+	if err := ConstBinaryOpFactory.Check(p.readFirstToken()); err == nil {
+		binaryOpTerms, err := p.parseBinaryOpTerms()
+		if err != nil {
+			return nil, err
+		}
+		expression.SetBinaryOpTerms(binaryOpTerms)
+	}
+
+	return expression, nil
+}
+
+// (op term)*
+func (p *Parser) parseBinaryOpTerms() (*BinaryOpTerms, error) {
+	binaryOpTerms := NewBinaryOpTerms()
+	for ConstBinaryOpFactory.IsCheck(p.readFirstToken()) {
+		binaryOp, err := ConstBinaryOpFactory.Create(p.advanceToken())
+		if err != nil {
+			return nil, err
+		}
+
+		term, err := p.parseTerm()
+		if err != nil {
+			return nil, err
+		}
+
+		binaryOpTerm := NewBinaryOpTerm(binaryOp, term)
+		binaryOpTerms.Add(binaryOpTerm)
+	}
+
+	return binaryOpTerms, nil
 }
 
 // integerConstant | stringConstant | keywordConstant |

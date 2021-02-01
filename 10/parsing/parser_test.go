@@ -1350,6 +1350,134 @@ func TestParserParseExpressionList(t *testing.T) {
 	}
 }
 
+func TestParserParseExpression(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *Expression
+	}{
+		{
+			desc: "Termの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &Expression{
+				Term: NewVarNameByValue("foo"),
+			},
+		},
+		{
+			desc: "Termの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &Expression{
+				Term: NewVarNameByValue("foo"),
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstVerticalLine,
+							Term:     NewVarNameByValue("bar"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseExpression()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseBinaryOpTerms(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *BinaryOpTerms
+	}{
+		{
+			desc: "BinaryOpTermの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &BinaryOpTerms{
+				Items: []*BinaryOpTerm{
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("foo"),
+					},
+				},
+			},
+		},
+		{
+			desc: "BinaryOpTermの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &BinaryOpTerms{
+				Items: []*BinaryOpTerm{
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("foo"),
+					},
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("bar"),
+					},
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("baz"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseBinaryOpTerms()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseTerm(t *testing.T) {
 	cases := []struct {
 		desc   string
