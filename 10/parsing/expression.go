@@ -267,7 +267,7 @@ func (e *Expression) SetBinaryOpTerms(binaryOpTerms *BinaryOpTerms) {
 func (e *Expression) ToXML() []string {
 	result := []string{}
 	result = append(result, "<expression>")
-	result = append(result, e.Term.ToXML()...)
+	result = append(result, ConstTermXMLConverter.ToTermXML(e.Term.ToXML()...)...)
 	if e.BinaryOpTerms != nil {
 		result = append(result, e.BinaryOpTerms.ToXML()...)
 	}
@@ -312,7 +312,7 @@ func NewBinaryOpTerm(binaryOp BinaryOp, term Term) *BinaryOpTerm {
 func (b *BinaryOpTerm) ToXML() []string {
 	result := []string{}
 	result = append(result, b.BinaryOp.ToXML())
-	result = append(result, b.Term.ToXML()...)
+	result = append(result, ConstTermXMLConverter.ToTermXML(b.Term.ToXML()...)...)
 	return result
 }
 
@@ -582,6 +582,18 @@ func (i *IntegerConstant) TermType() TermType {
 
 func (i *IntegerConstant) ToXML() []string {
 	return []string{i.Token.ToXML()}
+}
+
+var ConstTermXMLConverter = &TermXMLConverter{}
+
+type TermXMLConverter struct{}
+
+func (t *TermXMLConverter) ToTermXML(contents ...string) []string {
+	result := []string{}
+	result = append(result, "<term>")
+	result = append(result, contents...)
+	result = append(result, "</term>")
+	return result
 }
 
 type Term interface {
