@@ -266,10 +266,12 @@ func (e *Expression) SetBinaryOpTerms(binaryOpTerms *BinaryOpTerms) {
 
 func (e *Expression) ToXML() []string {
 	result := []string{}
+	result = append(result, "<expression>")
 	result = append(result, e.Term.ToXML()...)
 	if e.BinaryOpTerms != nil {
 		result = append(result, e.BinaryOpTerms.ToXML()...)
 	}
+	result = append(result, "</expression>")
 	return result
 }
 
