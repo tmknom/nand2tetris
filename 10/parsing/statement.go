@@ -86,7 +86,7 @@ func (l *LetStatement) SetExpression(expression *Expression) {
 func (l *LetStatement) ToXML() []string {
 	result := []string{}
 	result = append(result, l.OpenTag())
-	result = append(result, l.Keyword.ToXML())
+	result = append(result, l.StatementKeyword.ToXML())
 
 	if l.VarName != nil {
 		result = append(result, l.VarName.ToXML()...)
@@ -99,6 +99,92 @@ func (l *LetStatement) ToXML() []string {
 	result = append(result, l.Expression.ToXML()...)
 	result = append(result, l.Semicolon.ToXML())
 	result = append(result, l.CloseTag())
+	return result
+}
+
+type IfStatement struct {
+	*StatementKeyword
+	*Expression
+	*Statements
+	*ElseBlock
+	*OpeningRoundBracket
+	*ClosingRoundBracket
+	*OpeningCurlyBracket
+	*ClosingCurlyBracket
+}
+
+var _ Statement = (*IfStatement)(nil)
+
+func NewIfStatement() *IfStatement {
+	return &IfStatement{
+		StatementKeyword:    NewStatementKeyword("if"),
+		OpeningRoundBracket: ConstOpeningRoundBracket,
+		ClosingRoundBracket: ConstClosingRoundBracket,
+		OpeningCurlyBracket: ConstOpeningCurlyBracket,
+		ClosingCurlyBracket: ConstClosingCurlyBracket,
+	}
+}
+
+func (i *IfStatement) SetExpression(expression *Expression) {
+	i.Expression = expression
+}
+
+func (i *IfStatement) SetStatements(statements *Statements) {
+	i.Statements = statements
+}
+
+func (i *IfStatement) SetElseBlock(elseBlock *ElseBlock) {
+	i.ElseBlock = elseBlock
+}
+
+func (i *IfStatement) ToXML() []string {
+	result := []string{}
+	result = append(result, i.OpenTag())
+	result = append(result, i.StatementKeyword.ToXML())
+	result = append(result, i.OpeningRoundBracket.ToXML())
+	result = append(result, i.Expression.ToXML()...)
+	result = append(result, i.ClosingRoundBracket.ToXML())
+	result = append(result, i.OpeningCurlyBracket.ToXML())
+	result = append(result, i.Statements.ToXML()...)
+	result = append(result, i.ClosingCurlyBracket.ToXML())
+
+	if i.ElseBlock != nil {
+		result = append(result, i.ElseBlock.ToXML()...)
+	}
+
+	result = append(result, i.CloseTag())
+	return result
+}
+
+type ElseBlock struct {
+	*Keyword
+	*Statements
+	*OpeningCurlyBracket
+	*ClosingCurlyBracket
+}
+
+func NewElseBlock() *ElseBlock {
+	return &ElseBlock{
+		Keyword:             NewKeywordByValue("else"),
+		OpeningCurlyBracket: ConstOpeningCurlyBracket,
+		ClosingCurlyBracket: ConstClosingCurlyBracket,
+	}
+}
+
+func (e *ElseBlock) SetStatements(statements *Statements) {
+	e.Statements = statements
+}
+
+func (e *ElseBlock) CheckElseKeyword(token *token.Token) error {
+	return NewKeyword(token).Check(e.Keyword.Value)
+}
+
+func (e *ElseBlock) ToXML() []string {
+	result := []string{}
+	result = append(result, e.Keyword.ToXML())
+	result = append(result, e.OpeningCurlyBracket.ToXML())
+	result = append(result, e.Statements.ToXML()...)
+	result = append(result, e.ClosingCurlyBracket.ToXML())
 	return result
 }
 
@@ -167,7 +253,7 @@ func (d *DoStatement) SetSubroutineCall(subroutineCall *SubroutineCall) {
 func (d *DoStatement) ToXML() []string {
 	result := []string{}
 	result = append(result, d.OpenTag())
-	result = append(result, d.Keyword.ToXML())
+	result = append(result, d.StatementKeyword.ToXML())
 	result = append(result, d.SubroutineCall.ToXML()...)
 	result = append(result, d.Semicolon.ToXML())
 	result = append(result, d.CloseTag())
@@ -196,7 +282,7 @@ func (r *ReturnStatement) SetExpression(expression *Expression) {
 func (r *ReturnStatement) ToXML() []string {
 	result := []string{}
 	result = append(result, r.OpenTag())
-	result = append(result, r.Keyword.ToXML())
+	result = append(result, r.StatementKeyword.ToXML())
 
 	if r.Expression != nil {
 		result = append(result, r.Expression.ToXML()...)
@@ -215,6 +301,10 @@ func NewStatementKeyword(value string) *StatementKeyword {
 	return &StatementKeyword{
 		Keyword: NewKeywordByValue(value),
 	}
+}
+
+func (s *StatementKeyword) CheckKeyword(token *token.Token) error {
+	return NewKeyword(token).Check(s.Keyword.Value)
 }
 
 func (s *StatementKeyword) OpenTag() string {

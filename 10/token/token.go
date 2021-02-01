@@ -87,16 +87,16 @@ func (t *Tokens) DebugForError() string {
 	if t.HeadIndex > indexSize {
 		start = t.HeadIndex - indexSize
 	}
-	end := len(t.Items[start:])
-	if end > indexSize*2 {
-		end = t.HeadIndex + indexSize
+	end := len(t.Items)
+	if start+indexSize*2 < end {
+		end = start + indexSize*2
 	}
 
 	result := "&Tokens{\n"
 	for i, item := range t.Items[start:end] {
 		index := i + start
 		mark := ""
-		if index == t.HeadIndex {
+		if index == t.HeadIndex-1 {
 			mark = "<==============="
 		}
 		result += fmt.Sprintf("    [%d] = %s %s\n", index, item.Debug(), mark)

@@ -251,6 +251,7 @@ func (a *Array) ToXML() []string {
 
 type Expression struct {
 	Term
+	*BinaryOpTerms
 }
 
 func NewExpression(term Term) *Expression {
@@ -258,6 +259,235 @@ func NewExpression(term Term) *Expression {
 		Term: term,
 	}
 }
+
+func (e *Expression) SetBinaryOpTerms(binaryOpTerms *BinaryOpTerms) {
+	e.BinaryOpTerms = binaryOpTerms
+}
+
+func (e *Expression) ToXML() []string {
+	result := []string{}
+	result = append(result, "<expression>")
+	result = append(result, ConstTermXMLConverter.ToTermXML(e.Term.ToXML()...)...)
+	if e.BinaryOpTerms != nil {
+		result = append(result, e.BinaryOpTerms.ToXML()...)
+	}
+	result = append(result, "</expression>")
+	return result
+}
+
+type BinaryOpTerms struct {
+	Items []*BinaryOpTerm
+}
+
+func NewBinaryOpTerms() *BinaryOpTerms {
+	return &BinaryOpTerms{
+		Items: []*BinaryOpTerm{},
+	}
+}
+
+func (b *BinaryOpTerms) Add(binaryOpTerm *BinaryOpTerm) {
+	b.Items = append(b.Items, binaryOpTerm)
+}
+
+func (b *BinaryOpTerms) ToXML() []string {
+	result := []string{}
+	for _, binaryTerm := range b.Items {
+		result = append(result, binaryTerm.ToXML()...)
+	}
+	return result
+}
+
+type BinaryOpTerm struct {
+	BinaryOp
+	Term
+}
+
+func NewBinaryOpTerm(binaryOp BinaryOp, term Term) *BinaryOpTerm {
+	return &BinaryOpTerm{
+		BinaryOp: binaryOp,
+		Term:     term,
+	}
+}
+
+func (b *BinaryOpTerm) ToXML() []string {
+	result := []string{}
+	result = append(result, b.BinaryOp.ToXML())
+	result = append(result, ConstTermXMLConverter.ToTermXML(b.Term.ToXML()...)...)
+	return result
+}
+
+var ConstBinaryOpFactory = &BinaryOpFactory{}
+
+type BinaryOpFactory struct{}
+
+func (b *BinaryOpFactory) IsCheck(token *token.Token) bool {
+	return b.Check(token) == nil
+}
+
+func (b *BinaryOpFactory) Check(token *token.Token) error {
+	if _, err := b.Create(token); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (b *BinaryOpFactory) Create(token *token.Token) (BinaryOp, error) {
+	if err := NewSymbol(token).CheckSymbol(); err != nil {
+		return nil, err
+	}
+
+	switch token.Value {
+	case ConstPlus.Value:
+		return ConstPlus, nil
+	case ConstMinus.Value:
+		return ConstMinus, nil
+	case ConstAsterisk.Value:
+		return ConstAsterisk, nil
+	case ConstSlash.Value:
+		return ConstSlash, nil
+	case ConstAmpersand.Value:
+		return ConstAmpersand, nil
+	case ConstVerticalLine.Value:
+		return ConstVerticalLine, nil
+	case ConstLessThan.Value:
+		return ConstLessThan, nil
+	case ConstGreaterThan.Value:
+		return ConstGreaterThan, nil
+	case ConstEquals.Value:
+		return ConstEquals, nil
+	default:
+		message := fmt.Sprintf("error create BinaryOp: got = %s", token.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+type Plus struct {
+	*Symbol
+}
+
+var ConstPlus = &Plus{
+	Symbol: NewSymbolByValue("+"),
+}
+
+func (p *Plus) OpType() BinaryOpType {
+	return PlusType
+}
+
+type Minus struct {
+	*Symbol
+}
+
+var ConstMinus = &Minus{
+	Symbol: NewSymbolByValue("-"),
+}
+
+func (m *Minus) OpType() BinaryOpType {
+	return MinusType
+}
+
+type Asterisk struct {
+	*Symbol
+}
+
+var ConstAsterisk = &Asterisk{
+	Symbol: NewSymbolByValue("*"),
+}
+
+func (a *Asterisk) OpType() BinaryOpType {
+	return AsteriskType
+}
+
+type Slash struct {
+	*Symbol
+}
+
+var ConstSlash = &Slash{
+	Symbol: NewSymbolByValue("/"),
+}
+
+func (s *Slash) OpType() BinaryOpType {
+	return SlashType
+}
+
+type Ampersand struct {
+	*Symbol
+}
+
+var ConstAmpersand = &Ampersand{
+	Symbol: NewSymbolByValue("&"),
+}
+
+func (a *Ampersand) OpType() BinaryOpType {
+	return AmpersandType
+}
+
+type VerticalLine struct {
+	*Symbol
+}
+
+var ConstVerticalLine = &VerticalLine{
+	Symbol: NewSymbolByValue("|"),
+}
+
+func (v *VerticalLine) OpType() BinaryOpType {
+	return VerticalLineType
+}
+
+type LessThan struct {
+	*Symbol
+}
+
+var ConstLessThan = &LessThan{
+	Symbol: NewSymbolByValue("<"),
+}
+
+func (l *LessThan) OpType() BinaryOpType {
+	return LessThanType
+}
+
+type GreaterThan struct {
+	*Symbol
+}
+
+var ConstGreaterThan = &GreaterThan{
+	Symbol: NewSymbolByValue(">"),
+}
+
+func (g *GreaterThan) OpType() BinaryOpType {
+	return GreaterThanType
+}
+
+type Equals struct {
+	*Symbol
+}
+
+var ConstEquals = &Equals{
+	Symbol: NewSymbolByValue("="),
+}
+
+func (e *Equals) OpType() BinaryOpType {
+	return EqualsType
+}
+
+type BinaryOp interface {
+	OpType() BinaryOpType
+	ToXML() string
+}
+
+type BinaryOpType int
+
+const (
+	_ BinaryOpType = iota
+	PlusType
+	MinusType
+	AsteriskType
+	SlashType
+	AmpersandType
+	VerticalLineType
+	LessThanType
+	GreaterThanType
+	EqualsType
+)
 
 type UnaryOpTerm struct {
 	UnaryOp
@@ -281,7 +511,7 @@ func (u *UnaryOpTerm) TermType() TermType {
 func (u *UnaryOpTerm) ToXML() []string {
 	result := []string{}
 	result = append(result, u.UnaryOp.ToXML())
-	result = append(result, u.Term.ToXML()...)
+	result = append(result, ConstTermXMLConverter.ToTermXML(u.Term.ToXML()...)...)
 	return result
 }
 
@@ -302,38 +532,38 @@ func (u *UnaryOpFactory) Create(token *token.Token) (UnaryOp, error) {
 	}
 
 	switch token.Value {
-	case ConstMinus.Value:
-		return ConstMinus, nil
-	case ConstTilde.Value:
-		return ConstTilde, nil
+	case ConstUnaryMinus.Value:
+		return ConstUnaryMinus, nil
+	case ConstUnaryTilde.Value:
+		return ConstUnaryTilde, nil
 	default:
 		message := fmt.Sprintf("error create UnaryOp: got = %s", token.Debug())
 		return nil, errors.New(message)
 	}
 }
 
-type Minus struct {
+type UnaryMinus struct {
 	*Symbol
 }
 
-var ConstMinus = &Minus{
+var ConstUnaryMinus = &UnaryMinus{
 	Symbol: NewSymbolByValue("-"),
 }
 
-func (m *Minus) OpType() UnaryOpType {
-	return MinusType
+func (m *UnaryMinus) OpType() UnaryOpType {
+	return UnaryMinusType
 }
 
-type Tilde struct {
+type UnaryTilde struct {
 	*Symbol
 }
 
-var ConstTilde = &Tilde{
+var ConstUnaryTilde = &UnaryTilde{
 	Symbol: NewSymbolByValue("~"),
 }
 
-func (t *Tilde) OpType() UnaryOpType {
-	return TildeType
+func (t *UnaryTilde) OpType() UnaryOpType {
+	return UnaryTildeType
 }
 
 type UnaryOp interface {
@@ -345,8 +575,8 @@ type UnaryOpType int
 
 const (
 	_ UnaryOpType = iota
-	MinusType
-	TildeType
+	UnaryMinusType
+	UnaryTildeType
 )
 
 var ConstKeywordConstantFactory = &KeywordConstantFactory{}
@@ -472,6 +702,18 @@ func (i *IntegerConstant) TermType() TermType {
 
 func (i *IntegerConstant) ToXML() []string {
 	return []string{i.Token.ToXML()}
+}
+
+var ConstTermXMLConverter = &TermXMLConverter{}
+
+type TermXMLConverter struct{}
+
+func (t *TermXMLConverter) ToTermXML(contents ...string) []string {
+	result := []string{}
+	result = append(result, "<term>")
+	result = append(result, contents...)
+	result = append(result, "</term>")
+	return result
 }
 
 type Term interface {

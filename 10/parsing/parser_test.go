@@ -228,7 +228,12 @@ func TestParserParseSubroutineDecs(t *testing.T) {
 						OpeningRoundBracket: ConstOpeningRoundBracket,
 						ClosingRoundBracket: ConstClosingRoundBracket,
 						ParameterList:       NewParameterList(),
-						SubroutineBody:      NewSubroutineBody(),
+						SubroutineBody: &SubroutineBody{
+							VarDecs:             NewVarDecs(),
+							Statements:          NewStatements(),
+							OpeningCurlyBracket: ConstOpeningCurlyBracket,
+							ClosingCurlyBracket: ConstClosingCurlyBracket,
+						},
 					},
 				},
 			},
@@ -269,7 +274,12 @@ func TestParserParseSubroutineDecs(t *testing.T) {
 								),
 							},
 						},
-						SubroutineBody: NewSubroutineBody(),
+						SubroutineBody: &SubroutineBody{
+							VarDecs:             NewVarDecs(),
+							Statements:          NewStatements(),
+							OpeningCurlyBracket: ConstOpeningCurlyBracket,
+							ClosingCurlyBracket: ConstClosingCurlyBracket,
+						},
 					},
 				},
 			},
@@ -395,10 +405,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				VarDecs: NewVarDecs(),
 				Statements: &Statements{
 					Items: []Statement{
-						&ReturnStatement{
-							StatementKeyword: NewStatementKeyword("return"),
-							Semicolon:        ConstSemicolon,
-						},
+						NewReturnStatement(),
 					},
 				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
@@ -437,10 +444,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				},
 				Statements: &Statements{
 					Items: []Statement{
-						&ReturnStatement{
-							StatementKeyword: NewStatementKeyword("return"),
-							Semicolon:        ConstSemicolon,
-						},
+						NewReturnStatement(),
 					},
 				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
@@ -488,10 +492,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 				},
 				Statements: &Statements{
 					Items: []Statement{
-						&ReturnStatement{
-							StatementKeyword: NewStatementKeyword("return"),
-							Semicolon:        ConstSemicolon,
-						},
+						NewReturnStatement(),
 					},
 				},
 				OpeningCurlyBracket: ConstOpeningCurlyBracket,
@@ -589,6 +590,76 @@ func TestParserParseVarDec(t *testing.T) {
 	}
 }
 
+func TestParserParseStatements(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *Statements
+	}{
+		{
+			desc: "Statementの定義がひとつもない",
+			tokens: []*token.Token{
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: NewStatements(),
+		},
+		{
+			desc: "Statementの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &Statements{
+				Items: []Statement{
+					NewReturnStatement(),
+				},
+			},
+		},
+		{
+			desc: "Statementの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &Statements{
+				Items: []Statement{
+					&ReturnStatement{
+						StatementKeyword: NewStatementKeyword("return"),
+						Expression: &Expression{
+							Term: NewVarNameByValue("foo"),
+						},
+						Semicolon: ConstSemicolon,
+					},
+					NewReturnStatement(),
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseStatements()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseStatement(t *testing.T) {
 	cases := []struct {
 		desc   string
@@ -601,10 +672,7 @@ func TestParserParseStatement(t *testing.T) {
 				token.NewToken("return", token.TokenKeyword),
 				token.NewToken(";", token.TokenSymbol),
 			},
-			want: &ReturnStatement{
-				StatementKeyword: NewStatementKeyword("return"),
-				Semicolon:        ConstSemicolon,
-			},
+			want: NewReturnStatement(),
 		},
 	}
 
@@ -636,6 +704,7 @@ func TestParserParseLetStatement(t *testing.T) {
 		{
 			desc: "VarNameの代入",
 			tokens: []*token.Token{
+				token.NewToken("let", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken("=", token.TokenSymbol),
 				token.NewToken("bar", token.TokenIdentifier),
@@ -654,6 +723,7 @@ func TestParserParseLetStatement(t *testing.T) {
 		{
 			desc: "KeywordConstantの代入",
 			tokens: []*token.Token{
+				token.NewToken("let", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken("=", token.TokenSymbol),
 				token.NewToken("true", token.TokenKeyword),
@@ -672,6 +742,7 @@ func TestParserParseLetStatement(t *testing.T) {
 		{
 			desc: "配列に対する代入",
 			tokens: []*token.Token{
+				token.NewToken("let", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken("[", token.TokenSymbol),
 				token.NewToken("index", token.TokenIdentifier),
@@ -718,6 +789,160 @@ func TestParserParseLetStatement(t *testing.T) {
 	}
 }
 
+func TestParserParseIfStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *IfStatement
+	}{
+		{
+			desc: "if句のみ",
+			tokens: []*token.Token{
+				token.NewToken("if", token.TokenKeyword),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &IfStatement{
+				StatementKeyword: NewStatementKeyword("if"),
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+		{
+			desc: "if-else句",
+			tokens: []*token.Token{
+				token.NewToken("if", token.TokenKeyword),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+				token.NewToken("else", token.TokenKeyword),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &IfStatement{
+				StatementKeyword: NewStatementKeyword("if"),
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				ElseBlock: &ElseBlock{
+					Keyword: NewKeywordByValue("else"),
+					Statements: &Statements{
+						Items: []Statement{
+							NewReturnStatement(),
+						},
+					},
+					OpeningCurlyBracket: ConstOpeningCurlyBracket,
+					ClosingCurlyBracket: ConstClosingCurlyBracket,
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseIfStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseWhileStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *WhileStatement
+	}{
+		{
+			desc: "単一のwhile定義",
+			tokens: []*token.Token{
+				token.NewToken("while", token.TokenKeyword),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &WhileStatement{
+				StatementKeyword: NewStatementKeyword("while"),
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseWhileStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseDoStatement(t *testing.T) {
 	cases := []struct {
 		desc   string
@@ -727,6 +952,7 @@ func TestParserParseDoStatement(t *testing.T) {
 		{
 			desc: "引数なしのサブルーチンの実行",
 			tokens: []*token.Token{
+				token.NewToken("do", token.TokenKeyword),
 				token.NewToken("max", token.TokenIdentifier),
 				token.NewToken("(", token.TokenSymbol),
 				token.NewToken(")", token.TokenSymbol),
@@ -749,6 +975,7 @@ func TestParserParseDoStatement(t *testing.T) {
 		{
 			desc: "引数ありのサブルーチンの実行",
 			tokens: []*token.Token{
+				token.NewToken("do", token.TokenKeyword),
 				token.NewToken("run", token.TokenIdentifier),
 				token.NewToken("(", token.TokenSymbol),
 				token.NewToken("foo", token.TokenIdentifier),
@@ -804,16 +1031,15 @@ func TestParserParseReturnStatement(t *testing.T) {
 		{
 			desc: "セミコロンのみ",
 			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
 				token.NewToken(";", token.TokenSymbol),
 			},
-			want: &ReturnStatement{
-				StatementKeyword: NewStatementKeyword("return"),
-				Semicolon:        ConstSemicolon,
-			},
+			want: NewReturnStatement(),
 		},
 		{
 			desc: "式とセミコロン",
 			tokens: []*token.Token{
+				token.NewToken("return", token.TokenKeyword),
 				token.NewToken("foo", token.TokenIdentifier),
 				token.NewToken(";", token.TokenSymbol),
 			},
@@ -834,6 +1060,53 @@ func TestParserParseReturnStatement(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseReturnStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseElseBlock(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ElseBlock
+	}{
+		{
+			desc: "else句",
+			tokens: []*token.Token{
+				token.NewToken("else", token.TokenKeyword),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &ElseBlock{
+				Keyword: NewKeywordByValue("else"),
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseElseBlock()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
@@ -1065,6 +1338,134 @@ func TestParserParseExpressionList(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseExpressionList()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseExpression(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *Expression
+	}{
+		{
+			desc: "Termの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &Expression{
+				Term: NewVarNameByValue("foo"),
+			},
+		},
+		{
+			desc: "Termの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &Expression{
+				Term: NewVarNameByValue("foo"),
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstVerticalLine,
+							Term:     NewVarNameByValue("bar"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseExpression()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseBinaryOpTerms(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *BinaryOpTerms
+	}{
+		{
+			desc: "BinaryOpTermの定義がひとつ",
+			tokens: []*token.Token{
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &BinaryOpTerms{
+				Items: []*BinaryOpTerm{
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("foo"),
+					},
+				},
+			},
+		},
+		{
+			desc: "BinaryOpTermの定義が複数",
+			tokens: []*token.Token{
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("foo", token.TokenIdentifier),
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("bar", token.TokenIdentifier),
+				token.NewToken("|", token.TokenSymbol),
+				token.NewToken("baz", token.TokenIdentifier),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &BinaryOpTerms{
+				Items: []*BinaryOpTerm{
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("foo"),
+					},
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("bar"),
+					},
+					&BinaryOpTerm{
+						BinaryOp: ConstVerticalLine,
+						Term:     NewVarNameByValue("baz"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseBinaryOpTerms()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
@@ -1405,7 +1806,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstMinus,
+				UnaryOp: ConstUnaryMinus,
 				Term:    NewVarNameByValue("foo"),
 			},
 		},
@@ -1416,7 +1817,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 				token.NewToken("123", token.TokenIntConst),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstTilde,
+				UnaryOp: ConstUnaryTilde,
 				Term: &IntegerConstant{
 					Token: token.NewToken("123", token.TokenIntConst),
 				},
@@ -1472,7 +1873,7 @@ func TestParserParseUnaryOpTerm(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstMinus,
+				UnaryOp: ConstUnaryMinus,
 				Term:    NewVarNameByValue("foo"),
 			},
 		},
@@ -1483,7 +1884,7 @@ func TestParserParseUnaryOpTerm(t *testing.T) {
 				token.NewToken("123", token.TokenIntConst),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstTilde,
+				UnaryOp: ConstUnaryTilde,
 				Term: &IntegerConstant{
 					Token: token.NewToken("123", token.TokenIntConst),
 				},

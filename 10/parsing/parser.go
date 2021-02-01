@@ -217,13 +217,11 @@ func (p *Parser) parseSubroutineBody() (*SubroutineBody, error) {
 	}
 
 	// statementsのパース
-	for subroutineBody.IsStatementKeyword(p.readFirstToken()) {
-		statement, err := p.parseStatement()
-		if err != nil {
-			return nil, err
-		}
-		subroutineBody.AddStatement(statement)
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
 	}
+	subroutineBody.SetStatements(statements)
 
 	closingCurlyBracket := p.advanceToken()
 	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
@@ -268,17 +266,31 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 	return varDec, nil
 }
 
+func (p *Parser) parseStatements() (*Statements, error) {
+	statements := NewStatements()
+
+	for statements.IsStatementKeyword(p.readFirstToken()) {
+		statement, err := p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+		statements.AddStatement(statement)
+	}
+
+	return statements, nil
+}
+
 func (p *Parser) parseStatement() (Statement, error) {
-	keyword := p.advanceToken()
+	keyword := p.readFirstToken()
 	switch keyword.Value {
 	case "let":
-		return p.parseNotImplementedStatement()
+		return p.parseLetStatement()
 	case "if":
-		return p.parseNotImplementedStatement()
+		return p.parseIfStatement()
 	case "while":
-		return p.parseNotImplementedStatement()
+		return p.parseWhileStatement()
 	case "do":
-		return p.parseNotImplementedStatement()
+		return p.parseDoStatement()
 	case "return":
 		return p.parseReturnStatement()
 	default:
@@ -290,6 +302,11 @@ func (p *Parser) parseStatement() (Statement, error) {
 // (let) varName ('[' expression ']')? '=' expression ';'
 func (p *Parser) parseLetStatement() (Statement, error) {
 	letStatement := NewLetStatement()
+
+	keyword := p.advanceToken()
+	if err := letStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
 
 	second := p.readSecondToken()
 	if ConstOpeningSquareBracket.IsCheck(second) {
@@ -324,9 +341,111 @@ func (p *Parser) parseLetStatement() (Statement, error) {
 	return letStatement, nil
 }
 
+// if '(' expression ')' '{' statements '}' ( else '{' statements '}' )?
+func (p *Parser) parseIfStatement() (Statement, error) {
+	ifStatement := NewIfStatement()
+
+	keyword := p.advanceToken()
+	if err := ifStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
+
+	openingRoundBracket := p.advanceToken()
+	if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	expression, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	ifStatement.SetExpression(expression)
+
+	closingRoundBracket := p.advanceToken()
+	if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
+	}
+	ifStatement.SetStatements(statements)
+
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	// else句が存在するかチェックする
+	if NewKeyword(p.readFirstToken()).Check("else") == nil {
+		elseBlock, err := p.parseElseBlock()
+		if err != nil {
+			return nil, err
+		}
+		ifStatement.SetElseBlock(elseBlock)
+	}
+
+	return ifStatement, nil
+}
+
+// while '(' expression ')' '{' statements '}'
+func (p *Parser) parseWhileStatement() (Statement, error) {
+	whileStatement := NewWhileStatement()
+
+	keyword := p.advanceToken()
+	if err := whileStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
+
+	openingRoundBracket := p.advanceToken()
+	if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	expression, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	whileStatement.SetExpression(expression)
+
+	closingRoundBracket := p.advanceToken()
+	if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
+	}
+	whileStatement.SetStatements(statements)
+
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	return whileStatement, nil
+}
+
 // (do) subroutineCall ';'
 func (p *Parser) parseDoStatement() (Statement, error) {
 	doStatement := NewDoStatement()
+
+	keyword := p.advanceToken()
+	if err := doStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
 
 	subroutineCall, err := p.parseSubroutineCall()
 	if err != nil {
@@ -342,9 +461,14 @@ func (p *Parser) parseDoStatement() (Statement, error) {
 	return doStatement, nil
 }
 
-// (return) expression? ';'
+// return expression? ';'
 func (p *Parser) parseReturnStatement() (Statement, error) {
 	returnStatement := NewReturnStatement()
+
+	keyword := p.advanceToken()
+	if err := returnStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
 
 	if !ConstSemicolon.IsCheck(p.readFirstToken()) {
 		expression, err := p.parseExpression()
@@ -360,6 +484,34 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	}
 
 	return returnStatement, nil
+}
+
+// else '{' statements '}'
+func (p *Parser) parseElseBlock() (*ElseBlock, error) {
+	elseBlock := NewElseBlock()
+
+	keyword := p.advanceToken()
+	if err := elseBlock.CheckElseKeyword(keyword); err != nil {
+		return nil, err
+	}
+
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
+	}
+	elseBlock.SetStatements(statements)
+
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	return elseBlock, nil
 }
 
 // subroutineName '(' expressionList ')'
@@ -444,14 +596,44 @@ func (p *Parser) parseExpressionList() (*ExpressionList, error) {
 	return expressionList, nil
 }
 
-// TODO (op term)* を実装する
 // term (op term)*
 func (p *Parser) parseExpression() (*Expression, error) {
 	term, err := p.parseTerm()
 	if err != nil {
 		return nil, err
 	}
-	return NewExpression(term), nil
+	expression := NewExpression(term)
+
+	if err := ConstBinaryOpFactory.Check(p.readFirstToken()); err == nil {
+		binaryOpTerms, err := p.parseBinaryOpTerms()
+		if err != nil {
+			return nil, err
+		}
+		expression.SetBinaryOpTerms(binaryOpTerms)
+	}
+
+	return expression, nil
+}
+
+// (op term)*
+func (p *Parser) parseBinaryOpTerms() (*BinaryOpTerms, error) {
+	binaryOpTerms := NewBinaryOpTerms()
+	for ConstBinaryOpFactory.IsCheck(p.readFirstToken()) {
+		binaryOp, err := ConstBinaryOpFactory.Create(p.advanceToken())
+		if err != nil {
+			return nil, err
+		}
+
+		term, err := p.parseTerm()
+		if err != nil {
+			return nil, err
+		}
+
+		binaryOpTerm := NewBinaryOpTerm(binaryOp, term)
+		binaryOpTerms.Add(binaryOpTerm)
+	}
+
+	return binaryOpTerms, nil
 }
 
 // integerConstant | stringConstant | keywordConstant |
@@ -519,7 +701,7 @@ func (p *Parser) parseSymbolTerm() (Term, error) {
 	op := p.readFirstToken()
 
 	switch op.Value {
-	case ConstMinus.Value, ConstTilde.Value:
+	case ConstUnaryMinus.Value, ConstUnaryTilde.Value:
 		return p.parseUnaryOpTerm()
 	case ConstOpeningRoundBracket.Value:
 		return p.parseGroupingExpression()
@@ -589,20 +771,4 @@ func (p *Parser) parseArray() (*Array, error) {
 	}
 
 	return array, nil
-}
-
-func (p *Parser) parseNotImplementedStatement() (Statement, error) {
-	//p.readFirstToken()
-	//fmt.Println(p.tokens.Debug())
-	//fmt.Println(p.readFirstToken().Debug())
-
-	// TODO parseStatementの実装が完了するまで辻褄をあわせる
-	for {
-		switch p.readFirstToken().Value {
-		case "let", "if", "while", "do", "return":
-			return p.parseStatement()
-		default:
-			p.advanceToken()
-		}
-	}
 }
