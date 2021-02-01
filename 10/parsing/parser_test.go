@@ -789,6 +789,105 @@ func TestParserParseLetStatement(t *testing.T) {
 	}
 }
 
+func TestParserParseIfStatement(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *IfStatement
+	}{
+		{
+			desc: "if句のみ",
+			tokens: []*token.Token{
+				token.NewToken("if", token.TokenKeyword),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &IfStatement{
+				StatementKeyword: NewStatementKeyword("if"),
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+		{
+			desc: "if-else句",
+			tokens: []*token.Token{
+				token.NewToken("if", token.TokenKeyword),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("true", token.TokenKeyword),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+				token.NewToken("else", token.TokenKeyword),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &IfStatement{
+				StatementKeyword: NewStatementKeyword("if"),
+				Expression: &Expression{
+					Term: ConstTrue,
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				ElseBlock: &ElseBlock{
+					Keyword: NewKeywordByValue("else"),
+					Statements: &Statements{
+						Items: []Statement{
+							NewReturnStatement(),
+						},
+					},
+					OpeningCurlyBracket: ConstOpeningCurlyBracket,
+					ClosingCurlyBracket: ConstClosingCurlyBracket,
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseIfStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestParserParseWhileStatement(t *testing.T) {
 	cases := []struct {
 		desc   string
@@ -961,6 +1060,53 @@ func TestParserParseReturnStatement(t *testing.T) {
 
 			parser := NewParser(tokens)
 			got, err := parser.parseReturnStatement()
+
+			if err != nil {
+				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestParserParseElseBlock(t *testing.T) {
+	cases := []struct {
+		desc   string
+		tokens []*token.Token
+		want   *ElseBlock
+	}{
+		{
+			desc: "else句",
+			tokens: []*token.Token{
+				token.NewToken("else", token.TokenKeyword),
+				token.NewToken("{", token.TokenSymbol),
+				token.NewToken("return", token.TokenKeyword),
+				token.NewToken(";", token.TokenSymbol),
+				token.NewToken("}", token.TokenSymbol),
+			},
+			want: &ElseBlock{
+				Keyword: NewKeywordByValue("else"),
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				OpeningCurlyBracket: ConstOpeningCurlyBracket,
+				ClosingCurlyBracket: ConstClosingCurlyBracket,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens := token.NewTokens()
+			tokens.Add(tc.tokens)
+
+			parser := NewParser(tokens)
+			got, err := parser.parseElseBlock()
 
 			if err != nil {
 				t.Fatalf("failed %s: %+v", tc.desc, errors.WithMessage(err, parser.tokens.Debug()))

@@ -341,6 +341,59 @@ func (p *Parser) parseLetStatement() (Statement, error) {
 	return letStatement, nil
 }
 
+// if '(' expression ')' '{' statements '}' ( else '{' statements '}' )?
+func (p *Parser) parseIfStatement() (Statement, error) {
+	ifStatement := NewIfStatement()
+
+	keyword := p.advanceToken()
+	if err := ifStatement.CheckKeyword(keyword); err != nil {
+		return nil, err
+	}
+
+	openingRoundBracket := p.advanceToken()
+	if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	expression, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	ifStatement.SetExpression(expression)
+
+	closingRoundBracket := p.advanceToken()
+	if err := ConstClosingRoundBracket.Check(closingRoundBracket); err != nil {
+		return nil, err
+	}
+
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
+	}
+	ifStatement.SetStatements(statements)
+
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	// else句が存在するかチェックする
+	if NewKeyword(p.readFirstToken()).Check("else") == nil {
+		elseBlock, err := p.parseElseBlock()
+		if err != nil {
+			return nil, err
+		}
+		ifStatement.SetElseBlock(elseBlock)
+	}
+
+	return ifStatement, nil
+}
+
 // while '(' expression ')' '{' statements '}'
 func (p *Parser) parseWhileStatement() (Statement, error) {
 	whileStatement := NewWhileStatement()
@@ -431,6 +484,34 @@ func (p *Parser) parseReturnStatement() (Statement, error) {
 	}
 
 	return returnStatement, nil
+}
+
+// else '{' statements '}'
+func (p *Parser) parseElseBlock() (*ElseBlock, error) {
+	elseBlock := NewElseBlock()
+
+	keyword := p.advanceToken()
+	if err := elseBlock.CheckElseKeyword(keyword); err != nil {
+		return nil, err
+	}
+
+	openingCurlyBracket := p.advanceToken()
+	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
+	}
+	elseBlock.SetStatements(statements)
+
+	closingCurlyBracket := p.advanceToken()
+	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
+		return nil, err
+	}
+
+	return elseBlock, nil
 }
 
 // subroutineName '(' expressionList ')'
