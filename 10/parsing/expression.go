@@ -259,6 +259,55 @@ func NewExpression(term Term) *Expression {
 	}
 }
 
+var ConstBinaryOpFactory = &BinaryOpFactory{}
+
+type BinaryOpFactory struct{}
+
+func (b *BinaryOpFactory) Check(token *token.Token) error {
+	if _, err := b.Create(token); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (b *BinaryOpFactory) Create(token *token.Token) (BinaryOp, error) {
+	if err := NewSymbol(token).CheckSymbol(); err != nil {
+		return nil, err
+	}
+
+	switch token.Value {
+	case ConstVerticalLine.Value:
+		return ConstVerticalLine, nil
+	default:
+		message := fmt.Sprintf("error create BinaryOp: got = %s", token.Debug())
+		return nil, errors.New(message)
+	}
+}
+
+type VerticalLine struct {
+	*Symbol
+}
+
+var ConstVerticalLine = &VerticalLine{
+	Symbol: NewSymbolByValue("|"),
+}
+
+func (v *VerticalLine) OpType() BinaryOpType {
+	return VerticalLineType
+}
+
+type BinaryOp interface {
+	OpType() BinaryOpType
+	ToXML() string
+}
+
+type BinaryOpType int
+
+const (
+	_ BinaryOpType = iota
+	VerticalLineType
+)
+
 type UnaryOpTerm struct {
 	UnaryOp
 	Term
