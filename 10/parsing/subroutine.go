@@ -130,10 +130,13 @@ type SubroutineBody struct {
 func NewSubroutineBody() *SubroutineBody {
 	return &SubroutineBody{
 		VarDecs:             NewVarDecs(),
-		Statements:          NewStatements(),
 		OpeningCurlyBracket: ConstOpeningCurlyBracket,
 		ClosingCurlyBracket: ConstClosingCurlyBracket,
 	}
+}
+
+func (s *SubroutineBody) SetStatements(statements *Statements) {
+	s.Statements = statements
 }
 
 func (s *SubroutineBody) ToXML() []string {

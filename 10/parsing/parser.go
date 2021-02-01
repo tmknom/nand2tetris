@@ -217,13 +217,11 @@ func (p *Parser) parseSubroutineBody() (*SubroutineBody, error) {
 	}
 
 	// statementsのパース
-	for subroutineBody.IsStatementKeyword(p.readFirstToken()) {
-		statement, err := p.parseStatement()
-		if err != nil {
-			return nil, err
-		}
-		subroutineBody.AddStatement(statement)
+	statements, err := p.parseStatements()
+	if err != nil {
+		return nil, err
 	}
+	subroutineBody.SetStatements(statements)
 
 	closingCurlyBracket := p.advanceToken()
 	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
@@ -266,6 +264,20 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 	}
 
 	return varDec, nil
+}
+
+func (p *Parser) parseStatements() (*Statements, error) {
+	statements := NewStatements()
+
+	for statements.IsStatementKeyword(p.readFirstToken()) {
+		statement, err := p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+		statements.AddStatement(statement)
+	}
+
+	return statements, nil
 }
 
 func (p *Parser) parseStatement() (Statement, error) {
