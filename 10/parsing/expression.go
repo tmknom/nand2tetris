@@ -259,6 +259,36 @@ func NewExpression(term Term) *Expression {
 	}
 }
 
+type BinaryOpTerms struct {
+	Items []*BinaryOpTerm
+}
+
+func NewBinaryOpTerms(term Term) *BinaryOpTerms {
+	return &BinaryOpTerms{
+		Items: []*BinaryOpTerm{},
+	}
+}
+
+func (b *BinaryOpTerms) ToXML() []string {
+	result := []string{}
+	for _, binaryTerm := range b.Items {
+		result = append(result, binaryTerm.ToXML()...)
+	}
+	return result
+}
+
+type BinaryOpTerm struct {
+	BinaryOp
+	Term
+}
+
+func (b *BinaryOpTerm) ToXML() []string {
+	result := []string{}
+	result = append(result, b.BinaryOp.ToXML())
+	result = append(result, b.Term.ToXML()...)
+	return result
+}
+
 var ConstBinaryOpFactory = &BinaryOpFactory{}
 
 type BinaryOpFactory struct{}
