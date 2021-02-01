@@ -284,13 +284,13 @@ func (p *Parser) parseStatement() (Statement, error) {
 	keyword := p.readFirstToken()
 	switch keyword.Value {
 	case "let":
-		return p.parseNotImplementedStatement()
+		return p.parseLetStatement()
 	case "if":
-		return p.parseNotImplementedStatement()
+		return p.parseIfStatement()
 	case "while":
-		return p.parseNotImplementedStatement()
+		return p.parseWhileStatement()
 	case "do":
-		return p.parseNotImplementedStatement()
+		return p.parseDoStatement()
 	case "return":
 		return p.parseReturnStatement()
 	default:
@@ -771,21 +771,4 @@ func (p *Parser) parseArray() (*Array, error) {
 	}
 
 	return array, nil
-}
-
-func (p *Parser) parseNotImplementedStatement() (Statement, error) {
-	//p.readFirstToken()
-	//fmt.Println(p.tokens.Debug())
-	//fmt.Println(p.readFirstToken().Debug())
-
-	// TODO parseStatementの実装が完了するまで辻褄をあわせる
-	p.advanceToken()
-	for {
-		switch p.readFirstToken().Value {
-		case "let", "if", "while", "do", "return":
-			return p.parseStatement()
-		default:
-			p.advanceToken()
-		}
-	}
 }
