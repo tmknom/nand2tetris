@@ -337,12 +337,88 @@ func (b *BinaryOpFactory) Create(token *token.Token) (BinaryOp, error) {
 	}
 
 	switch token.Value {
+	case ConstPlus.Value:
+		return ConstPlus, nil
+	case ConstMinus.Value:
+		return ConstMinus, nil
+	case ConstAsterisk.Value:
+		return ConstAsterisk, nil
+	case ConstSlash.Value:
+		return ConstSlash, nil
+	case ConstAmpersand.Value:
+		return ConstAmpersand, nil
 	case ConstVerticalLine.Value:
 		return ConstVerticalLine, nil
+	case ConstLessThan.Value:
+		return ConstLessThan, nil
+	case ConstGreaterThan.Value:
+		return ConstGreaterThan, nil
+	case ConstEquals.Value:
+		return ConstEquals, nil
 	default:
 		message := fmt.Sprintf("error create BinaryOp: got = %s", token.Debug())
 		return nil, errors.New(message)
 	}
+}
+
+type Plus struct {
+	*Symbol
+}
+
+var ConstPlus = &Plus{
+	Symbol: NewSymbolByValue("+"),
+}
+
+func (p *Plus) OpType() BinaryOpType {
+	return PlusType
+}
+
+type Minus struct {
+	*Symbol
+}
+
+var ConstMinus = &Minus{
+	Symbol: NewSymbolByValue("-"),
+}
+
+func (m *Minus) OpType() BinaryOpType {
+	return MinusType
+}
+
+type Asterisk struct {
+	*Symbol
+}
+
+var ConstAsterisk = &Asterisk{
+	Symbol: NewSymbolByValue("*"),
+}
+
+func (a *Asterisk) OpType() BinaryOpType {
+	return AsteriskType
+}
+
+type Slash struct {
+	*Symbol
+}
+
+var ConstSlash = &Slash{
+	Symbol: NewSymbolByValue("/"),
+}
+
+func (s *Slash) OpType() BinaryOpType {
+	return SlashType
+}
+
+type Ampersand struct {
+	*Symbol
+}
+
+var ConstAmpersand = &Ampersand{
+	Symbol: NewSymbolByValue("&"),
+}
+
+func (a *Ampersand) OpType() BinaryOpType {
+	return AmpersandType
 }
 
 type VerticalLine struct {
@@ -357,6 +433,42 @@ func (v *VerticalLine) OpType() BinaryOpType {
 	return VerticalLineType
 }
 
+type LessThan struct {
+	*Symbol
+}
+
+var ConstLessThan = &LessThan{
+	Symbol: NewSymbolByValue("<"),
+}
+
+func (l *LessThan) OpType() BinaryOpType {
+	return LessThanType
+}
+
+type GreaterThan struct {
+	*Symbol
+}
+
+var ConstGreaterThan = &GreaterThan{
+	Symbol: NewSymbolByValue(">"),
+}
+
+func (g *GreaterThan) OpType() BinaryOpType {
+	return GreaterThanType
+}
+
+type Equals struct {
+	*Symbol
+}
+
+var ConstEquals = &Equals{
+	Symbol: NewSymbolByValue("="),
+}
+
+func (e *Equals) OpType() BinaryOpType {
+	return EqualsType
+}
+
 type BinaryOp interface {
 	OpType() BinaryOpType
 	ToXML() string
@@ -366,7 +478,15 @@ type BinaryOpType int
 
 const (
 	_ BinaryOpType = iota
+	PlusType
+	MinusType
+	AsteriskType
+	SlashType
+	AmpersandType
 	VerticalLineType
+	LessThanType
+	GreaterThanType
+	EqualsType
 )
 
 type UnaryOpTerm struct {
