@@ -412,38 +412,38 @@ func (u *UnaryOpFactory) Create(token *token.Token) (UnaryOp, error) {
 	}
 
 	switch token.Value {
-	case ConstMinus.Value:
-		return ConstMinus, nil
-	case ConstTilde.Value:
-		return ConstTilde, nil
+	case ConstUnaryMinus.Value:
+		return ConstUnaryMinus, nil
+	case ConstUnaryTilde.Value:
+		return ConstUnaryTilde, nil
 	default:
 		message := fmt.Sprintf("error create UnaryOp: got = %s", token.Debug())
 		return nil, errors.New(message)
 	}
 }
 
-type Minus struct {
+type UnaryMinus struct {
 	*Symbol
 }
 
-var ConstMinus = &Minus{
+var ConstUnaryMinus = &UnaryMinus{
 	Symbol: NewSymbolByValue("-"),
 }
 
-func (m *Minus) OpType() UnaryOpType {
-	return MinusType
+func (m *UnaryMinus) OpType() UnaryOpType {
+	return UnaryMinusType
 }
 
-type Tilde struct {
+type UnaryTilde struct {
 	*Symbol
 }
 
-var ConstTilde = &Tilde{
+var ConstUnaryTilde = &UnaryTilde{
 	Symbol: NewSymbolByValue("~"),
 }
 
-func (t *Tilde) OpType() UnaryOpType {
-	return TildeType
+func (t *UnaryTilde) OpType() UnaryOpType {
+	return UnaryTildeType
 }
 
 type UnaryOp interface {
@@ -455,8 +455,8 @@ type UnaryOpType int
 
 const (
 	_ UnaryOpType = iota
-	MinusType
-	TildeType
+	UnaryMinusType
+	UnaryTildeType
 )
 
 var ConstKeywordConstantFactory = &KeywordConstantFactory{}

@@ -701,7 +701,7 @@ func (p *Parser) parseSymbolTerm() (Term, error) {
 	op := p.readFirstToken()
 
 	switch op.Value {
-	case ConstMinus.Value, ConstTilde.Value:
+	case ConstUnaryMinus.Value, ConstUnaryTilde.Value:
 		return p.parseUnaryOpTerm()
 	case ConstOpeningRoundBracket.Value:
 		return p.parseGroupingExpression()

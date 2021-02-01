@@ -1806,7 +1806,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstMinus,
+				UnaryOp: ConstUnaryMinus,
 				Term:    NewVarNameByValue("foo"),
 			},
 		},
@@ -1817,7 +1817,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 				token.NewToken("123", token.TokenIntConst),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstTilde,
+				UnaryOp: ConstUnaryTilde,
 				Term: &IntegerConstant{
 					Token: token.NewToken("123", token.TokenIntConst),
 				},
@@ -1873,7 +1873,7 @@ func TestParserParseUnaryOpTerm(t *testing.T) {
 				token.NewToken(";", token.TokenSymbol),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstMinus,
+				UnaryOp: ConstUnaryMinus,
 				Term:    NewVarNameByValue("foo"),
 			},
 		},
@@ -1884,7 +1884,7 @@ func TestParserParseUnaryOpTerm(t *testing.T) {
 				token.NewToken("123", token.TokenIntConst),
 			},
 			want: &UnaryOpTerm{
-				UnaryOp: ConstTilde,
+				UnaryOp: ConstUnaryTilde,
 				Term: &IntegerConstant{
 					Token: token.NewToken("123", token.TokenIntConst),
 				},
