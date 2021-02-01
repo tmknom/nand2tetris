@@ -251,12 +251,26 @@ func (a *Array) ToXML() []string {
 
 type Expression struct {
 	Term
+	*BinaryOpTerms
 }
 
 func NewExpression(term Term) *Expression {
 	return &Expression{
 		Term: term,
 	}
+}
+
+func (e *Expression) SetBinaryOpTerms(binaryOpTerms *BinaryOpTerms) {
+	e.BinaryOpTerms = binaryOpTerms
+}
+
+func (e *Expression) ToXML() []string {
+	result := []string{}
+	result = append(result, e.Term.ToXML()...)
+	if e.BinaryOpTerms != nil {
+		result = append(result, e.BinaryOpTerms.ToXML()...)
+	}
+	return result
 }
 
 type BinaryOpTerms struct {
