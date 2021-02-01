@@ -511,7 +511,7 @@ func (u *UnaryOpTerm) TermType() TermType {
 func (u *UnaryOpTerm) ToXML() []string {
 	result := []string{}
 	result = append(result, u.UnaryOp.ToXML())
-	result = append(result, u.Term.ToXML()...)
+	result = append(result, ConstTermXMLConverter.ToTermXML(u.Term.ToXML()...)...)
 	return result
 }
 
