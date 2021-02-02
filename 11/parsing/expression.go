@@ -651,7 +651,10 @@ func (u *UnaryOpTerm) ToXML() []string {
 }
 
 func (u *UnaryOpTerm) ToCode() []string {
-	return []string{"UnaryOpTerm_not_implemented"}
+	result := []string{}
+	result = append(result, u.Term.ToCode()...)
+	result = append(result, u.UnaryOp.ToCode()...)
+	return result
 }
 
 var ConstUnaryOpFactory = &UnaryOpFactory{}
@@ -695,6 +698,10 @@ func (m *UnaryMinus) OpType() UnaryOpType {
 	return UnaryMinusType
 }
 
+func (t *UnaryMinus) ToCode() []string {
+	return []string{"neg"}
+}
+
 type UnaryTilde struct {
 	*Symbol
 }
@@ -709,9 +716,14 @@ func (t *UnaryTilde) OpType() UnaryOpType {
 	return UnaryTildeType
 }
 
+func (t *UnaryTilde) ToCode() []string {
+	return []string{"not"}
+}
+
 type UnaryOp interface {
 	OpType() UnaryOpType
 	ToXML() string
+	ToCode() []string
 }
 
 type UnaryOpType int

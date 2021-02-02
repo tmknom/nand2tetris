@@ -81,8 +81,6 @@ func TestExpressionToCode(t *testing.T) {
 										},
 									},
 								},
-								OpeningRoundBracket: ConstOpeningRoundBracket,
-								ClosingRoundBracket: ConstClosingRoundBracket,
 							},
 						},
 					},
@@ -94,6 +92,46 @@ func TestExpressionToCode(t *testing.T) {
 				"push constant 3",
 				"call Math.multiply 2",
 				"add",
+			},
+		},
+		{
+			desc: "UnaryMinusの演算を含む: -123",
+			expression: &Expression{
+				Term: &UnaryOpTerm{
+					UnaryOp: ConstUnaryMinus,
+					Term:    NewIntegerConstantByValue("123"),
+				},
+			},
+			want: []string{
+				"push constant 123",
+				"neg",
+			},
+		},
+		{
+			desc: "UnaryTildeの演算を含む: ~(2 - 3)",
+			expression: &Expression{
+				Term: &UnaryOpTerm{
+					UnaryOp: ConstUnaryTilde,
+					Term: &GroupingExpression{
+						Expression: &Expression{
+							Term: NewIntegerConstantByValue("2"),
+							BinaryOpTerms: &BinaryOpTerms{
+								Items: []*BinaryOpTerm{
+									&BinaryOpTerm{
+										BinaryOp: ConstMinus,
+										Term:     NewIntegerConstantByValue("3"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 2",
+				"push constant 3",
+				"sub",
+				"not",
 			},
 		},
 	}
