@@ -156,7 +156,7 @@ func (v *VarName) ToXML() []string {
 }
 
 func (v *VarName) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"VarName_not_implemented"}
 }
 
 type Keyword struct {

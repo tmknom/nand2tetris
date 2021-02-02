@@ -41,7 +41,7 @@ func (s *SubroutineCall) ToXML() []string {
 }
 
 func (s *SubroutineCall) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"SubroutineCall_not_implemented"}
 }
 
 func (s *SubroutineCall) Debug() string {
@@ -217,7 +217,7 @@ func (g *GroupingExpression) ToXML() []string {
 }
 
 func (g *GroupingExpression) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"GroupingExpression_not_implemented"}
 }
 
 // varName '[' expression ']'
@@ -264,7 +264,7 @@ func (a *Array) ToXML() []string {
 }
 
 func (a *Array) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"Array_not_implemented"}
 }
 
 type Expression struct {
@@ -615,7 +615,7 @@ func (u *UnaryOpTerm) ToXML() []string {
 }
 
 func (u *UnaryOpTerm) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"UnaryOpTerm_not_implemented"}
 }
 
 var ConstUnaryOpFactory = &UnaryOpFactory{}
@@ -734,7 +734,7 @@ func (k *KeywordConstant) ToXML() []string {
 }
 
 func (k *KeywordConstant) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"KeywordConstant_not_implemented"}
 }
 
 type TrueKeywordConstant struct {
@@ -794,7 +794,7 @@ func (s *StringConstant) ToXML() []string {
 }
 
 func (s *StringConstant) ToCode() []string {
-	return []string{"Not implemented"}
+	return []string{"StringConstant_not_implemented"}
 }
 
 type IntegerConstant struct {
