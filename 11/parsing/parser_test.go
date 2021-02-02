@@ -70,7 +70,7 @@ func TestParserParseClass(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseClass()
 
 			if err != nil {
@@ -181,7 +181,7 @@ func TestParserParseClassVarDecs(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseClassVarDecs()
 
 			if err != nil {
@@ -291,7 +291,7 @@ func TestParserParseSubroutineDecs(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseSubroutineDecs()
 
 			if err != nil {
@@ -372,7 +372,7 @@ func TestParserParseParameterList(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseParameterList()
 
 			if err != nil {
@@ -506,7 +506,7 @@ func TestParserParseSubroutineBody(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseSubroutineBody()
 
 			if err != nil {
@@ -576,7 +576,7 @@ func TestParserParseVarDec(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseVarDec()
 
 			if err != nil {
@@ -646,7 +646,7 @@ func TestParserParseStatements(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseStatements()
 
 			if err != nil {
@@ -681,7 +681,7 @@ func TestParserParseStatement(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseStatement()
 
 			if err != nil {
@@ -775,7 +775,7 @@ func TestParserParseLetStatement(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseLetStatement()
 
 			if err != nil {
@@ -874,7 +874,7 @@ func TestParserParseIfStatement(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseIfStatement()
 
 			if err != nil {
@@ -929,7 +929,7 @@ func TestParserParseWhileStatement(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseWhileStatement()
 
 			if err != nil {
@@ -1008,7 +1008,7 @@ func TestParserParseDoStatement(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseDoStatement()
 
 			if err != nil {
@@ -1058,7 +1058,7 @@ func TestParserParseReturnStatement(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseReturnStatement()
 
 			if err != nil {
@@ -1105,7 +1105,7 @@ func TestParserParseElseBlock(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseElseBlock()
 
 			if err != nil {
@@ -1186,7 +1186,7 @@ func TestParserParseSubroutineCall(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseSubroutineCall()
 
 			if err != nil {
@@ -1252,7 +1252,7 @@ func TestParserParseSubroutineCallName(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseSubroutineCallName()
 
 			if err != nil {
@@ -1336,7 +1336,7 @@ func TestParserParseExpressionList(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseExpressionList()
 
 			if err != nil {
@@ -1393,7 +1393,7 @@ func TestParserParseExpression(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseExpression()
 
 			if err != nil {
@@ -1464,7 +1464,7 @@ func TestParserParseBinaryOpTerms(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseBinaryOpTerms()
 
 			if err != nil {
@@ -1516,7 +1516,7 @@ func TestParserParseTerm(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseTerm()
 
 			if err != nil {
@@ -1552,7 +1552,7 @@ func TestParserParseIntegerConstant(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseIntegerConstant()
 
 			if err != nil {
@@ -1588,7 +1588,7 @@ func TestParserParseStringConstant(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseStringConstant()
 
 			if err != nil {
@@ -1643,7 +1643,7 @@ func TestParserParseKeywordConstant(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseKeywordConstant()
 
 			if err != nil {
@@ -1734,7 +1734,7 @@ func TestParserParseIdentifierTerm(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseIdentifierTerm()
 
 			if err != nil {
@@ -1778,7 +1778,7 @@ func TestParserParseArray(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseArray()
 
 			if err != nil {
@@ -1845,7 +1845,7 @@ func TestParserParseSymbolTerm(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseSymbolTerm()
 
 			if err != nil {
@@ -1897,7 +1897,7 @@ func TestParserParseUnaryOpTerm(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseUnaryOpTerm()
 
 			if err != nil {
@@ -1939,7 +1939,7 @@ func TestParserParseGroupingExpression(t *testing.T) {
 			tokens := token.NewTokens()
 			tokens.Add(tc.tokens)
 
-			parser := NewParser(tokens)
+			parser := NewParser(tokens, "Test")
 			got, err := parser.parseGroupingExpression()
 
 			if err != nil {

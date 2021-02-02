@@ -3,6 +3,7 @@ package io
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -16,6 +17,12 @@ type Src struct {
 
 func NewSrc(filename string) *Src {
 	return &Src{Filename: filename, isComment: false}
+}
+
+func (s *Src) ClassName() string {
+	split := strings.Split(s.Filename, "/")
+	filename := split[len(split)-1]
+	return filename[:len(filename)-len(filepath.Ext(filename))]
 }
 
 func (s *Src) Setup() error {

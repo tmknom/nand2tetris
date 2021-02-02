@@ -13,10 +13,10 @@ type Parser struct {
 	*symbol.SubroutineSymbolTable
 }
 
-func NewParser(tokens *token.Tokens) *Parser {
+func NewParser(tokens *token.Tokens, className string) *Parser {
 	return &Parser{
 		tokens:                tokens,
-		ClassSymbolTable:      symbol.NewClassSymbolTable(),
+		ClassSymbolTable:      symbol.NewClassSymbolTable(className),
 		SubroutineSymbolTable: symbol.NewSubroutineSymbolTable("Uninitialized"),
 	}
 }

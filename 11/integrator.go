@@ -38,7 +38,7 @@ func (i *Integrator) integrateFile(file string) error {
 	tokenizedXML := tokens.ToXML()
 
 	// トークンをパース
-	parser := parsing.NewParser(tokens)
+	parser := parsing.NewParser(tokens, src.ClassName())
 	class, err := parser.Parse()
 	if err != nil {
 		return err
