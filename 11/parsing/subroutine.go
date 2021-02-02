@@ -113,7 +113,7 @@ func (s *SubroutineDec) ToCode() []string {
 		classPrefix = fmt.Sprintf("%s.", s.ClassName.Value)
 	}
 	subroutineName := s.SubroutineName.Value
-	varCount := s.SubroutineBody.VarDecCount()
+	varCount := s.SubroutineBody.VarDecsLength()
 	code := fmt.Sprintf("function %s%s %d", classPrefix, subroutineName, varCount)
 	return []string{code}
 }
@@ -197,7 +197,7 @@ func (v *VarDecs) IsVarDecKeyword(token *token.Token) bool {
 	return token.Value == NewVarDec().Keyword.Value
 }
 
-func (v *VarDecs) VarDecCount() int {
+func (v *VarDecs) VarDecsLength() int {
 	return len(v.Items)
 }
 

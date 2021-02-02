@@ -5,6 +5,45 @@ import (
 	"testing"
 )
 
+func TestDoStatementToCode(t *testing.T) {
+	cases := []struct {
+		desc        string
+		doStatement *DoStatement
+		want        []string
+	}{
+		{
+			desc: "引数なしのサブルーチンの実行: do max();",
+			doStatement: &DoStatement{
+				StatementKeyword: NewStatementKeyword("do"),
+				SubroutineCall: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						Period:         ConstPeriod,
+						SubroutineName: NewSubroutineNameByValue("max"),
+					},
+					ExpressionList:      NewExpressionList(),
+					OpeningRoundBracket: ConstOpeningRoundBracket,
+					ClosingRoundBracket: ConstClosingRoundBracket,
+				},
+				Semicolon: ConstSemicolon,
+			},
+			want: []string{
+				"call max 0",
+				"pop temp 0",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got := tc.doStatement.ToCode()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestReturnStatementToCode(t *testing.T) {
 	cases := []struct {
 		desc            string
@@ -12,7 +51,7 @@ func TestReturnStatementToCode(t *testing.T) {
 		want            []string
 	}{
 		{
-			desc:            "値をなにも返さないreturn文",
+			desc:            "値をなにも返さないreturn文: return;",
 			returnStatement: NewReturnStatement(),
 			want: []string{
 				"push constant 0",
@@ -33,7 +72,7 @@ func TestReturnStatementToCode(t *testing.T) {
 			},
 		},
 		{
-			desc: "加算を伴うExpressionを返すreturn文",
+			desc: "加算を伴うExpressionを返すreturn文: return 2;",
 			returnStatement: &ReturnStatement{
 				StatementKeyword: NewStatementKeyword("return"),
 				Expression: &Expression{

@@ -41,7 +41,9 @@ func (s *SubroutineCall) ToXML() []string {
 }
 
 func (s *SubroutineCall) ToCode() []string {
-	return []string{"SubroutineCall_not_implemented"}
+	length := s.ExpressionListLength()
+	code := fmt.Sprintf("call %s %d", s.SubroutineCallName.ToCode(), length)
+	return []string{code}
 }
 
 func (s *SubroutineCall) Debug() string {
@@ -105,6 +107,15 @@ func (s *SubroutineCallName) ToXML() []string {
 	return result
 }
 
+func (s *SubroutineCallName) ToCode() string {
+	result := ""
+	if s.CallerName != nil {
+		result = fmt.Sprintf("%s.", s.CallerName.Value)
+	}
+	result += s.SubroutineName.Value
+	return result
+}
+
 func (s *SubroutineCallName) Debug(baseIndent int) string {
 	indent := baseIndent + 2
 	result := IndentSprintf(baseIndent, "&SubroutineCallName{")
@@ -151,6 +162,13 @@ func (e *ExpressionList) AddExpression(expression *Expression) {
 		return
 	}
 	e.CommaAndExpressions = append(e.CommaAndExpressions, NewCommaAndExpression(expression))
+}
+
+func (e *ExpressionList) ExpressionListLength() int {
+	if e.First == nil {
+		return 0
+	}
+	return 1 + len(e.CommaAndExpressions)
 }
 
 func (e *ExpressionList) ToXML() []string {

@@ -273,7 +273,10 @@ func (d *DoStatement) ToXML() []string {
 }
 
 func (d *DoStatement) ToCode() []string {
-	return []string{"DoStatement_not_implemented"}
+	result := []string{}
+	result = append(result, d.SubroutineCall.ToCode()...)
+	result = append(result, "pop temp 0") // doステートメントでは戻り値をpopする必要がある
+	return result
 }
 
 type ReturnStatement struct {
@@ -319,7 +322,7 @@ func (r *ReturnStatement) ToCode() []string {
 		result = append(result, r.Expression.ToCode()...)
 	}
 
-	result = append(result, "return")
+	result = append(result, r.StatementKeyword.Value)
 	return result
 }
 
