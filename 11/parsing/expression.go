@@ -217,7 +217,9 @@ func (g *GroupingExpression) ToXML() []string {
 }
 
 func (g *GroupingExpression) ToCode() []string {
-	return []string{"GroupingExpression_not_implemented"}
+	result := []string{}
+	result = append(result, g.Expression.ToCode()...)
+	return result
 }
 
 // varName '[' expression ']'
