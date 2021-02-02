@@ -2,6 +2,18 @@ package symbol
 
 import "fmt"
 
+type SymbolTables struct {
+	*ClassSymbolTable
+	*SubroutineSymbolTable
+}
+
+func NewSymbolTables(className string) *SymbolTables {
+	return &SymbolTables{
+		ClassSymbolTable:      NewClassSymbolTable(className),
+		SubroutineSymbolTable: NewSubroutineSymbolTable("Uninitialized"),
+	}
+}
+
 type SymbolTable struct {
 	Items     []*SymbolItem
 	Name      string

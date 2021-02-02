@@ -36,14 +36,22 @@ func NewClassScopeIndexer() *ClassScopeIndexer {
 	}
 }
 
-func (s *ClassScopeIndexer) fieldIndex() int {
-	result := s.FieldIndex
-	s.FieldIndex += 1
+func (c *ClassScopeIndexer) fieldIndex() int {
+	result := c.FieldIndex
+	c.FieldIndex += 1
 	return result
 }
 
-func (s *ClassScopeIndexer) staticIndex() int {
-	result := s.StaticIndex
-	s.StaticIndex += 1
+func (c *ClassScopeIndexer) staticIndex() int {
+	result := c.StaticIndex
+	c.StaticIndex += 1
 	return result
+}
+
+func (c *ClassScopeIndexer) FieldLength() int {
+	return c.FieldIndex
+}
+
+func (c *ClassScopeIndexer) StaticLength() int {
+	return c.StaticIndex
 }

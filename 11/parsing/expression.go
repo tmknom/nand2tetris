@@ -13,6 +13,8 @@ type SubroutineCall struct {
 	*ClosingRoundBracket
 }
 
+var _ Term = (*SubroutineCall)(nil)
+
 func NewSubroutineCall() *SubroutineCall {
 	return &SubroutineCall{
 		ExpressionList:      NewExpressionList(),
@@ -36,6 +38,12 @@ func (s *SubroutineCall) ToXML() []string {
 	result = append(result, s.ExpressionList.ToXML()...)
 	result = append(result, s.ClosingRoundBracket.ToXML())
 	return result
+}
+
+func (s *SubroutineCall) ToCode() []string {
+	length := s.ExpressionListLength()
+	code := fmt.Sprintf("call %s %d", s.SubroutineCallName.ToCode(), length)
+	return []string{code}
 }
 
 func (s *SubroutineCall) Debug() string {
@@ -99,6 +107,15 @@ func (s *SubroutineCallName) ToXML() []string {
 	return result
 }
 
+func (s *SubroutineCallName) ToCode() string {
+	result := ""
+	if s.CallerName != nil {
+		result = fmt.Sprintf("%s.", s.CallerName.Value)
+	}
+	result += s.SubroutineName.Value
+	return result
+}
+
 func (s *SubroutineCallName) Debug(baseIndent int) string {
 	indent := baseIndent + 2
 	result := IndentSprintf(baseIndent, "&SubroutineCallName{")
@@ -147,6 +164,13 @@ func (e *ExpressionList) AddExpression(expression *Expression) {
 	e.CommaAndExpressions = append(e.CommaAndExpressions, NewCommaAndExpression(expression))
 }
 
+func (e *ExpressionList) ExpressionListLength() int {
+	if e.First == nil {
+		return 0
+	}
+	return 1 + len(e.CommaAndExpressions)
+}
+
 func (e *ExpressionList) ToXML() []string {
 	result := []string{}
 	result = append(result, "<expressionList>")
@@ -188,6 +212,8 @@ type GroupingExpression struct {
 	*ClosingRoundBracket
 }
 
+var _ Term = (*GroupingExpression)(nil)
+
 func NewGroupingExpression(expression *Expression) *GroupingExpression {
 	return &GroupingExpression{
 		Expression:          expression,
@@ -208,6 +234,12 @@ func (g *GroupingExpression) ToXML() []string {
 	return result
 }
 
+func (g *GroupingExpression) ToCode() []string {
+	result := []string{}
+	result = append(result, g.Expression.ToCode()...)
+	return result
+}
+
 // varName '[' expression ']'
 type Array struct {
 	*VarName
@@ -215,6 +247,8 @@ type Array struct {
 	*OpeningSquareBracket
 	*ClosingSquareBracket
 }
+
+var _ Term = (*Array)(nil)
 
 func NewArray(varName *VarName) *Array {
 	return &Array{
@@ -249,6 +283,10 @@ func (a *Array) ToXML() []string {
 	return result
 }
 
+func (a *Array) ToCode() []string {
+	return []string{"Array_not_implemented"}
+}
+
 type Expression struct {
 	Term
 	*BinaryOpTerms
@@ -275,6 +313,15 @@ func (e *Expression) ToXML() []string {
 	return result
 }
 
+func (e *Expression) ToCode() []string {
+	result := []string{}
+	result = append(result, e.Term.ToCode()...)
+	if e.BinaryOpTerms != nil {
+		result = append(result, e.BinaryOpTerms.ToCode()...)
+	}
+	return result
+}
+
 type BinaryOpTerms struct {
 	Items []*BinaryOpTerm
 }
@@ -297,6 +344,14 @@ func (b *BinaryOpTerms) ToXML() []string {
 	return result
 }
 
+func (b *BinaryOpTerms) ToCode() []string {
+	result := []string{}
+	for _, item := range b.Items {
+		result = append(result, item.ToCode()...)
+	}
+	return result
+}
+
 type BinaryOpTerm struct {
 	BinaryOp
 	Term
@@ -313,6 +368,13 @@ func (b *BinaryOpTerm) ToXML() []string {
 	result := []string{}
 	result = append(result, b.BinaryOp.ToXML())
 	result = append(result, ConstTermXMLConverter.ToTermXML(b.Term.ToXML()...)...)
+	return result
+}
+
+func (b *BinaryOpTerm) ToCode() []string {
+	result := []string{}
+	result = append(result, b.Term.ToCode()...)
+	result = append(result, b.BinaryOp.ToCode()...)
 	return result
 }
 
@@ -365,6 +427,8 @@ type Plus struct {
 	*Symbol
 }
 
+var _ BinaryOp = (*Plus)(nil)
+
 var ConstPlus = &Plus{
 	Symbol: NewSymbolByValue("+"),
 }
@@ -373,9 +437,15 @@ func (p *Plus) OpType() BinaryOpType {
 	return PlusType
 }
 
+func (p *Plus) ToCode() []string {
+	return []string{"add"}
+}
+
 type Minus struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Minus)(nil)
 
 var ConstMinus = &Minus{
 	Symbol: NewSymbolByValue("-"),
@@ -385,9 +455,15 @@ func (m *Minus) OpType() BinaryOpType {
 	return MinusType
 }
 
+func (m *Minus) ToCode() []string {
+	return []string{"sub"}
+}
+
 type Asterisk struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Asterisk)(nil)
 
 var ConstAsterisk = &Asterisk{
 	Symbol: NewSymbolByValue("*"),
@@ -397,9 +473,15 @@ func (a *Asterisk) OpType() BinaryOpType {
 	return AsteriskType
 }
 
+func (a *Asterisk) ToCode() []string {
+	return []string{"call Math.multiply 2"}
+}
+
 type Slash struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Slash)(nil)
 
 var ConstSlash = &Slash{
 	Symbol: NewSymbolByValue("/"),
@@ -409,9 +491,15 @@ func (s *Slash) OpType() BinaryOpType {
 	return SlashType
 }
 
+func (s *Slash) ToCode() []string {
+	return []string{"call Math.divide 2"}
+}
+
 type Ampersand struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Ampersand)(nil)
 
 var ConstAmpersand = &Ampersand{
 	Symbol: NewSymbolByValue("&"),
@@ -421,9 +509,15 @@ func (a *Ampersand) OpType() BinaryOpType {
 	return AmpersandType
 }
 
+func (a *Ampersand) ToCode() []string {
+	return []string{"and"}
+}
+
 type VerticalLine struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*VerticalLine)(nil)
 
 var ConstVerticalLine = &VerticalLine{
 	Symbol: NewSymbolByValue("|"),
@@ -433,9 +527,15 @@ func (v *VerticalLine) OpType() BinaryOpType {
 	return VerticalLineType
 }
 
+func (v *VerticalLine) ToCode() []string {
+	return []string{"or"}
+}
+
 type LessThan struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*LessThan)(nil)
 
 var ConstLessThan = &LessThan{
 	Symbol: NewSymbolByValue("<"),
@@ -445,9 +545,15 @@ func (l *LessThan) OpType() BinaryOpType {
 	return LessThanType
 }
 
+func (l *LessThan) ToCode() []string {
+	return []string{"lt"}
+}
+
 type GreaterThan struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*GreaterThan)(nil)
 
 var ConstGreaterThan = &GreaterThan{
 	Symbol: NewSymbolByValue(">"),
@@ -457,9 +563,15 @@ func (g *GreaterThan) OpType() BinaryOpType {
 	return GreaterThanType
 }
 
+func (g *GreaterThan) ToCode() []string {
+	return []string{"gt"}
+}
+
 type Equals struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Equals)(nil)
 
 var ConstEquals = &Equals{
 	Symbol: NewSymbolByValue("="),
@@ -469,9 +581,14 @@ func (e *Equals) OpType() BinaryOpType {
 	return EqualsType
 }
 
+func (e *Equals) ToCode() []string {
+	return []string{"eq"}
+}
+
 type BinaryOp interface {
 	OpType() BinaryOpType
 	ToXML() string
+	ToCode() []string
 }
 
 type BinaryOpType int
@@ -494,6 +611,8 @@ type UnaryOpTerm struct {
 	Term
 }
 
+var _ Term = (*UnaryOpTerm)(nil)
+
 func NewUnaryOpTerm(unaryOp UnaryOp) *UnaryOpTerm {
 	return &UnaryOpTerm{
 		UnaryOp: unaryOp,
@@ -513,6 +632,10 @@ func (u *UnaryOpTerm) ToXML() []string {
 	result = append(result, u.UnaryOp.ToXML())
 	result = append(result, ConstTermXMLConverter.ToTermXML(u.Term.ToXML()...)...)
 	return result
+}
+
+func (u *UnaryOpTerm) ToCode() []string {
+	return []string{"UnaryOpTerm_not_implemented"}
 }
 
 var ConstUnaryOpFactory = &UnaryOpFactory{}
@@ -614,6 +737,8 @@ type KeywordConstant struct {
 	*Keyword
 }
 
+var _ Term = (*KeywordConstant)(nil)
+
 func NewKeywordConstant(value string) *KeywordConstant {
 	return &KeywordConstant{
 		Keyword: NewKeywordByValue(value),
@@ -626,6 +751,10 @@ func (k *KeywordConstant) TermType() TermType {
 
 func (k *KeywordConstant) ToXML() []string {
 	return []string{k.Token.ToXML()}
+}
+
+func (k *KeywordConstant) ToCode() []string {
+	return []string{"KeywordConstant_not_implemented"}
 }
 
 type TrueKeywordConstant struct {
@@ -664,6 +793,8 @@ type StringConstant struct {
 	*token.Token
 }
 
+var _ Term = (*StringConstant)(nil)
+
 func NewStringConstant(token *token.Token) *StringConstant {
 	return &StringConstant{
 		Token: token,
@@ -682,14 +813,24 @@ func (s *StringConstant) ToXML() []string {
 	return []string{s.Token.ToXML()}
 }
 
+func (s *StringConstant) ToCode() []string {
+	return []string{"StringConstant_not_implemented"}
+}
+
 type IntegerConstant struct {
 	*token.Token
 }
+
+var _ Term = (*IntegerConstant)(nil)
 
 func NewIntegerConstant(token *token.Token) *IntegerConstant {
 	return &IntegerConstant{
 		Token: token,
 	}
+}
+
+func NewIntegerConstantByValue(value string) *IntegerConstant {
+	return NewIntegerConstant(token.NewToken(value, token.TokenIntConst))
 }
 
 func (i *IntegerConstant) Check() error {
@@ -702,6 +843,11 @@ func (i *IntegerConstant) TermType() TermType {
 
 func (i *IntegerConstant) ToXML() []string {
 	return []string{i.Token.ToXML()}
+}
+
+func (i *IntegerConstant) ToCode() []string {
+	code := fmt.Sprintf("push constant %s", i.Value)
+	return []string{code}
 }
 
 var ConstTermXMLConverter = &TermXMLConverter{}
@@ -718,6 +864,7 @@ func (t *TermXMLConverter) ToTermXML(contents ...string) []string {
 
 type Term interface {
 	TermType() TermType
+	ToCode() []string
 	ToXML() []string
 	Debug() string
 }

@@ -33,6 +33,10 @@ func NewClassName(token *token.Token) *ClassName {
 	}
 }
 
+func NewClassNameByValue(value string) *ClassName {
+	return NewClassName(token.NewToken(value, token.TokenKeyword))
+}
+
 func (c *Class) SetClassName(token *token.Token) error {
 	className := NewClassName(token)
 	if err := className.Check(); err != nil {
