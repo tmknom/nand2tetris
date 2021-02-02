@@ -47,3 +47,11 @@ func (s *SubroutineScopeIndexer) varIndex() int {
 	s.VarIndex += 1
 	return result
 }
+
+func (s *SubroutineScopeIndexer) ArgLength() int {
+	return s.ArgIndex
+}
+
+func (s *SubroutineScopeIndexer) VarLength() int {
+	return s.VarIndex
+}
