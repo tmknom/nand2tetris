@@ -13,6 +13,8 @@ type SubroutineCall struct {
 	*ClosingRoundBracket
 }
 
+var _ Term = (*SubroutineCall)(nil)
+
 func NewSubroutineCall() *SubroutineCall {
 	return &SubroutineCall{
 		ExpressionList:      NewExpressionList(),
@@ -36,6 +38,10 @@ func (s *SubroutineCall) ToXML() []string {
 	result = append(result, s.ExpressionList.ToXML()...)
 	result = append(result, s.ClosingRoundBracket.ToXML())
 	return result
+}
+
+func (s *SubroutineCall) ToCode() []string {
+	return []string{"Not implemented"}
 }
 
 func (s *SubroutineCall) Debug() string {
@@ -188,6 +194,8 @@ type GroupingExpression struct {
 	*ClosingRoundBracket
 }
 
+var _ Term = (*GroupingExpression)(nil)
+
 func NewGroupingExpression(expression *Expression) *GroupingExpression {
 	return &GroupingExpression{
 		Expression:          expression,
@@ -208,6 +216,10 @@ func (g *GroupingExpression) ToXML() []string {
 	return result
 }
 
+func (g *GroupingExpression) ToCode() []string {
+	return []string{"Not implemented"}
+}
+
 // varName '[' expression ']'
 type Array struct {
 	*VarName
@@ -215,6 +227,8 @@ type Array struct {
 	*OpeningSquareBracket
 	*ClosingSquareBracket
 }
+
+var _ Term = (*Array)(nil)
 
 func NewArray(varName *VarName) *Array {
 	return &Array{
@@ -247,6 +261,10 @@ func (a *Array) ToXML() []string {
 	result = append(result, a.Expression.ToXML()...)
 	result = append(result, a.ClosingSquareBracket.ToXML())
 	return result
+}
+
+func (a *Array) ToCode() []string {
+	return []string{"Not implemented"}
 }
 
 type Expression struct {
@@ -494,6 +512,8 @@ type UnaryOpTerm struct {
 	Term
 }
 
+var _ Term = (*UnaryOpTerm)(nil)
+
 func NewUnaryOpTerm(unaryOp UnaryOp) *UnaryOpTerm {
 	return &UnaryOpTerm{
 		UnaryOp: unaryOp,
@@ -513,6 +533,10 @@ func (u *UnaryOpTerm) ToXML() []string {
 	result = append(result, u.UnaryOp.ToXML())
 	result = append(result, ConstTermXMLConverter.ToTermXML(u.Term.ToXML()...)...)
 	return result
+}
+
+func (u *UnaryOpTerm) ToCode() []string {
+	return []string{"Not implemented"}
 }
 
 var ConstUnaryOpFactory = &UnaryOpFactory{}
@@ -614,6 +638,8 @@ type KeywordConstant struct {
 	*Keyword
 }
 
+var _ Term = (*KeywordConstant)(nil)
+
 func NewKeywordConstant(value string) *KeywordConstant {
 	return &KeywordConstant{
 		Keyword: NewKeywordByValue(value),
@@ -626,6 +652,10 @@ func (k *KeywordConstant) TermType() TermType {
 
 func (k *KeywordConstant) ToXML() []string {
 	return []string{k.Token.ToXML()}
+}
+
+func (k *KeywordConstant) ToCode() []string {
+	return []string{"Not implemented"}
 }
 
 type TrueKeywordConstant struct {
@@ -664,6 +694,8 @@ type StringConstant struct {
 	*token.Token
 }
 
+var _ Term = (*StringConstant)(nil)
+
 func NewStringConstant(token *token.Token) *StringConstant {
 	return &StringConstant{
 		Token: token,
@@ -682,9 +714,15 @@ func (s *StringConstant) ToXML() []string {
 	return []string{s.Token.ToXML()}
 }
 
+func (s *StringConstant) ToCode() []string {
+	return []string{"Not implemented"}
+}
+
 type IntegerConstant struct {
 	*token.Token
 }
+
+var _ Term = (*IntegerConstant)(nil)
 
 func NewIntegerConstant(token *token.Token) *IntegerConstant {
 	return &IntegerConstant{
@@ -704,6 +742,10 @@ func (i *IntegerConstant) ToXML() []string {
 	return []string{i.Token.ToXML()}
 }
 
+func (i *IntegerConstant) ToCode() []string {
+	return []string{"Not implemented"}
+}
+
 var ConstTermXMLConverter = &TermXMLConverter{}
 
 type TermXMLConverter struct{}
@@ -718,6 +760,7 @@ func (t *TermXMLConverter) ToTermXML(contents ...string) []string {
 
 type Term interface {
 	TermType() TermType
+	ToCode() []string
 	ToXML() []string
 	Debug() string
 }

@@ -133,6 +133,8 @@ func NewVarName(token *token.Token) *VarName {
 	}
 }
 
+var _ Term = (*VarName)(nil)
+
 func NewVarNameByValue(value string) *VarName {
 	return NewVarName(token.NewToken(value, token.TokenIdentifier))
 }
@@ -151,6 +153,10 @@ func (v *VarName) TermType() TermType {
 
 func (v *VarName) ToXML() []string {
 	return []string{v.Token.ToXML()}
+}
+
+func (v *VarName) ToCode() []string {
+	return []string{"Not implemented"}
 }
 
 type Keyword struct {
