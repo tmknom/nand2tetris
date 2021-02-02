@@ -129,16 +129,25 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 		classVarDecs.Add(classVarDec)
 
 		// シンボルテーブルの更新
-		if classVarDec.Keyword.Value == "static" {
-			symbolType := classVarDec.VarType.Value
-			p.AddDefinedStaticSymbol(classVarDec.First.Value, symbolType)
-			for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-				p.AddDefinedStaticSymbol(commaAndVarName.VarName.Value, symbolType)
-			}
-		}
+		p.addSymbolTableForClassVarDec(classVarDec)
 	}
 
 	return classVarDecs, nil
+}
+
+func (p *Parser) addSymbolTableForClassVarDec(classVarDec *ClassVarDec) {
+	symbolType := classVarDec.VarType.Value
+	if classVarDec.Keyword.Value == "static" {
+		p.AddDefinedStaticSymbol(classVarDec.First.Value, symbolType)
+		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
+			p.AddDefinedStaticSymbol(commaAndVarName.VarName.Value, symbolType)
+		}
+	} else if classVarDec.Keyword.Value == "field" {
+		p.AddDefinedFieldSymbol(classVarDec.First.Value, symbolType)
+		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
+			p.AddDefinedFieldSymbol(commaAndVarName.VarName.Value, symbolType)
+		}
+	}
 }
 
 // ('constructor' | 'function' | 'method') ('void' | varType) subroutineName '(' parameterList ')' subroutineBody

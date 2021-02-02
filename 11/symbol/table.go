@@ -17,6 +17,12 @@ func NewSymbolTable(name string) *SymbolTable {
 	}
 }
 
+func (s *SymbolTable) AddDefinedFieldSymbol(name string, symbolType string) {
+	scope := NewSymbolScope(FieldScope, s.ScopeIndexer.fieldIndex())
+	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	s.Add(item)
+}
+
 func (s *SymbolTable) AddDefinedStaticSymbol(name string, symbolType string) {
 	scope := NewSymbolScope(StaticScope, s.ScopeIndexer.staticIndex())
 	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
