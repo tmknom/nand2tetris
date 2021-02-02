@@ -23,6 +23,52 @@ func TestExpressionToCode(t *testing.T) {
 				"push constant 123",
 			},
 		},
+		{
+			desc: "ふたつのIntegerConstantを加算",
+			expression: &Expression{
+				Term: &IntegerConstant{
+					Token: token.NewToken("2", token.TokenIntConst),
+				},
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstPlus,
+							Term: &IntegerConstant{
+								Token: token.NewToken("3", token.TokenIntConst),
+							},
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 2",
+				"push constant 3",
+				"add",
+			},
+		},
+		{
+			desc: "ふたつのIntegerConstantを乗算",
+			expression: &Expression{
+				Term: &IntegerConstant{
+					Token: token.NewToken("2", token.TokenIntConst),
+				},
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstAsterisk,
+							Term: &IntegerConstant{
+								Token: token.NewToken("3", token.TokenIntConst),
+							},
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 2",
+				"push constant 3",
+				"call Math.multiply 2",
+			},
+		},
 	}
 
 	for _, tc := range cases {

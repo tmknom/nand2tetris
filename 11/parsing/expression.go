@@ -296,6 +296,9 @@ func (e *Expression) ToXML() []string {
 func (e *Expression) ToCode() []string {
 	result := []string{}
 	result = append(result, e.Term.ToCode()...)
+	if e.BinaryOpTerms != nil {
+		result = append(result, e.BinaryOpTerms.ToCode()...)
+	}
 	return result
 }
 
@@ -321,6 +324,14 @@ func (b *BinaryOpTerms) ToXML() []string {
 	return result
 }
 
+func (b *BinaryOpTerms) ToCode() []string {
+	result := []string{}
+	for _, item := range b.Items {
+		result = append(result, item.ToCode()...)
+	}
+	return result
+}
+
 type BinaryOpTerm struct {
 	BinaryOp
 	Term
@@ -337,6 +348,13 @@ func (b *BinaryOpTerm) ToXML() []string {
 	result := []string{}
 	result = append(result, b.BinaryOp.ToXML())
 	result = append(result, ConstTermXMLConverter.ToTermXML(b.Term.ToXML()...)...)
+	return result
+}
+
+func (b *BinaryOpTerm) ToCode() []string {
+	result := []string{}
+	result = append(result, b.Term.ToCode()...)
+	result = append(result, b.BinaryOp.ToCode()...)
 	return result
 }
 
