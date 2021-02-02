@@ -399,6 +399,10 @@ func (p *Plus) OpType() BinaryOpType {
 	return PlusType
 }
 
+func (p *Plus) ToCode() []string {
+	return []string{"not implemented"}
+}
+
 type Minus struct {
 	*Symbol
 }
@@ -411,6 +415,10 @@ var ConstMinus = &Minus{
 
 func (m *Minus) OpType() BinaryOpType {
 	return MinusType
+}
+
+func (m *Minus) ToCode() []string {
+	return []string{"not implemented"}
 }
 
 type Asterisk struct {
@@ -427,6 +435,10 @@ func (a *Asterisk) OpType() BinaryOpType {
 	return AsteriskType
 }
 
+func (a *Asterisk) ToCode() []string {
+	return []string{"not implemented"}
+}
+
 type Slash struct {
 	*Symbol
 }
@@ -439,6 +451,10 @@ var ConstSlash = &Slash{
 
 func (s *Slash) OpType() BinaryOpType {
 	return SlashType
+}
+
+func (s *Slash) ToCode() []string {
+	return []string{"not implemented"}
 }
 
 type Ampersand struct {
@@ -455,6 +471,10 @@ func (a *Ampersand) OpType() BinaryOpType {
 	return AmpersandType
 }
 
+func (a *Ampersand) ToCode() []string {
+	return []string{"not implemented"}
+}
+
 type VerticalLine struct {
 	*Symbol
 }
@@ -467,6 +487,10 @@ var ConstVerticalLine = &VerticalLine{
 
 func (v *VerticalLine) OpType() BinaryOpType {
 	return VerticalLineType
+}
+
+func (v *VerticalLine) ToCode() []string {
+	return []string{"not implemented"}
 }
 
 type LessThan struct {
@@ -483,6 +507,10 @@ func (l *LessThan) OpType() BinaryOpType {
 	return LessThanType
 }
 
+func (l *LessThan) ToCode() []string {
+	return []string{"not implemented"}
+}
+
 type GreaterThan struct {
 	*Symbol
 }
@@ -495,6 +523,10 @@ var ConstGreaterThan = &GreaterThan{
 
 func (g *GreaterThan) OpType() BinaryOpType {
 	return GreaterThanType
+}
+
+func (g *GreaterThan) ToCode() []string {
+	return []string{"not implemented"}
 }
 
 type Equals struct {
@@ -511,9 +543,14 @@ func (e *Equals) OpType() BinaryOpType {
 	return EqualsType
 }
 
+func (e *Equals) ToCode() []string {
+	return []string{"not implemented"}
+}
+
 type BinaryOp interface {
 	OpType() BinaryOpType
 	ToXML() string
+	ToCode() []string
 }
 
 type BinaryOpType int
