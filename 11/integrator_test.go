@@ -8,6 +8,50 @@ import (
 	"testing"
 )
 
+func TestIntegratorGenerate(t *testing.T) {
+	cases := []struct {
+		desc string
+		src  []string
+		dest []string
+		want []string
+	}{
+		{
+			desc: "Seven",
+			src: []string{
+				"Fixture/Seven/Main.jack",
+			},
+			dest: []string{
+				"Fixture/Seven/Main.vm",
+			},
+			want: []string{
+				"Fixture/Seven/cmp/Main.vm",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		for _, file := range tc.dest {
+			os.Remove(file)
+		}
+
+		t.Run(tc.desc, func(t *testing.T) {
+			integrator := NewIntegrator(tc.src)
+			integrator.Integrate()
+
+			for i, dest := range tc.dest {
+				got := readFileQuietly(dest)
+				want := readFileQuietly(tc.want[i])
+
+				if diff := cmp.Diff(got, want); diff != "" {
+					t.Errorf("failed: diff %s %s: (-got +want):\n%s\n", dest, tc.want[i], diff)
+				} else {
+					os.Remove(dest)
+				}
+			}
+		})
+	}
+}
+
 func TestIntegratorIntegrate(t *testing.T) {
 	cases := []struct {
 		desc             string
