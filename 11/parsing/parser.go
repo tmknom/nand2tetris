@@ -9,28 +9,20 @@ import (
 
 type Parser struct {
 	tokens *token.Tokens
-	*symbol.SymbolTable
-	SubroutineSymbolTable *symbol.SymbolTable
+	*symbol.ClassSymbolTable
+	*symbol.SubroutineSymbolTable
 }
 
 func NewParser(tokens *token.Tokens) *Parser {
 	return &Parser{
 		tokens:                tokens,
-		SymbolTable:           symbol.NewSymbolTable("Global"),
-		SubroutineSymbolTable: symbol.NewSymbolTable("Uninitialized"),
+		ClassSymbolTable:      symbol.NewClassSymbolTable(),
+		SubroutineSymbolTable: symbol.NewSubroutineSymbolTable("Uninitialized"),
 	}
 }
 
 func (p *Parser) generateSubroutineSymbolTable(subroutineName string) {
-	p.SubroutineSymbolTable = symbol.NewSymbolTable(subroutineName)
-}
-
-func (p *Parser) AddArgSymbol(name string, symbolType string) {
-	p.SubroutineSymbolTable.AddDefinedArgSymbol(name, symbolType)
-}
-
-func (p *Parser) AddVarSymbol(name string, symbolType string) {
-	p.SubroutineSymbolTable.AddDefinedVarSymbol(name, symbolType)
+	p.SubroutineSymbolTable = symbol.NewSubroutineSymbolTable(subroutineName)
 }
 
 func (p *Parser) printSubroutineSymbolTable() {
@@ -59,7 +51,7 @@ func (p *Parser) Parse() (*Class, error) {
 		return nil, errors.WithMessage(err, p.tokens.DebugForError())
 	}
 
-	fmt.Println(p.SymbolTable.String())
+	fmt.Println(p.ClassSymbolTable.String())
 
 	return class, nil
 }
@@ -78,9 +70,6 @@ func (p *Parser) parseClass() (*Class, error) {
 	if err := class.SetClassName(className); err != nil {
 		return nil, err
 	}
-
-	// シンボルテーブルの更新
-	p.AddDefinedClassSymbol(class.Identifier.Token.Value)
 
 	openingCurlyBracket := p.advanceToken()
 	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
@@ -156,14 +145,14 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 func (p *Parser) addSymbolTableForClassVarDec(classVarDec *ClassVarDec) {
 	symbolType := classVarDec.VarType.Value
 	if classVarDec.Keyword.Value == "static" {
-		p.AddDefinedStaticSymbol(classVarDec.First.Value, symbolType)
+		p.AddStaticSymbol(classVarDec.First.Value, symbolType)
 		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-			p.AddDefinedStaticSymbol(commaAndVarName.VarName.Value, symbolType)
+			p.AddStaticSymbol(commaAndVarName.VarName.Value, symbolType)
 		}
 	} else if classVarDec.Keyword.Value == "field" {
-		p.AddDefinedFieldSymbol(classVarDec.First.Value, symbolType)
+		p.AddFieldSymbol(classVarDec.First.Value, symbolType)
 		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-			p.AddDefinedFieldSymbol(commaAndVarName.VarName.Value, symbolType)
+			p.AddFieldSymbol(commaAndVarName.VarName.Value, symbolType)
 		}
 	}
 }
