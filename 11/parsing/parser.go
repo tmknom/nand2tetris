@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"../symbol"
 	"../token"
 	"fmt"
 	"github.com/pkg/errors"
@@ -8,10 +9,14 @@ import (
 
 type Parser struct {
 	tokens *token.Tokens
+	*symbol.SymbolTable
 }
 
 func NewParser(tokens *token.Tokens) *Parser {
-	return &Parser{tokens: tokens}
+	return &Parser{
+		tokens:      tokens,
+		SymbolTable: symbol.NewSymbolTable("Global"),
+	}
 }
 
 func (p *Parser) advanceToken() *token.Token {
@@ -36,6 +41,8 @@ func (p *Parser) Parse() (*Class, error) {
 		return nil, errors.WithMessage(err, p.tokens.DebugForError())
 	}
 
+	fmt.Println(p.SymbolTable.String())
+
 	return class, nil
 }
 
@@ -53,6 +60,9 @@ func (p *Parser) parseClass() (*Class, error) {
 	if err := class.SetClassName(className); err != nil {
 		return nil, err
 	}
+
+	// シンボルテーブルの更新
+	p.AddDefinedClassSymbol(class.Identifier.Token.Value)
 
 	openingCurlyBracket := p.advanceToken()
 	if err := ConstOpeningCurlyBracket.Check(openingCurlyBracket); err != nil {
@@ -117,6 +127,15 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 
 		// パースに成功したら要素に追加
 		classVarDecs.Add(classVarDec)
+
+		// シンボルテーブルの更新
+		if classVarDec.Keyword.Value == "static" {
+			symbolType := classVarDec.VarType.Value
+			p.AddDefinedStaticSymbol(classVarDec.First.Value, symbolType)
+			for _, commaAndVarName := range classVarDec.CommaAndVarNames {
+				p.AddDefinedStaticSymbol(commaAndVarName.VarName.Value, symbolType)
+			}
+		}
 	}
 
 	return classVarDecs, nil
