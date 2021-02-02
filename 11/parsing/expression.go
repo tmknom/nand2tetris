@@ -400,7 +400,7 @@ func (p *Plus) OpType() BinaryOpType {
 }
 
 func (p *Plus) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"add"}
 }
 
 type Minus struct {
@@ -418,7 +418,7 @@ func (m *Minus) OpType() BinaryOpType {
 }
 
 func (m *Minus) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"sub"}
 }
 
 type Asterisk struct {
@@ -436,7 +436,7 @@ func (a *Asterisk) OpType() BinaryOpType {
 }
 
 func (a *Asterisk) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"call Math.multiply 2"}
 }
 
 type Slash struct {
@@ -454,7 +454,7 @@ func (s *Slash) OpType() BinaryOpType {
 }
 
 func (s *Slash) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"call Math.divide 2"}
 }
 
 type Ampersand struct {
@@ -472,7 +472,7 @@ func (a *Ampersand) OpType() BinaryOpType {
 }
 
 func (a *Ampersand) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"and"}
 }
 
 type VerticalLine struct {
@@ -490,7 +490,7 @@ func (v *VerticalLine) OpType() BinaryOpType {
 }
 
 func (v *VerticalLine) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"or"}
 }
 
 type LessThan struct {
@@ -508,7 +508,7 @@ func (l *LessThan) OpType() BinaryOpType {
 }
 
 func (l *LessThan) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"lt"}
 }
 
 type GreaterThan struct {
@@ -526,7 +526,7 @@ func (g *GreaterThan) OpType() BinaryOpType {
 }
 
 func (g *GreaterThan) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"gt"}
 }
 
 type Equals struct {
@@ -544,7 +544,7 @@ func (e *Equals) OpType() BinaryOpType {
 }
 
 func (e *Equals) ToCode() []string {
-	return []string{"not implemented"}
+	return []string{"eq"}
 }
 
 type BinaryOp interface {
