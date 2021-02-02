@@ -28,6 +28,14 @@ func (s *SubroutineDecs) ToXML() []string {
 	return result
 }
 
+func (s *SubroutineDecs) ToCode() []string {
+	result := []string{}
+	for _, item := range s.Items {
+		result = append(result, item.ToCode()...)
+	}
+	return result
+}
+
 func (s *SubroutineDecs) hasSubroutineDec(token *token.Token) bool {
 	if token == nil {
 		return false
@@ -44,10 +52,12 @@ type SubroutineDec struct {
 	*ClosingRoundBracket
 	*ParameterList
 	*SubroutineBody
+	*ClassName
 }
 
-func NewSubroutineDec(subroutine *Keyword) *SubroutineDec {
+func NewSubroutineDec(subroutine *Keyword, className *ClassName) *SubroutineDec {
 	return &SubroutineDec{
+		ClassName:           className,
 		Subroutine:          subroutine,
 		OpeningRoundBracket: ConstOpeningRoundBracket,
 		ClosingRoundBracket: ConstClosingRoundBracket,
@@ -94,6 +104,18 @@ func (s *SubroutineDec) ToXML() []string {
 	result = append(result, s.SubroutineBody.ToXML()...)
 	result = append(result, "</subroutineDec>")
 	return result
+}
+
+// function Main.main 0
+func (s *SubroutineDec) ToCode() []string {
+	classPrefix := ""
+	if s.ClassName != nil {
+		classPrefix = fmt.Sprintf("%s.", s.ClassName.Value)
+	}
+	subroutineName := s.SubroutineName.Value
+	varCount := s.SubroutineBody.VarDecCount()
+	code := fmt.Sprintf("function %s%s %d", classPrefix, subroutineName, varCount)
+	return []string{code}
 }
 
 type SubroutineType struct {
@@ -169,6 +191,10 @@ func (v *VarDecs) IsVarDecKeyword(token *token.Token) bool {
 		return false
 	}
 	return token.Value == NewVarDec().Keyword.Value
+}
+
+func (v *VarDecs) VarDecCount() int {
+	return len(v.Items)
 }
 
 func (v *VarDecs) ToXML() []string {

@@ -9,12 +9,14 @@ import (
 
 type Parser struct {
 	tokens *token.Tokens
+	*Class
 	*symbol.SymbolTables
 }
 
 func NewParser(tokens *token.Tokens, className string) *Parser {
 	return &Parser{
 		tokens:       tokens,
+		Class:        NewClass(),
 		SymbolTables: symbol.NewSymbolTables(className),
 	}
 }
@@ -57,15 +59,13 @@ func (p *Parser) Parse() (*Class, error) {
 // 'class' className '{' classVarDec* subroutineDec* '}'
 // class Main { ... }
 func (p *Parser) parseClass() (*Class, error) {
-	class := NewClass()
-
 	keyword := p.advanceToken()
-	if err := class.CheckKeyword(keyword); err != nil {
+	if err := p.Class.CheckKeyword(keyword); err != nil {
 		return nil, err
 	}
 
 	className := p.advanceToken()
-	if err := class.SetClassName(className); err != nil {
+	if err := p.Class.SetClassName(className); err != nil {
 		return nil, err
 	}
 
@@ -78,20 +78,20 @@ func (p *Parser) parseClass() (*Class, error) {
 	if err != nil {
 		return nil, err
 	}
-	class.SetClassVarDecs(classVarDecs)
+	p.Class.SetClassVarDecs(classVarDecs)
 
 	subroutineDecs, err := p.parseSubroutineDecs()
 	if err != nil {
 		return nil, err
 	}
-	class.SetSubroutineDecs(subroutineDecs)
+	p.Class.SetSubroutineDecs(subroutineDecs)
 
 	closingCurlyBracket := p.advanceToken()
 	if err := ConstClosingCurlyBracket.Check(closingCurlyBracket); err != nil {
 		return nil, err
 	}
 
-	return class, nil
+	return p.Class, nil
 }
 
 // ('static' | 'field') varType varName (',' varName) ';'
@@ -161,7 +161,7 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 	subroutineDecs := NewSubroutineDecs()
 	for subroutineDecs.hasSubroutineDec(p.readFirstToken()) {
 		keyword := NewKeyword(p.advanceToken())
-		subroutineDec := NewSubroutineDec(keyword)
+		subroutineDec := NewSubroutineDec(keyword, p.ClassName)
 
 		subroutineType := p.advanceToken()
 		if err := subroutineDec.SetSubroutineType(subroutineType); err != nil {
