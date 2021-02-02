@@ -1386,6 +1386,50 @@ func TestParserParseExpression(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "カッコを含む複雑なExpressionの定義",
+			tokens: []*token.Token{
+				token.NewToken("2", token.TokenIntConst),
+				token.NewToken("*", token.TokenSymbol),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("2", token.TokenIntConst),
+				token.NewToken("+", token.TokenSymbol),
+				token.NewToken("3", token.TokenIntConst),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &Expression{
+				Term: &IntegerConstant{
+					Token: token.NewToken("2", token.TokenIntConst),
+				},
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstAsterisk,
+							Term: &GroupingExpression{
+								Expression: &Expression{
+									Term: &IntegerConstant{
+										Token: token.NewToken("2", token.TokenIntConst),
+									},
+									BinaryOpTerms: &BinaryOpTerms{
+										Items: []*BinaryOpTerm{
+											&BinaryOpTerm{
+												BinaryOp: ConstPlus,
+												Term: &IntegerConstant{
+													Token: token.NewToken("3", token.TokenIntConst),
+												},
+											},
+										},
+									},
+								},
+								OpeningRoundBracket: ConstOpeningRoundBracket,
+								ClosingRoundBracket: ConstClosingRoundBracket,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
