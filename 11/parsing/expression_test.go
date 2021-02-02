@@ -15,9 +15,7 @@ func TestExpressionToCode(t *testing.T) {
 		{
 			desc: "IntegerConstantをひとつだけ定義",
 			expression: &Expression{
-				Term: &IntegerConstant{
-					Token: token.NewToken("123", token.TokenIntConst),
-				},
+				Term: NewIntegerConstantByValue("123"),
 			},
 			want: []string{
 				"push constant 123",
@@ -26,16 +24,12 @@ func TestExpressionToCode(t *testing.T) {
 		{
 			desc: "ふたつのIntegerConstantを加算",
 			expression: &Expression{
-				Term: &IntegerConstant{
-					Token: token.NewToken("2", token.TokenIntConst),
-				},
+				Term: NewIntegerConstantByValue("2"),
 				BinaryOpTerms: &BinaryOpTerms{
 					Items: []*BinaryOpTerm{
 						&BinaryOpTerm{
 							BinaryOp: ConstPlus,
-							Term: &IntegerConstant{
-								Token: token.NewToken("3", token.TokenIntConst),
-							},
+							Term:     NewIntegerConstantByValue("3"),
 						},
 					},
 				},
@@ -49,16 +43,12 @@ func TestExpressionToCode(t *testing.T) {
 		{
 			desc: "ふたつのIntegerConstantを乗算",
 			expression: &Expression{
-				Term: &IntegerConstant{
-					Token: token.NewToken("2", token.TokenIntConst),
-				},
+				Term: NewIntegerConstantByValue("2"),
 				BinaryOpTerms: &BinaryOpTerms{
 					Items: []*BinaryOpTerm{
 						&BinaryOpTerm{
 							BinaryOp: ConstAsterisk,
-							Term: &IntegerConstant{
-								Token: token.NewToken("3", token.TokenIntConst),
-							},
+							Term:     NewIntegerConstantByValue("3"),
 						},
 					},
 				},
@@ -81,16 +71,12 @@ func TestExpressionToCode(t *testing.T) {
 							BinaryOp: ConstPlus,
 							Term: &GroupingExpression{
 								Expression: &Expression{
-									Term: &IntegerConstant{
-										Token: token.NewToken("2", token.TokenIntConst),
-									},
+									Term: NewIntegerConstantByValue("2"),
 									BinaryOpTerms: &BinaryOpTerms{
 										Items: []*BinaryOpTerm{
 											&BinaryOpTerm{
 												BinaryOp: ConstAsterisk,
-												Term: &IntegerConstant{
-													Token: token.NewToken("3", token.TokenIntConst),
-												},
+												Term:     NewIntegerConstantByValue("3"),
 											},
 										},
 									},

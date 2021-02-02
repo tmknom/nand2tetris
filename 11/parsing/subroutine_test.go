@@ -1,7 +1,6 @@
 package parsing
 
 import (
-	"../token"
 	"github.com/google/go-cmp/cmp"
 	"testing"
 )
@@ -18,7 +17,7 @@ func TestSubroutineDecsToCode(t *testing.T) {
 				Items: []*SubroutineDec{
 					&SubroutineDec{
 						Subroutine:     NewKeywordByValue("function"),
-						SubroutineType: NewSubroutineType(token.NewToken("void", token.TokenKeyword)),
+						SubroutineType: NewSubroutineTypeByValue("void"),
 						SubroutineName: NewSubroutineNameByValue("main"),
 						ParameterList:  NewParameterList(),
 						SubroutineBody: NewSubroutineBody(),
@@ -35,21 +34,21 @@ func TestSubroutineDecsToCode(t *testing.T) {
 				Items: []*SubroutineDec{
 					&SubroutineDec{
 						Subroutine:     NewKeywordByValue("function"),
-						SubroutineType: NewSubroutineType(token.NewToken("void", token.TokenKeyword)),
+						SubroutineType: NewSubroutineTypeByValue("void"),
 						SubroutineName: NewSubroutineNameByValue("foo"),
 						ParameterList:  NewParameterList(),
 						SubroutineBody: NewSubroutineBody(),
 					},
 					&SubroutineDec{
 						Subroutine:     NewKeywordByValue("function"),
-						SubroutineType: NewSubroutineType(token.NewToken("void", token.TokenKeyword)),
+						SubroutineType: NewSubroutineTypeByValue("void"),
 						SubroutineName: NewSubroutineNameByValue("bar"),
 						ParameterList:  NewParameterList(),
 						SubroutineBody: NewSubroutineBody(),
 					},
 					&SubroutineDec{
 						Subroutine:     NewKeywordByValue("function"),
-						SubroutineType: NewSubroutineType(token.NewToken("void", token.TokenKeyword)),
+						SubroutineType: NewSubroutineTypeByValue("void"),
 						SubroutineName: NewSubroutineNameByValue("baz"),
 						ParameterList:  NewParameterList(),
 						SubroutineBody: NewSubroutineBody(),
@@ -84,9 +83,9 @@ func TestSubroutineDecToCode(t *testing.T) {
 		{
 			desc: "ローカル変数のないサブルーチンの定義",
 			subroutineDec: &SubroutineDec{
-				ClassName:      NewClassName(token.NewToken("Main", token.TokenKeyword)),
+				ClassName:      NewClassNameByValue("Main"),
 				Subroutine:     NewKeywordByValue("function"),
-				SubroutineType: NewSubroutineType(token.NewToken("void", token.TokenKeyword)),
+				SubroutineType: NewSubroutineTypeByValue("void"),
 				SubroutineName: NewSubroutineNameByValue("main"),
 				ParameterList:  NewParameterList(),
 				SubroutineBody: NewSubroutineBody(),

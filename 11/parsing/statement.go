@@ -310,7 +310,17 @@ func (r *ReturnStatement) ToXML() []string {
 }
 
 func (r *ReturnStatement) ToCode() []string {
-	return []string{"ReturnStatement_not_implemented"}
+	result := []string{}
+
+	if r.Expression == nil {
+		// void型のfunctionは常にゼロを返す
+		result = append(result, "push constant 0")
+	} else {
+		result = append(result, r.Expression.ToCode()...)
+	}
+
+	result = append(result, "return")
+	return result
 }
 
 type StatementKeyword struct {

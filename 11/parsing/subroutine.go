@@ -128,6 +128,10 @@ func NewSubroutineType(token *token.Token) *SubroutineType {
 	}
 }
 
+func NewSubroutineTypeByValue(value string) *SubroutineType {
+	return NewSubroutineType(token.NewToken(value, token.TokenKeyword))
+}
+
 func (s *SubroutineType) Check() error {
 	if err := NewVarType(s.Token).Check(); err == nil {
 		return nil

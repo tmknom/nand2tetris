@@ -811,6 +811,10 @@ func NewIntegerConstant(token *token.Token) *IntegerConstant {
 	}
 }
 
+func NewIntegerConstantByValue(value string) *IntegerConstant {
+	return NewIntegerConstant(token.NewToken(value, token.TokenIntConst))
+}
+
 func (i *IntegerConstant) Check() error {
 	return i.Token.CheckIntegerConstant()
 }
