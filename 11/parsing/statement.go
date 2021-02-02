@@ -102,6 +102,10 @@ func (l *LetStatement) ToXML() []string {
 	return result
 }
 
+func (l *LetStatement) ToCode() []string {
+	return []string{"LetStatement_not_implemented"}
+}
+
 type IfStatement struct {
 	*StatementKeyword
 	*Expression
@@ -154,6 +158,10 @@ func (i *IfStatement) ToXML() []string {
 
 	result = append(result, i.CloseTag())
 	return result
+}
+
+func (i *IfStatement) ToCode() []string {
+	return []string{"IfStatement_not_implemented"}
 }
 
 type ElseBlock struct {
@@ -231,6 +239,10 @@ func (w *WhileStatement) ToXML() []string {
 	return result
 }
 
+func (w *WhileStatement) ToCode() []string {
+	return []string{"WhileStatement_not_implemented"}
+}
+
 type DoStatement struct {
 	*StatementKeyword
 	*SubroutineCall
@@ -258,6 +270,10 @@ func (d *DoStatement) ToXML() []string {
 	result = append(result, d.Semicolon.ToXML())
 	result = append(result, d.CloseTag())
 	return result
+}
+
+func (d *DoStatement) ToCode() []string {
+	return []string{"DoStatement_not_implemented"}
 }
 
 type ReturnStatement struct {
@@ -293,6 +309,10 @@ func (r *ReturnStatement) ToXML() []string {
 	return result
 }
 
+func (r *ReturnStatement) ToCode() []string {
+	return []string{"ReturnStatement_not_implemented"}
+}
+
 type StatementKeyword struct {
 	*Keyword
 }
@@ -317,6 +337,7 @@ func (s *StatementKeyword) CloseTag() string {
 
 type Statement interface {
 	ToXML() []string
+	ToCode() []string
 	OpenTag() string
 	CloseTag() string
 }
