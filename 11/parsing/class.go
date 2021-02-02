@@ -68,6 +68,13 @@ func (c *Class) ToXML() []string {
 	return result
 }
 
+func (c *Class) ToCode() []string {
+	result := []string{}
+	//result = append(result, c.ClassVarDecs.ToCode()...)
+	result = append(result, c.SubroutineDecs.ToCode()...)
+	return result
+}
+
 type ClassVarDecs struct {
 	Items []*ClassVarDec
 }

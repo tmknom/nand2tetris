@@ -114,8 +114,12 @@ func (s *SubroutineDec) ToCode() []string {
 	}
 	subroutineName := s.SubroutineName.Value
 	varCount := s.SubroutineBody.VarDecsLength()
-	code := fmt.Sprintf("function %s%s %d", classPrefix, subroutineName, varCount)
-	return []string{code}
+	function := fmt.Sprintf("function %s%s %d", classPrefix, subroutineName, varCount)
+
+	result := []string{}
+	result = append(result, function)
+	result = append(result, s.SubroutineBody.ToCode()...)
+	return result
 }
 
 type SubroutineType struct {
@@ -156,6 +160,7 @@ type SubroutineBody struct {
 func NewSubroutineBody() *SubroutineBody {
 	return &SubroutineBody{
 		VarDecs:             NewVarDecs(),
+		Statements:          NewStatements(),
 		OpeningCurlyBracket: ConstOpeningCurlyBracket,
 		ClosingCurlyBracket: ConstClosingCurlyBracket,
 	}
@@ -173,6 +178,13 @@ func (s *SubroutineBody) ToXML() []string {
 	result = append(result, s.Statements.ToXML()...)
 	result = append(result, s.ClosingCurlyBracket.ToXML())
 	result = append(result, "</subroutineBody>")
+	return result
+}
+
+func (s *SubroutineBody) ToCode() []string {
+	result := []string{}
+	//result = append(result, s.VarDecs.ToCode()...)
+	result = append(result, s.Statements.ToCode()...)
 	return result
 }
 

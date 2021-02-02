@@ -29,6 +29,14 @@ func (s *Statements) ToXML() []string {
 	return result
 }
 
+func (s *Statements) ToCode() []string {
+	result := []string{}
+	for _, item := range s.Items {
+		result = append(result, item.ToCode()...)
+	}
+	return result
+}
+
 func (s *Statements) IsStatementKeyword(token *token.Token) bool {
 	if token == nil {
 		return false
