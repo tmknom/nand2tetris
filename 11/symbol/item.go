@@ -6,15 +6,13 @@ type SymbolItem struct {
 	*SymbolName
 	*SymbolType
 	*SymbolScope
-	SymbolStatus
 }
 
-func NewSymbolItem(name string, symbolType string, symbolScope *SymbolScope, symbolStatus SymbolStatus) *SymbolItem {
+func NewSymbolItem(name string, symbolType string, symbolScope *SymbolScope) *SymbolItem {
 	return &SymbolItem{
-		SymbolName:   NewSymbolName(name),
-		SymbolType:   NewSymbolType(symbolType),
-		SymbolScope:  symbolScope,
-		SymbolStatus: symbolStatus,
+		SymbolName:  NewSymbolName(name),
+		SymbolType:  NewSymbolType(symbolType),
+		SymbolScope: symbolScope,
 	}
 }
 
@@ -22,8 +20,8 @@ func (s *SymbolItem) String() string {
 	result := "&SymbolItem{ "
 	result += fmt.Sprintf("Name: %s, ", s.SymbolName.Value)
 	result += fmt.Sprintf("Type: %s, ", s.SymbolType.Value)
-	result += fmt.Sprintf("Scope: %s[%d], ", s.ScopeKind, s.ScopeIndex)
-	result += fmt.Sprintf("Status: %s", s.SymbolStatus)
+	result += fmt.Sprintf("Kind: %s, ", s.ScopeKind)
+	result += fmt.Sprintf("Index: %d", s.ScopeIndex)
 	result += " }"
 	return result
 }
@@ -88,24 +86,5 @@ func (s ScopeKind) String() string {
 		return "none"
 	default:
 		return "invalid ScopeKind"
-	}
-}
-
-type SymbolStatus int
-
-const (
-	_ SymbolStatus = iota
-	DefinedSymbol
-	UsedSymbol
-)
-
-func (s SymbolStatus) String() string {
-	switch s {
-	case DefinedSymbol:
-		return "defined"
-	case UsedSymbol:
-		return "used"
-	default:
-		return "invalid SymbolStatus"
 	}
 }

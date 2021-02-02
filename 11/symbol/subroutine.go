@@ -14,13 +14,13 @@ func NewSubroutineSymbolTable(name string) *SubroutineSymbolTable {
 
 func (s *SubroutineSymbolTable) AddArgSymbol(name string, symbolType string) {
 	scope := NewSymbolScope(ArgScope, s.SubroutineScopeIndexer.argIndex())
-	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	item := NewSymbolItem(name, symbolType, scope)
 	s.Add(item)
 }
 
 func (s *SubroutineSymbolTable) AddVarSymbol(name string, symbolType string) {
 	scope := NewSymbolScope(VarScope, s.SubroutineScopeIndexer.varIndex())
-	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	item := NewSymbolItem(name, symbolType, scope)
 	s.Add(item)
 }
 

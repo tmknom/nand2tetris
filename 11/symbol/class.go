@@ -14,13 +14,13 @@ func NewClassSymbolTable(name string) *ClassSymbolTable {
 
 func (s *ClassSymbolTable) AddStaticSymbol(name string, symbolType string) {
 	scope := NewSymbolScope(StaticScope, s.ClassScopeIndexer.staticIndex())
-	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	item := NewSymbolItem(name, symbolType, scope)
 	s.Add(item)
 }
 
 func (s *ClassSymbolTable) AddFieldSymbol(name string, symbolType string) {
 	scope := NewSymbolScope(FieldScope, s.ClassScopeIndexer.fieldIndex())
-	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	item := NewSymbolItem(name, symbolType, scope)
 	s.Add(item)
 }
 
