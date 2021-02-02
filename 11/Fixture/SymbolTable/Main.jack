@@ -4,15 +4,19 @@ class Main {
     static Square staticSquare;
     field int x, y;
 
-   method void zeroArg() {
+   method void zero() {
       return;
    }
 
-   method void oneArg(boolean booleanA) {
+   method void one(boolean booleanA) {
+      var char charA;
       return;
    }
 
-   method void multiArg(int Ax, int Ay, Square Asize) {
+   method void multi(int Ax, int Ay, Square Asize) {
+      var int i, j;
+      var String stringA;
+      var Array arrayA;
       return;
    }
 }

@@ -29,6 +29,10 @@ func (p *Parser) AddArgSymbol(name string, symbolType string) {
 	p.SubroutineSymbolTable.AddDefinedArgSymbol(name, symbolType)
 }
 
+func (p *Parser) AddVarSymbol(name string, symbolType string) {
+	p.SubroutineSymbolTable.AddDefinedVarSymbol(name, symbolType)
+}
+
 func (p *Parser) printSubroutineSymbolTable() {
 	fmt.Println(p.SubroutineSymbolTable.String())
 }
@@ -326,7 +330,18 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 		return nil, err
 	}
 
+	// シンボルテーブルにローカル変数を追加
+	p.addSymbolTableForVars(varDec)
+
 	return varDec, nil
+}
+
+func (p *Parser) addSymbolTableForVars(varDec *VarDec) {
+	varType := varDec.VarType.Value
+	p.AddVarSymbol(varDec.VarNames.First.Value, varType)
+	for _, commaAndVarName := range varDec.VarNames.CommaAndVarNames {
+		p.AddVarSymbol(commaAndVarName.VarName.Value, varType)
+	}
 }
 
 func (p *Parser) parseStatements() (*Statements, error) {

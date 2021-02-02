@@ -18,6 +18,12 @@ func NewSymbolTable(name string) *SymbolTable {
 	}
 }
 
+func (s *SymbolTable) AddDefinedVarSymbol(name string, symbolType string) {
+	scope := NewSymbolScope(VarScope, s.ScopeIndexer.varIndex())
+	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	s.Add(item)
+}
+
 func (s *SymbolTable) AddDefinedArgSymbol(name string, symbolType string) {
 	scope := NewSymbolScope(ArgScope, s.ScopeIndexer.argIndex())
 	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
