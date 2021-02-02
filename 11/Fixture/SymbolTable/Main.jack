@@ -3,4 +3,16 @@ class Main {
     static boolean booleanA, booleanB, booleanC;
     static Square staticSquare;
     field int x, y;
+
+   method void zeroArg() {
+      return;
+   }
+
+   method void oneArg(boolean booleanA) {
+      return;
+   }
+
+   method void multiArg(int Ax, int Ay, Square Asize) {
+      return;
+   }
 }

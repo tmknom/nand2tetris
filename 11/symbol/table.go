@@ -13,8 +13,15 @@ type SymbolTable struct {
 func NewSymbolTable(name string) *SymbolTable {
 	return &SymbolTable{
 		Name:         name,
+		Items:        []*SymbolItem{},
 		ScopeIndexer: NewIndexes(),
 	}
+}
+
+func (s *SymbolTable) AddDefinedArgSymbol(name string, symbolType string) {
+	scope := NewSymbolScope(ArgScope, s.ScopeIndexer.argIndex())
+	item := NewSymbolItem(name, symbolType, scope, DefinedSymbol)
+	s.Add(item)
 }
 
 func (s *SymbolTable) AddDefinedFieldSymbol(name string, symbolType string) {

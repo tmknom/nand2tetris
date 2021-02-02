@@ -10,13 +10,27 @@ import (
 type Parser struct {
 	tokens *token.Tokens
 	*symbol.SymbolTable
+	SubroutineSymbolTable *symbol.SymbolTable
 }
 
 func NewParser(tokens *token.Tokens) *Parser {
 	return &Parser{
-		tokens:      tokens,
-		SymbolTable: symbol.NewSymbolTable("Global"),
+		tokens:                tokens,
+		SymbolTable:           symbol.NewSymbolTable("Global"),
+		SubroutineSymbolTable: symbol.NewSymbolTable("Uninitialized"),
 	}
+}
+
+func (p *Parser) generateSubroutineSymbolTable(subroutineName string) {
+	p.SubroutineSymbolTable = symbol.NewSymbolTable(subroutineName)
+}
+
+func (p *Parser) AddArgSymbol(name string, symbolType string) {
+	p.SubroutineSymbolTable.AddDefinedArgSymbol(name, symbolType)
+}
+
+func (p *Parser) printSubroutineSymbolTable() {
+	fmt.Println(p.SubroutineSymbolTable.String())
 }
 
 func (p *Parser) advanceToken() *token.Token {
@@ -168,6 +182,9 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 			return nil, err
 		}
 
+		// サブルーチン用のシンボルテーブルを初期化
+		p.generateSubroutineSymbolTable(subroutineDec.SubroutineName.Value)
+
 		openingRoundBracket := p.advanceToken()
 		if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
 			return nil, err
@@ -193,6 +210,9 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 
 		// パースに成功したら要素に追加
 		subroutineDecs.Add(subroutineDec)
+
+		// 作成したサブルーチン用のシンボルテーブルを出力
+		p.printSubroutineSymbolTable()
 	}
 
 	return subroutineDecs, nil
@@ -223,7 +243,22 @@ func (p *Parser) parseParameterList() (*ParameterList, error) {
 			return nil, err
 		}
 	}
+
+	// シンボルテーブルに引数を追加
+	p.addSymbolTableForArgs(parameterList)
+
 	return parameterList, nil
+}
+
+func (p *Parser) addSymbolTableForArgs(parameterList *ParameterList) {
+	if parameterList.First == nil {
+		return
+	}
+
+	p.AddArgSymbol(parameterList.First.VarType.Value, parameterList.First.VarName.Value)
+	for _, commaAndParameter := range parameterList.CommaAndParameters {
+		p.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
+	}
 }
 
 // '{' varDec* statements '}'
