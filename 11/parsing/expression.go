@@ -685,6 +685,8 @@ type UnaryMinus struct {
 	*Symbol
 }
 
+var _ UnaryOp = (*UnaryMinus)(nil)
+
 var ConstUnaryMinus = &UnaryMinus{
 	Symbol: NewSymbolByValue("-"),
 }
@@ -696,6 +698,8 @@ func (m *UnaryMinus) OpType() UnaryOpType {
 type UnaryTilde struct {
 	*Symbol
 }
+
+var _ UnaryOp = (*UnaryTilde)(nil)
 
 var ConstUnaryTilde = &UnaryTilde{
 	Symbol: NewSymbolByValue("~"),
