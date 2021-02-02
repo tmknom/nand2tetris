@@ -25,6 +25,11 @@ func (d *Dest) WriteParsedXML(lines []string) error {
 	return d.write(filename, lines)
 }
 
+func (d *Dest) WriteCode(lines []string) error {
+	filename := d.codeFilename()
+	return d.write(filename, lines)
+}
+
 func (d *Dest) write(filename string, lines []string) error {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -51,4 +56,9 @@ func (d *Dest) tokenizedXMLFilename() string {
 func (d *Dest) parsedXMLFilename() string {
 	withoutExt := d.src[:len(d.src)-len(filepath.Ext(d.src))]
 	return fmt.Sprintf("%s.xml", withoutExt)
+}
+
+func (d *Dest) codeFilename() string {
+	withoutExt := d.src[:len(d.src)-len(filepath.Ext(d.src))]
+	return fmt.Sprintf("%s.vm", withoutExt)
 }
