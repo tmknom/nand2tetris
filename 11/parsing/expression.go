@@ -389,6 +389,8 @@ type Plus struct {
 	*Symbol
 }
 
+var _ BinaryOp = (*Plus)(nil)
+
 var ConstPlus = &Plus{
 	Symbol: NewSymbolByValue("+"),
 }
@@ -400,6 +402,8 @@ func (p *Plus) OpType() BinaryOpType {
 type Minus struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Minus)(nil)
 
 var ConstMinus = &Minus{
 	Symbol: NewSymbolByValue("-"),
@@ -413,6 +417,8 @@ type Asterisk struct {
 	*Symbol
 }
 
+var _ BinaryOp = (*Asterisk)(nil)
+
 var ConstAsterisk = &Asterisk{
 	Symbol: NewSymbolByValue("*"),
 }
@@ -424,6 +430,8 @@ func (a *Asterisk) OpType() BinaryOpType {
 type Slash struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Slash)(nil)
 
 var ConstSlash = &Slash{
 	Symbol: NewSymbolByValue("/"),
@@ -437,6 +445,8 @@ type Ampersand struct {
 	*Symbol
 }
 
+var _ BinaryOp = (*Ampersand)(nil)
+
 var ConstAmpersand = &Ampersand{
 	Symbol: NewSymbolByValue("&"),
 }
@@ -448,6 +458,8 @@ func (a *Ampersand) OpType() BinaryOpType {
 type VerticalLine struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*VerticalLine)(nil)
 
 var ConstVerticalLine = &VerticalLine{
 	Symbol: NewSymbolByValue("|"),
@@ -461,6 +473,8 @@ type LessThan struct {
 	*Symbol
 }
 
+var _ BinaryOp = (*LessThan)(nil)
+
 var ConstLessThan = &LessThan{
 	Symbol: NewSymbolByValue("<"),
 }
@@ -473,6 +487,8 @@ type GreaterThan struct {
 	*Symbol
 }
 
+var _ BinaryOp = (*GreaterThan)(nil)
+
 var ConstGreaterThan = &GreaterThan{
 	Symbol: NewSymbolByValue(">"),
 }
@@ -484,6 +500,8 @@ func (g *GreaterThan) OpType() BinaryOpType {
 type Equals struct {
 	*Symbol
 }
+
+var _ BinaryOp = (*Equals)(nil)
 
 var ConstEquals = &Equals{
 	Symbol: NewSymbolByValue("="),
