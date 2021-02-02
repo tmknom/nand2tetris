@@ -1,0 +1,6 @@
+class Main {
+    field int size;
+    static boolean booleanA, booleanB, booleanC;
+    static Square staticSquare;
+    field int x, y;
+}
