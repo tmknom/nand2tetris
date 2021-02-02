@@ -1932,6 +1932,35 @@ func TestParserParseGroupingExpression(t *testing.T) {
 				ClosingRoundBracket: ConstClosingRoundBracket,
 			},
 		},
+		{
+			desc: "Expressionの定義がふたつ",
+			tokens: []*token.Token{
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("2", token.TokenIntConst),
+				token.NewToken("+", token.TokenSymbol),
+				token.NewToken("3", token.TokenIntConst),
+				token.NewToken(")", token.TokenSymbol),
+			},
+			want: &GroupingExpression{
+				Expression: &Expression{
+					Term: &IntegerConstant{
+						Token: token.NewToken("2", token.TokenIntConst),
+					},
+					BinaryOpTerms: &BinaryOpTerms{
+						Items: []*BinaryOpTerm{
+							&BinaryOpTerm{
+								BinaryOp: ConstPlus,
+								Term: &IntegerConstant{
+									Token: token.NewToken("3", token.TokenIntConst),
+								},
+							},
+						},
+					},
+				},
+				OpeningRoundBracket: ConstOpeningRoundBracket,
+				ClosingRoundBracket: ConstClosingRoundBracket,
+			},
+		},
 	}
 
 	for _, tc := range cases {
