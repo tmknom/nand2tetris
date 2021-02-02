@@ -1,0 +1,22 @@
+class Main {
+    field int size;
+    static boolean booleanA, booleanB, booleanC;
+    static Square staticSquare;
+    field int x, y;
+
+   method void zero() {
+      return;
+   }
+
+   method void one(boolean booleanA) {
+      var char charA;
+      return;
+   }
+
+   method void multi(int Ax, int Ay, Square Asize) {
+      var int i, j;
+      var String stringA;
+      var Array arrayA;
+      return;
+   }
+}
