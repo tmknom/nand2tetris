@@ -293,6 +293,12 @@ func (e *Expression) ToXML() []string {
 	return result
 }
 
+func (e *Expression) ToCode() []string {
+	result := []string{}
+	result = append(result, e.Term.ToCode()...)
+	return result
+}
+
 type BinaryOpTerms struct {
 	Items []*BinaryOpTerm
 }
@@ -743,7 +749,8 @@ func (i *IntegerConstant) ToXML() []string {
 }
 
 func (i *IntegerConstant) ToCode() []string {
-	return []string{"Not implemented"}
+	code := fmt.Sprintf("push constant %s", i.Value)
+	return []string{code}
 }
 
 var ConstTermXMLConverter = &TermXMLConverter{}
