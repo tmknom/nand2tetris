@@ -273,8 +273,38 @@ func (w *WhileStatement) ToXML() []string {
 	return result
 }
 
+// while(condition) { statements }
 func (w *WhileStatement) ToCode() []string {
-	return []string{"WhileStatement_not_implemented"}
+	id := symbol.GlobalIdGenerator.Generate()
+	startLabel := fmt.Sprintf("WHILE_START_%s", id)
+	endLabel := fmt.Sprintf("WHILE_END_%s", id)
+
+	result := []string{}
+
+	// while文をスタートするのためのラベル
+	result = append(result, fmt.Sprintf("label %s", startLabel))
+
+	// while文のconditionの計算
+	result = append(result, w.Expression.ToCode()...)
+
+	// conditionがtrueの場合、conditionは「-1」になる
+	// しかしループを抜けるか判定するif-goto文は、ゼロ以外ならジャンプしてしまう
+	// そのためconditionの結果を反転して、conditionがtrueならゼロにして、if-goto文でジャンプしないようにする
+	// 逆にconditionがfalseなら評価される値は「-1」になって、if-goto文でジャンプできる
+	result = append(result, "not")
+
+	// 評価した値がゼロ以外なら、ループを抜けるラベルにジャンプする
+	result = append(result, fmt.Sprintf("if-goto %s", endLabel))
+
+	// while文の中を実行（S1の計算）
+	result = append(result, w.Statements.ToCode()...)
+
+	// while文のスタートに戻る
+	result = append(result, fmt.Sprintf("goto %s", startLabel))
+
+	// while文から抜けるためのラベル
+	result = append(result, fmt.Sprintf("label %s", endLabel))
+	return result
 }
 
 type DoStatement struct {
