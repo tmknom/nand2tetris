@@ -235,6 +235,66 @@ func TestExpressionToCode(t *testing.T) {
 				"not",
 			},
 		},
+		{
+			desc: "引数なしのサブルーチン: max()",
+			expression: &Expression{
+				Term: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						SubroutineName: NewSubroutineNameByValue("max"),
+					},
+					ExpressionList: NewExpressionList(),
+				},
+			},
+			want: []string{
+				"call max 0",
+			},
+		},
+		{
+			desc: "引数ありのサブルーチン: max(123, foo)",
+			expression: &Expression{
+				Term: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						SubroutineName: NewSubroutineNameByValue("max"),
+					},
+					ExpressionList: &ExpressionList{
+						First: &Expression{
+							Term: NewIntegerConstantByValue("123"),
+						},
+						CommaAndExpressions: []*CommaAndExpression{
+							NewCommaAndExpression(&Expression{
+								Term: NewVarNameByValue("foo"),
+							}),
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 123",
+				"push local 0",
+				"call max 2",
+			},
+		},
+		{
+			desc: "ビルトインのサブルーチン: Output.printInt(foo)",
+			expression: &Expression{
+				Term: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						CallerName:     NewCallerNameByValue("Output"),
+						SubroutineName: NewSubroutineNameByValue("printInt"),
+					},
+					ExpressionList: &ExpressionList{
+						First: &Expression{
+							Term: NewVarNameByValue("foo"),
+						},
+						CommaAndExpressions: []*CommaAndExpression{},
+					},
+				},
+			},
+			want: []string{
+				"push local 0",
+				"call Output.printInt 1",
+			},
+		},
 	}
 
 	// いろいろ初期化

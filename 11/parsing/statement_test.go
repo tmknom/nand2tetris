@@ -169,7 +169,7 @@ func TestDoStatementToCode(t *testing.T) {
 			},
 		},
 		{
-			desc: "引数ありのサブルーチンの実行: do Main.max(123, foo);",
+			desc: "引数ありのサブルーチンの実行: do max(123, foo);",
 			doStatement: &DoStatement{
 				SubroutineCall: &SubroutineCall{
 					SubroutineCallName: &SubroutineCallName{
