@@ -1,6 +1,9 @@
 package parsing
 
-import "../token"
+import (
+	"../symbol"
+	"../token"
+)
 
 type Class struct {
 	Keyword *Keyword
@@ -115,6 +118,21 @@ func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
 		Semicolon: ConstSemicolon,
+	}
+}
+
+func (c *ClassVarDec) UpdateSymbolTable() {
+	symbolType := c.VarType.Value
+	if c.Keyword.Value == "static" {
+		symbol.GlobalNewSymbolTables.AddStaticSymbol(c.First.Value, symbolType)
+		for _, commaAndVarName := range c.CommaAndVarNames {
+			symbol.GlobalNewSymbolTables.AddStaticSymbol(commaAndVarName.VarName.Value, symbolType)
+		}
+	} else if c.Keyword.Value == "field" {
+		symbol.GlobalNewSymbolTables.AddFieldSymbol(c.First.Value, symbolType)
+		for _, commaAndVarName := range c.CommaAndVarNames {
+			symbol.GlobalNewSymbolTables.AddFieldSymbol(commaAndVarName.VarName.Value, symbolType)
+		}
 	}
 }
 
