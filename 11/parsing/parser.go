@@ -26,10 +26,6 @@ func (p *Parser) generateSubroutineSymbolTable(subroutineName string) {
 	symbol.GlobalNewSymbolTables.ResetSubroutine(subroutineName)
 }
 
-func (p *Parser) printSubroutineSymbolTable() {
-	//fmt.Println(symbol.GlobalNewSymbolTables.SubroutineSymbolTable.String())
-}
-
 func (p *Parser) advanceToken() *token.Token {
 	return p.tokens.Advance()
 }
@@ -52,7 +48,8 @@ func (p *Parser) Parse() (*Class, error) {
 		return nil, errors.WithMessage(err, p.tokens.DebugForError())
 	}
 
-	//fmt.Println(symbol.GlobalNewSymbolTables.ClassSymbolTable.String())
+	// クラス版シンボルテーブルの出力
+	symbol.GlobalNewSymbolTables.PrintClassSymbolTable()
 
 	return class, nil
 }
@@ -188,8 +185,8 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		// パースに成功したら要素に追加
 		subroutineDecs.Add(subroutineDec)
 
-		// 作成したサブルーチン用のシンボルテーブルを出力
-		p.printSubroutineSymbolTable()
+		// サブルーチン版シンボルテーブルの出力
+		symbol.GlobalNewSymbolTables.PrintSubroutineSymbolTable()
 	}
 
 	return subroutineDecs, nil

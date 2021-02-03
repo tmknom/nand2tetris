@@ -2,6 +2,8 @@ package symbol
 
 import "fmt"
 
+const DebugSymbolTables = false
+
 var GlobalNewSymbolTables = NewSymbolTables("Uninitialized")
 
 type SymbolTables struct {
@@ -23,6 +25,18 @@ func (s *SymbolTables) Reset(className string) {
 
 func (s *SymbolTables) ResetSubroutine(subroutineName string) {
 	s.SubroutineSymbolTable = NewSubroutineSymbolTable(subroutineName)
+}
+
+func (s *SymbolTables) PrintClassSymbolTable() {
+	if DebugSymbolTables {
+		fmt.Println(s.ClassSymbolTable.String())
+	}
+}
+
+func (s *SymbolTables) PrintSubroutineSymbolTable() {
+	if DebugSymbolTables {
+		fmt.Println(s.SubroutineSymbolTable.String())
+	}
 }
 
 type SymbolTable struct {
