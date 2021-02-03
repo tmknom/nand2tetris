@@ -194,8 +194,44 @@ func (i *IfStatement) ToXML() []string {
 	return result
 }
 
+// if (condition) { statements }
+// else { statements }
 func (i *IfStatement) ToCode() []string {
-	return []string{"IfStatement_not_implemented"}
+	id := symbol.GlobalIdGenerator.Generate()
+	elseLabel := fmt.Sprintf("ELSE_START_%s", id)
+	endLabel := fmt.Sprintf("IF_END_%s", id)
+
+	result := []string{}
+
+	// if文のconditionの計算
+	result = append(result, i.Expression.ToCode()...)
+
+	// conditionがtrueの場合、conditionは「-1」になる
+	// しかしループを抜けるか判定するif-goto文は、ゼロ以外ならジャンプしてしまう
+	// そのためconditionの結果を反転して、conditionがtrueならゼロにして、if-goto文でジャンプしないようにする
+	// 逆にconditionがfalseなら評価される値は「-1」になって、if-goto文でジャンプできる
+	result = append(result, "not")
+
+	// 評価した値がゼロ以外なら、else句のラベルにジャンプする
+	result = append(result, fmt.Sprintf("if-goto %s", elseLabel))
+
+	// if句の中を実行（S1の計算）
+	result = append(result, i.Statements.ToCode()...)
+
+	// if文を抜けるラベルにジャンプ
+	result = append(result, fmt.Sprintf("goto %s", endLabel))
+
+	// else句をスタートするのためのラベル
+	result = append(result, fmt.Sprintf("label %s", elseLabel))
+
+	// else句の中を実行（S2の計算）
+	if i.ElseBlock != nil {
+		result = append(result, i.ElseBlock.Statements.ToCode()...)
+	}
+
+	// if文から抜けるためのラベル
+	result = append(result, fmt.Sprintf("label %s", endLabel))
+	return result
 }
 
 type ElseBlock struct {
