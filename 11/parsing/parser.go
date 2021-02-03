@@ -10,32 +10,21 @@ import (
 type Parser struct {
 	tokens *token.Tokens
 	*Class
-	*symbol.SymbolTables
 }
 
 func NewParser(tokens *token.Tokens, className string) *Parser {
+	// シンボルテーブルをリセットしておく
+	symbol.GlobalSymbolTables.Reset(className)
+
 	return &Parser{
-		tokens:       tokens,
-		Class:        NewClass(),
-		SymbolTables: symbol.NewSymbolTables(className),
+		tokens: tokens,
+		Class:  NewClass(),
 	}
-}
-
-func (p *Parser) generateSubroutineSymbolTable(subroutineName string) {
-	p.SubroutineSymbolTable = symbol.NewSubroutineSymbolTable(subroutineName)
-}
-
-func (p *Parser) printSubroutineSymbolTable() {
-	fmt.Println(p.SubroutineSymbolTable.String())
 }
 
 func (p *Parser) advanceToken() *token.Token {
 	return p.tokens.Advance()
 }
-
-//func (p *Parser) backwardToken() *token.Token {
-//	return p.tokens.Backward()
-//}
 
 func (p *Parser) readFirstToken() *token.Token {
 	return p.tokens.First()
@@ -51,7 +40,8 @@ func (p *Parser) Parse() (*Class, error) {
 		return nil, errors.WithMessage(err, p.tokens.DebugForError())
 	}
 
-	fmt.Println(p.ClassSymbolTable.String())
+	// クラス版シンボルテーブルの出力
+	symbol.GlobalSymbolTables.PrintClassSymbolTable()
 
 	return class, nil
 }
@@ -134,25 +124,10 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 		classVarDecs.Add(classVarDec)
 
 		// シンボルテーブルの更新
-		p.addSymbolTableForClassVarDec(classVarDec)
+		classVarDec.UpdateSymbolTable()
 	}
 
 	return classVarDecs, nil
-}
-
-func (p *Parser) addSymbolTableForClassVarDec(classVarDec *ClassVarDec) {
-	symbolType := classVarDec.VarType.Value
-	if classVarDec.Keyword.Value == "static" {
-		p.AddStaticSymbol(classVarDec.First.Value, symbolType)
-		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-			p.AddStaticSymbol(commaAndVarName.VarName.Value, symbolType)
-		}
-	} else if classVarDec.Keyword.Value == "field" {
-		p.AddFieldSymbol(classVarDec.First.Value, symbolType)
-		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-			p.AddFieldSymbol(commaAndVarName.VarName.Value, symbolType)
-		}
-	}
 }
 
 // ('constructor' | 'function' | 'method') ('void' | varType) subroutineName '(' parameterList ')' subroutineBody
@@ -174,7 +149,7 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		}
 
 		// サブルーチン用のシンボルテーブルを初期化
-		p.generateSubroutineSymbolTable(subroutineDec.SubroutineName.Value)
+		symbol.GlobalSymbolTables.ResetSubroutine(subroutineDec.SubroutineName.Value)
 
 		openingRoundBracket := p.advanceToken()
 		if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
@@ -202,8 +177,8 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		// パースに成功したら要素に追加
 		subroutineDecs.Add(subroutineDec)
 
-		// 作成したサブルーチン用のシンボルテーブルを出力
-		p.printSubroutineSymbolTable()
+		// サブルーチン版シンボルテーブルの出力
+		symbol.GlobalSymbolTables.PrintSubroutineSymbolTable()
 	}
 
 	return subroutineDecs, nil
@@ -235,21 +210,10 @@ func (p *Parser) parseParameterList() (*ParameterList, error) {
 		}
 	}
 
-	// シンボルテーブルに引数を追加
-	p.addSymbolTableForArgs(parameterList)
+	// シンボルテーブルの更新
+	parameterList.UpdateSymbolTable()
 
 	return parameterList, nil
-}
-
-func (p *Parser) addSymbolTableForArgs(parameterList *ParameterList) {
-	if parameterList.First == nil {
-		return
-	}
-
-	p.AddArgSymbol(parameterList.First.VarType.Value, parameterList.First.VarName.Value)
-	for _, commaAndParameter := range parameterList.CommaAndParameters {
-		p.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
-	}
 }
 
 // '{' varDec* statements '}'
@@ -317,18 +281,10 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 		return nil, err
 	}
 
-	// シンボルテーブルにローカル変数を追加
-	p.addSymbolTableForVars(varDec)
+	// シンボルテーブルの更新
+	varDec.UpdateSymbolTable()
 
 	return varDec, nil
-}
-
-func (p *Parser) addSymbolTableForVars(varDec *VarDec) {
-	varType := varDec.VarType.Value
-	p.AddVarSymbol(varDec.VarNames.First.Value, varType)
-	for _, commaAndVarName := range varDec.VarNames.CommaAndVarNames {
-		p.AddVarSymbol(commaAndVarName.VarName.Value, varType)
-	}
 }
 
 func (p *Parser) parseStatements() (*Statements, error) {

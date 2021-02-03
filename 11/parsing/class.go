@@ -1,6 +1,12 @@
 package parsing
 
-import "../token"
+import (
+	"../symbol"
+	"../token"
+	"fmt"
+)
+
+const DebugCode = true
 
 type Class struct {
 	Keyword *Keyword
@@ -68,6 +74,21 @@ func (c *Class) ToXML() []string {
 	return result
 }
 
+func (c *Class) ToCode() []string {
+	result := []string{}
+	//result = append(result, c.ClassVarDecs.ToCode()...)
+	result = append(result, c.SubroutineDecs.ToCode()...)
+	return result
+}
+
+func (c *Class) PrintCode() {
+	if DebugCode {
+		for _, line := range c.ToDebugCode() {
+			fmt.Println(line)
+		}
+	}
+}
+
 type ClassVarDecs struct {
 	Items []*ClassVarDec
 }
@@ -108,6 +129,21 @@ func NewClassVarDec() *ClassVarDec {
 	return &ClassVarDec{
 		VarNames:  NewVarNames(),
 		Semicolon: ConstSemicolon,
+	}
+}
+
+func (c *ClassVarDec) UpdateSymbolTable() {
+	symbolType := c.VarType.Value
+	if c.Keyword.Value == "static" {
+		symbol.GlobalSymbolTables.AddStaticSymbol(c.First.Value, symbolType)
+		for _, commaAndVarName := range c.CommaAndVarNames {
+			symbol.GlobalSymbolTables.AddStaticSymbol(commaAndVarName.VarName.Value, symbolType)
+		}
+	} else if c.Keyword.Value == "field" {
+		symbol.GlobalSymbolTables.AddFieldSymbol(c.First.Value, symbolType)
+		for _, commaAndVarName := range c.CommaAndVarNames {
+			symbol.GlobalSymbolTables.AddFieldSymbol(commaAndVarName.VarName.Value, symbolType)
+		}
 	}
 }
 

@@ -42,8 +42,12 @@ func (s *SubroutineCall) ToXML() []string {
 
 func (s *SubroutineCall) ToCode() []string {
 	length := s.ExpressionListLength()
-	code := fmt.Sprintf("call %s %d", s.SubroutineCallName.ToCode(), length)
-	return []string{code}
+	callName := fmt.Sprintf("call %s %d", s.SubroutineCallName.ToCode(), length)
+
+	result := []string{}
+	result = append(result, s.ExpressionList.ToCode()...)
+	result = append(result, callName)
+	return result
 }
 
 func (s *SubroutineCall) Debug() string {
@@ -183,6 +187,18 @@ func (e *ExpressionList) ToXML() []string {
 		result = append(result, item.ToXML()...)
 	}
 	result = append(result, "</expressionList>")
+	return result
+}
+
+func (e *ExpressionList) ToCode() []string {
+	result := []string{}
+	if e.First != nil {
+		result = append(result, e.First.ToCode()...)
+	}
+
+	for _, item := range e.CommaAndExpressions {
+		result = append(result, item.ToCode()...)
+	}
 	return result
 }
 
@@ -635,7 +651,10 @@ func (u *UnaryOpTerm) ToXML() []string {
 }
 
 func (u *UnaryOpTerm) ToCode() []string {
-	return []string{"UnaryOpTerm_not_implemented"}
+	result := []string{}
+	result = append(result, u.Term.ToCode()...)
+	result = append(result, u.UnaryOp.ToCode()...)
+	return result
 }
 
 var ConstUnaryOpFactory = &UnaryOpFactory{}
@@ -669,6 +688,8 @@ type UnaryMinus struct {
 	*Symbol
 }
 
+var _ UnaryOp = (*UnaryMinus)(nil)
+
 var ConstUnaryMinus = &UnaryMinus{
 	Symbol: NewSymbolByValue("-"),
 }
@@ -677,9 +698,15 @@ func (m *UnaryMinus) OpType() UnaryOpType {
 	return UnaryMinusType
 }
 
+func (t *UnaryMinus) ToCode() []string {
+	return []string{"neg"}
+}
+
 type UnaryTilde struct {
 	*Symbol
 }
+
+var _ UnaryOp = (*UnaryTilde)(nil)
 
 var ConstUnaryTilde = &UnaryTilde{
 	Symbol: NewSymbolByValue("~"),
@@ -689,9 +716,14 @@ func (t *UnaryTilde) OpType() UnaryOpType {
 	return UnaryTildeType
 }
 
+func (t *UnaryTilde) ToCode() []string {
+	return []string{"not"}
+}
+
 type UnaryOp interface {
 	OpType() UnaryOpType
 	ToXML() string
+	ToCode() []string
 }
 
 type UnaryOpType int

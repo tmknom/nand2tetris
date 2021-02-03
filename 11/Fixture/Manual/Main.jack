@@ -1,0 +1,14 @@
+class Main {
+    function void main() {
+        do Main.letFunc(3);
+        return;
+    }
+
+    function void letFunc(int size) {
+        var int value;
+        let value = 20;
+        let size = size * value;
+        do Output.printInt(size);
+        return;
+    }
+}

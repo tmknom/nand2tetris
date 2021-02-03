@@ -8,7 +8,6 @@ import (
 type Tokens struct {
 	Items     []*Token
 	HeadIndex int
-	TailIndex int
 }
 
 func NewTokens() *Tokens {
@@ -27,11 +26,6 @@ func (t *Tokens) Advance() *Token {
 	return t.Items[t.HeadIndex-1]
 }
 
-func (t *Tokens) Backward() *Token {
-	t.TailIndex -= 1
-	return t.Items[t.TailIndex+1]
-}
-
 func (t *Tokens) First() *Token {
 	if len(t.Items) > t.HeadIndex {
 		return t.Items[t.HeadIndex]
@@ -46,16 +40,8 @@ func (t *Tokens) Second() *Token {
 	return nil
 }
 
-func (t *Tokens) SubList() *Tokens {
-	tokens := NewTokens()
-	tokens.Items = t.Items[t.HeadIndex : t.TailIndex+1]
-	tokens.setupIndex()
-	return tokens
-}
-
 func (t *Tokens) setupIndex() {
 	t.HeadIndex = 0
-	t.TailIndex = len(t.Items) - 1
 }
 
 func (t *Tokens) ToXML() []string {

@@ -22,7 +22,7 @@ clean: ## Clean
 	go clean -cache -testcache
 
 linefeed: ## Convert linefeed
-	sed -i '' 's/\r//' Fixture/SymbolTable/Main.jack
+	sed -i '' 's/\r//' Fixture/Manual/Main.jack
 
 # https://postd.cc/auto-documented-makefile/
 help: ## Show help
