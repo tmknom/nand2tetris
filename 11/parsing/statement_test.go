@@ -28,13 +28,10 @@ func TestLetStatementToCode(t *testing.T) {
 		{
 			desc: "IntegerConstantの代入: let foo = 123",
 			letStatement: &LetStatement{
-				StatementKeyword: NewStatementKeyword("let"),
-				VarName:          NewVarNameByValue("foo"),
+				VarName: NewVarNameByValue("foo"),
 				Expression: &Expression{
 					Term: NewIntegerConstantByValue("123"),
 				},
-				Equal:     ConstEqual,
-				Semicolon: ConstSemicolon,
 			},
 			want: []string{
 				"push constant 123",
@@ -44,13 +41,10 @@ func TestLetStatementToCode(t *testing.T) {
 		{
 			desc: "引数のVarNameの代入: let foo = argA",
 			letStatement: &LetStatement{
-				StatementKeyword: NewStatementKeyword("let"),
-				VarName:          NewVarNameByValue("foo"),
+				VarName: NewVarNameByValue("foo"),
 				Expression: &Expression{
 					Term: NewVarNameByValue("argA"),
 				},
-				Equal:     ConstEqual,
-				Semicolon: ConstSemicolon,
 			},
 			want: []string{
 				"push argument 0",
@@ -60,13 +54,10 @@ func TestLetStatementToCode(t *testing.T) {
 		{
 			desc: "ローカル変数のVarNameの代入: let foo = baz",
 			letStatement: &LetStatement{
-				StatementKeyword: NewStatementKeyword("let"),
-				VarName:          NewVarNameByValue("foo"),
+				VarName: NewVarNameByValue("foo"),
 				Expression: &Expression{
 					Term: NewVarNameByValue("localA"),
 				},
-				Equal:     ConstEqual,
-				Semicolon: ConstSemicolon,
 			},
 			want: []string{
 				"push local 1",
@@ -165,20 +156,63 @@ func TestDoStatementToCode(t *testing.T) {
 		{
 			desc: "引数なしのサブルーチンの実行: do max();",
 			doStatement: &DoStatement{
-				StatementKeyword: NewStatementKeyword("do"),
 				SubroutineCall: &SubroutineCall{
 					SubroutineCallName: &SubroutineCallName{
-						Period:         ConstPeriod,
 						SubroutineName: NewSubroutineNameByValue("max"),
 					},
-					ExpressionList:      NewExpressionList(),
-					OpeningRoundBracket: ConstOpeningRoundBracket,
-					ClosingRoundBracket: ConstClosingRoundBracket,
+					ExpressionList: NewExpressionList(),
 				},
-				Semicolon: ConstSemicolon,
 			},
 			want: []string{
 				"call max 0",
+				"pop temp 0",
+			},
+		},
+		{
+			desc: "引数ありのサブルーチンの実行: do Main.max(123, foo);",
+			doStatement: &DoStatement{
+				SubroutineCall: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						SubroutineName: NewSubroutineNameByValue("max"),
+					},
+					ExpressionList: &ExpressionList{
+						First: &Expression{
+							Term: NewIntegerConstantByValue("123"),
+						},
+						CommaAndExpressions: []*CommaAndExpression{
+							NewCommaAndExpression(&Expression{
+								Term: NewVarNameByValue("foo"),
+							}),
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 123",
+				"push local 0",
+				"call max 2",
+				"pop temp 0",
+			},
+		},
+		{
+			desc: "ビルトインのサブルーチンの実行: do Output.printInt(foo);",
+			doStatement: &DoStatement{
+				SubroutineCall: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						CallerName:     NewCallerNameByValue("Output"),
+						SubroutineName: NewSubroutineNameByValue("printInt"),
+					},
+					ExpressionList: &ExpressionList{
+						First: &Expression{
+							Term: NewVarNameByValue("foo"),
+						},
+						CommaAndExpressions: []*CommaAndExpression{},
+					},
+				},
+			},
+			want: []string{
+				"push local 0",
+				"call Output.printInt 1",
 				"pop temp 0",
 			},
 		},
@@ -186,6 +220,8 @@ func TestDoStatementToCode(t *testing.T) {
 
 	// いろいろ初期化
 	SetupTestForToCode()
+	// シンボルテーブルのセットアップ
+	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
