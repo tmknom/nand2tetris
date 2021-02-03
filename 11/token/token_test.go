@@ -11,7 +11,6 @@ func TestTokensAdd(t *testing.T) {
 		tokens     []*Token
 		wantTokens []*Token
 		wantHead   int
-		wantTail   int
 	}{
 		{
 			desc: "トークンの追加",
@@ -26,7 +25,6 @@ func TestTokensAdd(t *testing.T) {
 				NewToken("{", TokenSymbol),
 			},
 			wantHead: 0,
-			wantTail: 2,
 		},
 	}
 
@@ -41,10 +39,6 @@ func TestTokensAdd(t *testing.T) {
 
 			if tokens.HeadIndex != tc.wantHead {
 				t.Errorf("failed HeadIndex: got = %d, want %d", tokens.HeadIndex, tc.wantHead)
-			}
-
-			if tokens.TailIndex != tc.wantTail {
-				t.Errorf("failed TailIndex: got = %d, want %d", tokens.TailIndex, tc.wantTail)
 			}
 		})
 	}
@@ -80,43 +74,6 @@ func TestTokensAdvance(t *testing.T) {
 			}
 
 			second := tokens.Advance()
-			if diff := cmp.Diff(second, tc.wantSecond); diff != "" {
-				t.Errorf("failed second: diff (-got +want):\n%s", diff)
-			}
-		})
-	}
-}
-
-func TestTokensBackward(t *testing.T) {
-	cases := []struct {
-		desc       string
-		tokens     []*Token
-		wantFirst  *Token
-		wantSecond *Token
-	}{
-		{
-			desc: "後ろからトークンを取得",
-			tokens: []*Token{
-				NewToken("class", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
-				NewToken("{", TokenSymbol),
-			},
-			wantFirst:  NewToken("{", TokenSymbol),
-			wantSecond: NewToken("Array", TokenIdentifier),
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
-			tokens.Add(tc.tokens)
-
-			first := tokens.Backward()
-			if diff := cmp.Diff(first, tc.wantFirst); diff != "" {
-				t.Errorf("failed first: diff (-got +want):\n%s", diff)
-			}
-
-			second := tokens.Backward()
 			if diff := cmp.Diff(second, tc.wantSecond); diff != "" {
 				t.Errorf("failed second: diff (-got +want):\n%s", diff)
 			}
@@ -173,42 +130,6 @@ func TestTokensFirst(t *testing.T) {
 			afterAdvance := tokens.First()
 			if diff := cmp.Diff(afterAdvance, tc.wantAfterAdvance); diff != "" {
 				t.Errorf("failed after advance: diff (-got +want):\n%s", diff)
-			}
-		})
-	}
-}
-
-func TestTokensSubList(t *testing.T) {
-	cases := []struct {
-		desc       string
-		tokens     []*Token
-		wantTokens []*Token
-	}{
-		{
-			desc: "部分リストを取得",
-			tokens: []*Token{
-				NewToken("class", TokenKeyword),
-				NewToken("Array", TokenIdentifier),
-				NewToken("{", TokenSymbol),
-			},
-			wantTokens: []*Token{
-				NewToken("Array", TokenIdentifier),
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			tokens := NewTokens()
-			tokens.Add(tc.tokens)
-
-			// 要素を前と後ろからひとつずつ進める
-			tokens.Advance()
-			tokens.Backward()
-
-			got := tokens.SubList()
-			if diff := cmp.Diff(got.Items, tc.wantTokens); diff != "" {
-				t.Errorf("failed: diff (-got +want):\n%s", diff)
 			}
 		})
 	}
