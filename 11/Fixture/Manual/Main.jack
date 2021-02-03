@@ -1,5 +1,6 @@
 class Main {
     function void main() {
+        do Main.whileFunc(3);
         do Main.letFunc(3);
         return;
     }
@@ -7,8 +8,18 @@ class Main {
     function void letFunc(int size) {
         var int value;
         let value = 20;
-        let size = size * value;
+        let size = size + value;
         do Output.printInt(size);
+        do Output.println();
+        return;
+    }
+
+    function void whileFunc(int size) {
+        while (size > 0) {
+            let size = size - 1;
+            do Output.printInt(size);
+            do Output.println();
+        }
         return;
     }
 }
