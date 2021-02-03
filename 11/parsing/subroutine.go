@@ -249,9 +249,9 @@ func NewVarDec() *VarDec {
 
 func (v *VarDec) UpdateSymbolTable() {
 	varType := v.VarType.Value
-	symbol.GlobalNewSymbolTables.AddVarSymbol(v.VarNames.First.Value, varType)
+	symbol.GlobalSymbolTables.AddVarSymbol(v.VarNames.First.Value, varType)
 	for _, commaAndVarName := range v.VarNames.CommaAndVarNames {
-		symbol.GlobalNewSymbolTables.AddVarSymbol(commaAndVarName.VarName.Value, varType)
+		symbol.GlobalSymbolTables.AddVarSymbol(commaAndVarName.VarName.Value, varType)
 	}
 }
 

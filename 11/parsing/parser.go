@@ -14,7 +14,7 @@ type Parser struct {
 
 func NewParser(tokens *token.Tokens, className string) *Parser {
 	// シンボルテーブルをリセットしておく
-	symbol.GlobalNewSymbolTables.Reset(className)
+	symbol.GlobalSymbolTables.Reset(className)
 
 	return &Parser{
 		tokens: tokens,
@@ -41,7 +41,7 @@ func (p *Parser) Parse() (*Class, error) {
 	}
 
 	// クラス版シンボルテーブルの出力
-	symbol.GlobalNewSymbolTables.PrintClassSymbolTable()
+	symbol.GlobalSymbolTables.PrintClassSymbolTable()
 
 	return class, nil
 }
@@ -149,7 +149,7 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		}
 
 		// サブルーチン用のシンボルテーブルを初期化
-		symbol.GlobalNewSymbolTables.ResetSubroutine(subroutineDec.SubroutineName.Value)
+		symbol.GlobalSymbolTables.ResetSubroutine(subroutineDec.SubroutineName.Value)
 
 		openingRoundBracket := p.advanceToken()
 		if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
@@ -178,7 +178,7 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		subroutineDecs.Add(subroutineDec)
 
 		// サブルーチン版シンボルテーブルの出力
-		symbol.GlobalNewSymbolTables.PrintSubroutineSymbolTable()
+		symbol.GlobalSymbolTables.PrintSubroutineSymbolTable()
 	}
 
 	return subroutineDecs, nil

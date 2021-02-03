@@ -21,9 +21,9 @@ func (p *ParameterList) UpdateSymbolTable() {
 		return
 	}
 
-	symbol.GlobalNewSymbolTables.AddArgSymbol(p.First.VarName.Value, p.First.VarType.Value)
+	symbol.GlobalSymbolTables.AddArgSymbol(p.First.VarName.Value, p.First.VarType.Value)
 	for _, commaAndParameter := range p.CommaAndParameters {
-		symbol.GlobalNewSymbolTables.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
+		symbol.GlobalSymbolTables.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
 	}
 }
 

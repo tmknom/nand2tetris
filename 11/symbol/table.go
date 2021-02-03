@@ -4,7 +4,7 @@ import "fmt"
 
 const DebugSymbolTables = false
 
-var GlobalNewSymbolTables = NewSymbolTables("Uninitialized")
+var GlobalSymbolTables = NewSymbolTables("Uninitialized")
 
 type SymbolTables struct {
 	*ClassSymbolTable
