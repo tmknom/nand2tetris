@@ -10,23 +10,24 @@ import (
 type Parser struct {
 	tokens *token.Tokens
 	*Class
-	*symbol.SymbolTables
 }
 
 func NewParser(tokens *token.Tokens, className string) *Parser {
+	// シンボルテーブルをリセットしておく
+	symbol.GlobalNewSymbolTables.Reset(className)
+
 	return &Parser{
-		tokens:       tokens,
-		Class:        NewClass(),
-		SymbolTables: symbol.NewSymbolTables(className),
+		tokens: tokens,
+		Class:  NewClass(),
 	}
 }
 
 func (p *Parser) generateSubroutineSymbolTable(subroutineName string) {
-	p.SubroutineSymbolTable = symbol.NewSubroutineSymbolTable(subroutineName)
+	symbol.GlobalNewSymbolTables.ResetSubroutine(subroutineName)
 }
 
 func (p *Parser) printSubroutineSymbolTable() {
-	//fmt.Println(p.SubroutineSymbolTable.String())
+	//fmt.Println(symbol.GlobalNewSymbolTables.SubroutineSymbolTable.String())
 }
 
 func (p *Parser) advanceToken() *token.Token {
@@ -51,7 +52,7 @@ func (p *Parser) Parse() (*Class, error) {
 		return nil, errors.WithMessage(err, p.tokens.DebugForError())
 	}
 
-	//fmt.Println(p.ClassSymbolTable.String())
+	//fmt.Println(symbol.GlobalNewSymbolTables.ClassSymbolTable.String())
 
 	return class, nil
 }
@@ -143,14 +144,14 @@ func (p *Parser) parseClassVarDecs() (*ClassVarDecs, error) {
 func (p *Parser) addSymbolTableForClassVarDec(classVarDec *ClassVarDec) {
 	symbolType := classVarDec.VarType.Value
 	if classVarDec.Keyword.Value == "static" {
-		p.AddStaticSymbol(classVarDec.First.Value, symbolType)
+		symbol.GlobalNewSymbolTables.AddStaticSymbol(classVarDec.First.Value, symbolType)
 		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-			p.AddStaticSymbol(commaAndVarName.VarName.Value, symbolType)
+			symbol.GlobalNewSymbolTables.AddStaticSymbol(commaAndVarName.VarName.Value, symbolType)
 		}
 	} else if classVarDec.Keyword.Value == "field" {
-		p.AddFieldSymbol(classVarDec.First.Value, symbolType)
+		symbol.GlobalNewSymbolTables.AddFieldSymbol(classVarDec.First.Value, symbolType)
 		for _, commaAndVarName := range classVarDec.CommaAndVarNames {
-			p.AddFieldSymbol(commaAndVarName.VarName.Value, symbolType)
+			symbol.GlobalNewSymbolTables.AddFieldSymbol(commaAndVarName.VarName.Value, symbolType)
 		}
 	}
 }
@@ -203,7 +204,7 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		subroutineDecs.Add(subroutineDec)
 
 		// 作成したサブルーチン用のシンボルテーブルを出力
-		//p.printSubroutineSymbolTable()
+		p.printSubroutineSymbolTable()
 	}
 
 	return subroutineDecs, nil
@@ -246,9 +247,9 @@ func (p *Parser) addSymbolTableForArgs(parameterList *ParameterList) {
 		return
 	}
 
-	p.AddArgSymbol(parameterList.First.VarType.Value, parameterList.First.VarName.Value)
+	symbol.GlobalNewSymbolTables.AddArgSymbol(parameterList.First.VarType.Value, parameterList.First.VarName.Value)
 	for _, commaAndParameter := range parameterList.CommaAndParameters {
-		p.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
+		symbol.GlobalNewSymbolTables.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
 	}
 }
 
@@ -325,9 +326,9 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 
 func (p *Parser) addSymbolTableForVars(varDec *VarDec) {
 	varType := varDec.VarType.Value
-	p.AddVarSymbol(varDec.VarNames.First.Value, varType)
+	symbol.GlobalNewSymbolTables.AddVarSymbol(varDec.VarNames.First.Value, varType)
 	for _, commaAndVarName := range varDec.VarNames.CommaAndVarNames {
-		p.AddVarSymbol(commaAndVarName.VarName.Value, varType)
+		symbol.GlobalNewSymbolTables.AddVarSymbol(commaAndVarName.VarName.Value, varType)
 	}
 }
 
