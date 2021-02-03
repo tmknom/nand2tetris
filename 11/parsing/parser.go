@@ -221,21 +221,10 @@ func (p *Parser) parseParameterList() (*ParameterList, error) {
 		}
 	}
 
-	// シンボルテーブルに引数を追加
-	p.addSymbolTableForArgs(parameterList)
+	// シンボルテーブルの更新
+	parameterList.UpdateSymbolTable()
 
 	return parameterList, nil
-}
-
-func (p *Parser) addSymbolTableForArgs(parameterList *ParameterList) {
-	if parameterList.First == nil {
-		return
-	}
-
-	symbol.GlobalNewSymbolTables.AddArgSymbol(parameterList.First.VarType.Value, parameterList.First.VarName.Value)
-	for _, commaAndParameter := range parameterList.CommaAndParameters {
-		symbol.GlobalNewSymbolTables.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
-	}
 }
 
 // '{' varDec* statements '}'

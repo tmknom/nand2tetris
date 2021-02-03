@@ -1,6 +1,9 @@
 package parsing
 
-import "../token"
+import (
+	"../symbol"
+	"../token"
+)
 
 type ParameterList struct {
 	First              *Parameter
@@ -10,6 +13,17 @@ type ParameterList struct {
 func NewParameterList() *ParameterList {
 	return &ParameterList{
 		CommaAndParameters: []*CommaAndParameter{},
+	}
+}
+
+func (p *ParameterList) UpdateSymbolTable() {
+	if p.First == nil {
+		return
+	}
+
+	symbol.GlobalNewSymbolTables.AddArgSymbol(p.First.VarType.Value, p.First.VarName.Value)
+	for _, commaAndParameter := range p.CommaAndParameters {
+		symbol.GlobalNewSymbolTables.AddArgSymbol(commaAndParameter.VarName.Value, commaAndParameter.VarType.Value)
 	}
 }
 
