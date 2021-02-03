@@ -1,9 +1,54 @@
 package parsing
 
 import (
+	"../symbol"
 	"github.com/google/go-cmp/cmp"
 	"testing"
 )
+
+func TestLetStatementToCode(t *testing.T) {
+	cases := []struct {
+		desc         string
+		letStatement *LetStatement
+		want         []string
+	}{
+		{
+			desc: "VarNameへの代入: let foo = 123",
+			letStatement: &LetStatement{
+				StatementKeyword: NewStatementKeyword("let"),
+				VarName:          NewVarNameByValue("foo"),
+				Expression: &Expression{
+					Term: NewIntegerConstantByValue("123"),
+				},
+				Equal:     ConstEqual,
+				Semicolon: ConstSemicolon,
+			},
+			want: []string{
+				"push constant 123",
+				"pop local 0",
+			},
+		},
+	}
+
+	// シンボルテーブルのセットアップ
+	SetupForTestLetStatementToCode()
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got := tc.letStatement.ToCode()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func SetupForTestLetStatementToCode() {
+	symbol.GlobalSymbolTables.Reset("Testing")
+	symbol.GlobalSymbolTables.ResetSubroutine("TestRun")
+	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
+}
 
 func TestDoStatementToCode(t *testing.T) {
 	cases := []struct {
