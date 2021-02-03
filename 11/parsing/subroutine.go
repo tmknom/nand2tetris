@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"../symbol"
 	"../token"
 	"fmt"
 	"github.com/pkg/errors"
@@ -233,6 +234,14 @@ func NewVarDec() *VarDec {
 		Keyword:   NewKeywordByValue("var"),
 		VarNames:  NewVarNames(),
 		Semicolon: ConstSemicolon,
+	}
+}
+
+func (v *VarDec) UpdateSymbolTable() {
+	varType := v.VarType.Value
+	symbol.GlobalNewSymbolTables.AddVarSymbol(v.VarNames.First.Value, varType)
+	for _, commaAndVarName := range v.VarNames.CommaAndVarNames {
+		symbol.GlobalNewSymbolTables.AddVarSymbol(commaAndVarName.VarName.Value, varType)
 	}
 }
 

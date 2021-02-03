@@ -292,18 +292,10 @@ func (p *Parser) parseVarDec() (*VarDec, error) {
 		return nil, err
 	}
 
-	// シンボルテーブルにローカル変数を追加
-	p.addSymbolTableForVars(varDec)
+	// シンボルテーブルの更新
+	varDec.UpdateSymbolTable()
 
 	return varDec, nil
-}
-
-func (p *Parser) addSymbolTableForVars(varDec *VarDec) {
-	varType := varDec.VarType.Value
-	symbol.GlobalNewSymbolTables.AddVarSymbol(varDec.VarNames.First.Value, varType)
-	for _, commaAndVarName := range varDec.VarNames.CommaAndVarNames {
-		symbol.GlobalNewSymbolTables.AddVarSymbol(commaAndVarName.VarName.Value, varType)
-	}
 }
 
 func (p *Parser) parseStatements() (*Statements, error) {
