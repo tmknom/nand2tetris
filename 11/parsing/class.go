@@ -6,8 +6,6 @@ import (
 	"fmt"
 )
 
-const DebugCode = true
-
 type Class struct {
 	Keyword *Keyword
 	*ClassName

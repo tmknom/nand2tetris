@@ -141,6 +141,10 @@ func NewCallerName(token *token.Token) *CallerName {
 	}
 }
 
+func NewCallerNameByValue(value string) *CallerName {
+	return NewCallerName(token.NewToken(value, token.TokenIdentifier))
+}
+
 func (c *CallerName) Debug(baseIndent int) string {
 	indent := baseIndent + 2
 	result := IndentSprintf(baseIndent, "&CallerName{")

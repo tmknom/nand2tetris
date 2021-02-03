@@ -10,6 +10,7 @@ import (
 type Parser struct {
 	tokens *token.Tokens
 	*Class
+	*Code
 }
 
 func NewParser(tokens *token.Tokens, className string) *Parser {
@@ -19,6 +20,7 @@ func NewParser(tokens *token.Tokens, className string) *Parser {
 	return &Parser{
 		tokens: tokens,
 		Class:  NewClass(),
+		Code:   NewCode(),
 	}
 }
 
@@ -179,6 +181,10 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 
 		// サブルーチン版シンボルテーブルの出力
 		symbol.GlobalSymbolTables.PrintSubroutineSymbolTable()
+
+		// サブルーチンのコード生成
+		// このタイミングでコード生成しないとサブルーチンのシンボルテーブルが消えるためここで実施
+		p.AddCode(subroutineDec)
 	}
 
 	return subroutineDecs, nil

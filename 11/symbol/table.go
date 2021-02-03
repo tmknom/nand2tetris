@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const DebugSymbolTables = true
+var DebugSymbolTables = true
 
 var GlobalSymbolTables = NewSymbolTables("Uninitialized")
 
