@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"../symbol"
 	"../token"
 	"github.com/google/go-cmp/cmp"
 	"testing"
@@ -95,6 +96,24 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "ローカル変数のVarNameをひとつだけ定義",
+			expression: &Expression{
+				Term: NewVarNameByValue("foo"),
+			},
+			want: []string{
+				"push local 0",
+			},
+		},
+		{
+			desc: "引数のVarNameをひとつだけ定義",
+			expression: &Expression{
+				Term: NewVarNameByValue("bar"),
+			},
+			want: []string{
+				"push argument 0",
+			},
+		},
+		{
 			desc: "UnaryMinusの演算を含む: -123",
 			expression: &Expression{
 				Term: &UnaryOpTerm{
@@ -135,6 +154,12 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 	}
+
+	// いろいろ初期化
+	SetupTestForToCode()
+	// シンボルテーブルのセットアップ
+	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
+	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
