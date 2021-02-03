@@ -114,6 +114,88 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "GroupingExpressionをひとつだけ定義: (6 / 3)",
+			expression: &Expression{
+				Term: &GroupingExpression{
+					Expression: &Expression{
+						Term: NewIntegerConstantByValue("6"),
+						BinaryOpTerms: &BinaryOpTerms{
+							Items: []*BinaryOpTerm{
+								&BinaryOpTerm{
+									BinaryOp: ConstSlash,
+									Term:     NewIntegerConstantByValue("3"),
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 6",
+				"push constant 3",
+				"call Math.divide 2",
+			},
+		},
+		{
+			desc: "GroupingExpressionを複数定義: 1 + ( (2 * 3) - 4 )",
+			expression: &Expression{
+				Term: &IntegerConstant{
+					Token: token.NewToken("1", token.TokenIntConst),
+				},
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstPlus,
+							Term: &GroupingExpression{
+								Expression: &Expression{
+									Term: &GroupingExpression{
+										Expression: &Expression{
+											Term: &IntegerConstant{
+												Token: token.NewToken("2", token.TokenIntConst),
+											},
+											BinaryOpTerms: &BinaryOpTerms{
+												Items: []*BinaryOpTerm{
+													&BinaryOpTerm{
+														BinaryOp: ConstAsterisk,
+														Term: &IntegerConstant{
+															Token: token.NewToken("3", token.TokenIntConst),
+														},
+													},
+												},
+											},
+										},
+										OpeningRoundBracket: ConstOpeningRoundBracket,
+										ClosingRoundBracket: ConstClosingRoundBracket,
+									},
+									BinaryOpTerms: &BinaryOpTerms{
+										Items: []*BinaryOpTerm{
+											&BinaryOpTerm{
+												BinaryOp: ConstMinus,
+												Term: &IntegerConstant{
+													Token: token.NewToken("4", token.TokenIntConst),
+												},
+											},
+										},
+									},
+								},
+								OpeningRoundBracket: ConstOpeningRoundBracket,
+								ClosingRoundBracket: ConstClosingRoundBracket,
+							},
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 1",
+				"push constant 2",
+				"push constant 3",
+				"call Math.multiply 2",
+				"push constant 4",
+				"sub",
+				"add",
+			},
+		},
+		{
 			desc: "UnaryMinusの演算を含む: -123",
 			expression: &Expression{
 				Term: &UnaryOpTerm{
