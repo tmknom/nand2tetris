@@ -221,7 +221,11 @@ func (v *VarDecs) IsVarDecKeyword(token *token.Token) bool {
 }
 
 func (v *VarDecs) VarDecsLength() int {
-	return len(v.Items)
+	result := 0
+	for _, item := range v.Items {
+		result += item.VarNameLength()
+	}
+	return result
 }
 
 func (v *VarDecs) ToXML() []string {

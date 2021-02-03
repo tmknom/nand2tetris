@@ -27,6 +27,18 @@ func TestIntegratorGenerate(t *testing.T) {
 				"Fixture/Seven/cmp/Main.vm",
 			},
 		},
+		{
+			desc: "ConvertToBin",
+			src: []string{
+				"Fixture/ConvertToBin/Main.jack",
+			},
+			dest: []string{
+				"Fixture/ConvertToBin/Main.vm",
+			},
+			want: []string{
+				"Fixture/ConvertToBin/cmp/Main.vm",
+			},
+		},
 	}
 
 	for _, tc := range cases {

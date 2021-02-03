@@ -84,6 +84,121 @@ func TestLetStatementToCode(t *testing.T) {
 	}
 }
 
+func TestIfStatementToCode(t *testing.T) {
+	cases := []struct {
+		desc        string
+		ifStatement *IfStatement
+		want        []string
+	}{
+		{
+			desc: "if文のみ: if (foo > 0) { return ; }",
+			ifStatement: &IfStatement{
+				Expression: &Expression{
+					Term: NewVarNameByValue("foo"),
+					BinaryOpTerms: &BinaryOpTerms{
+						Items: []*BinaryOpTerm{
+							&BinaryOpTerm{
+								BinaryOp: ConstGreaterThan,
+								Term:     NewIntegerConstantByValue("0"),
+							},
+						},
+					},
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+			},
+			want: []string{
+				// if文のcondition (foo > 0)
+				"push local 0",
+				"push constant 0",
+				"gt",
+
+				"not",
+				"if-goto ELSE_START_ID_1",
+
+				// if文内のstatements
+				"push constant 0",
+				"return",
+
+				"goto IF_END_ID_1",
+				"label ELSE_START_ID_1",
+				"label IF_END_ID_1",
+			},
+		},
+		{
+			desc: "if-else文: if (foo > 0) { return ; } else { return ; }",
+			ifStatement: &IfStatement{
+				Expression: &Expression{
+					Term: NewVarNameByValue("foo"),
+					BinaryOpTerms: &BinaryOpTerms{
+						Items: []*BinaryOpTerm{
+							&BinaryOpTerm{
+								BinaryOp: ConstGreaterThan,
+								Term:     NewIntegerConstantByValue("0"),
+							},
+						},
+					},
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+				ElseBlock: &ElseBlock{
+					Statements: &Statements{
+						Items: []Statement{
+							NewReturnStatement(),
+						},
+					},
+				},
+			},
+			want: []string{
+				// if文のcondition (foo > 0)
+				"push local 0",
+				"push constant 0",
+				"gt",
+
+				"not",
+				"if-goto ELSE_START_ID_1",
+
+				// if文内のstatements
+				"push constant 0",
+				"return",
+
+				"goto IF_END_ID_1",
+				"label ELSE_START_ID_1",
+
+				// else文内のstatements
+				"push constant 0",
+				"return",
+
+				"label IF_END_ID_1",
+			},
+		},
+	}
+
+	// いろいろ初期化
+	SetupTestForToCode()
+	// シンボルテーブルのセットアップ
+	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			// IDは毎回「1」からはじめたいので、ID生成器を初期化しておく
+			symbol.GlobalIdGenerator.Reset()
+
+			got := tc.ifStatement.ToCode()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestWhileStatementToCode(t *testing.T) {
 	cases := []struct {
 		desc           string
@@ -138,6 +253,9 @@ func TestWhileStatementToCode(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
+			// IDは毎回「1」からはじめたいので、ID生成器を初期化しておく
+			symbol.GlobalIdGenerator.Reset()
+
 			got := tc.whileStatement.ToCode()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {

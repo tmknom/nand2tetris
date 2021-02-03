@@ -70,6 +70,16 @@ func (v *VarNames) AddCommaAndVarName(commaToken *token.Token, varNameToken *tok
 	return nil
 }
 
+func (v *VarNames) VarNameLength() int {
+	result := 0
+	if v.First == nil {
+		return result
+	}
+
+	// Firstのぶんをカウント
+	return 1 + len(v.CommaAndVarNames)
+}
+
 func (v *VarNames) ToXML() []string {
 	result := []string{}
 	result = append(result, v.First.ToXML()...)

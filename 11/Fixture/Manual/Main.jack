@@ -1,5 +1,6 @@
 class Main {
     function void main() {
+        do Main.ifFunc(300);
         do Main.whileFunc(3);
         do Main.letFunc(3);
         return;
@@ -18,6 +19,17 @@ class Main {
         while (size > 0) {
             let size = size - 1;
             do Output.printInt(size);
+            do Output.println();
+        }
+        return;
+    }
+
+    function void ifFunc(int size) {
+        if (size > 0) {
+            do Output.printInt(size);
+            do Output.println();
+        } else {
+            do Output.printInt(-999);
             do Output.println();
         }
         return;
