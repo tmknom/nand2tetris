@@ -2,6 +2,8 @@ package symbol
 
 import "fmt"
 
+var GlobalNewSymbolTables = NewSymbolTables("Uninitialized")
+
 type SymbolTables struct {
 	*ClassSymbolTable
 	*SubroutineSymbolTable
@@ -12,6 +14,15 @@ func NewSymbolTables(className string) *SymbolTables {
 		ClassSymbolTable:      NewClassSymbolTable(className),
 		SubroutineSymbolTable: NewSubroutineSymbolTable("Uninitialized"),
 	}
+}
+
+func (s *SymbolTables) Reset(className string) {
+	s.ClassSymbolTable = NewClassSymbolTable(className)
+	s.SubroutineSymbolTable = NewSubroutineSymbolTable("Uninitialized")
+}
+
+func (s *SymbolTables) ResetSubroutine(subroutineName string) {
+	s.SubroutineSymbolTable = NewSubroutineSymbolTable(subroutineName)
 }
 
 type SymbolTable struct {
