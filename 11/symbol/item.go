@@ -16,6 +16,10 @@ func NewSymbolItem(name string, symbolType string, symbolScope *SymbolScope) *Sy
 	}
 }
 
+func (s *SymbolItem) ToCode() string {
+	return fmt.Sprintf("%s %d", s.ScopeKind, s.ScopeIndex)
+}
+
 func (s *SymbolItem) String() string {
 	result := "&SymbolItem{ "
 	result += fmt.Sprintf("Name: %s, ", s.SymbolName.Value)
@@ -77,7 +81,7 @@ func (s ScopeKind) String() string {
 	case FieldScope:
 		return "field"
 	case ArgScope:
-		return "arg"
+		return "argument"
 	case VarScope:
 		return "var"
 	case ClassScope:

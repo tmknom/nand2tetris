@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"../symbol"
 	"../token"
 	"fmt"
 	"github.com/pkg/errors"
@@ -156,7 +157,15 @@ func (v *VarName) ToXML() []string {
 }
 
 func (v *VarName) ToCode() []string {
-	return []string{"VarName_not_implemented"}
+	findSymbol, err := symbol.GlobalSymbolTables.Find(v.Value)
+	if err != nil {
+		message := fmt.Sprintf("error GlobalSymbolTables.Find: %v", err)
+		fmt.Println(message)
+		return []string{message}
+	}
+
+	code := fmt.Sprintf("push %s", findSymbol)
+	return []string{code}
 }
 
 type Keyword struct {

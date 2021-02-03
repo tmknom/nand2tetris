@@ -1,8 +1,11 @@
 package symbol
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/pkg/errors"
+)
 
-const DebugSymbolTables = false
+const DebugSymbolTables = true
 
 var GlobalSymbolTables = NewSymbolTables("Uninitialized")
 
@@ -16,6 +19,21 @@ func NewSymbolTables(className string) *SymbolTables {
 		ClassSymbolTable:      NewClassSymbolTable(className),
 		SubroutineSymbolTable: NewSubroutineSymbolTable("Uninitialized"),
 	}
+}
+
+func (s *SymbolTables) Find(name string) (string, error) {
+	subroutineSymbolItem, err := s.SubroutineSymbolTable.Find(name)
+	if err == nil {
+		return subroutineSymbolItem.ToCode(), nil
+	}
+
+	classSymbolItem, err := s.ClassSymbolTable.Find(name)
+	if err == nil {
+		return classSymbolItem.ToCode(), nil
+	}
+
+	message := fmt.Sprintf("not found at %s and %s: name = %s", s.SubroutineSymbolTable.TableName(), s.ClassSymbolTable.TableName(), name)
+	return "", errors.New(message)
 }
 
 func (s *SymbolTables) Reset(className string) {
@@ -51,6 +69,21 @@ func NewSymbolTable(name string, tableType string) *SymbolTable {
 		Name:      name,
 		TableType: tableType,
 	}
+}
+
+func (s *SymbolTable) Find(name string) (*SymbolItem, error) {
+	for _, item := range s.Items {
+		if item.SymbolName.Value == name {
+			return item, nil
+		}
+	}
+
+	message := fmt.Sprintf("not found at %s: name = %s", s.TableName(), name)
+	return nil, errors.New(message)
+}
+
+func (s *SymbolTable) TableName() string {
+	return fmt.Sprintf("%sSymbolTable(%s)", s.TableType, s.Name)
 }
 
 func (s *SymbolTable) Add(item *SymbolItem) {
