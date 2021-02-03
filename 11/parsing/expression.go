@@ -790,11 +790,19 @@ func (k *KeywordConstant) ToXML() []string {
 }
 
 func (k *KeywordConstant) ToCode() []string {
-	return []string{"KeywordConstant_not_implemented"}
+	code := fmt.Sprintf("KeywordConstant_not_implemented, %s", k.Value)
+	return []string{code}
 }
 
 type TrueKeywordConstant struct {
 	*KeywordConstant
+}
+
+func (t *TrueKeywordConstant) ToCode() []string {
+	result := []string{}
+	result = append(result, "push constant 1")
+	result = append(result, "neg")
+	return result
 }
 
 var ConstTrue = &TrueKeywordConstant{
@@ -805,12 +813,20 @@ type FalseKeywordConstant struct {
 	*KeywordConstant
 }
 
+func (f *FalseKeywordConstant) ToCode() []string {
+	return []string{"push constant 0"}
+}
+
 var ConstFalse = &FalseKeywordConstant{
 	KeywordConstant: NewKeywordConstant("false"),
 }
 
 type NullKeywordConstant struct {
 	*KeywordConstant
+}
+
+func (n *NullKeywordConstant) ToCode() []string {
+	return []string{"push constant 0"}
 }
 
 var ConstNull = &NullKeywordConstant{
