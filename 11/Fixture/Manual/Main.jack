@@ -5,7 +5,9 @@ class Main {
     }
 
     function void letFunc(int size) {
-        let size = size * 10;
+        var int value;
+        let value = 20;
+        let size = size * value;
         do Output.printInt(size);
         return;
     }
