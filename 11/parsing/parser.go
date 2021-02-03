@@ -22,17 +22,9 @@ func NewParser(tokens *token.Tokens, className string) *Parser {
 	}
 }
 
-func (p *Parser) generateSubroutineSymbolTable(subroutineName string) {
-	symbol.GlobalNewSymbolTables.ResetSubroutine(subroutineName)
-}
-
 func (p *Parser) advanceToken() *token.Token {
 	return p.tokens.Advance()
 }
-
-//func (p *Parser) backwardToken() *token.Token {
-//	return p.tokens.Backward()
-//}
 
 func (p *Parser) readFirstToken() *token.Token {
 	return p.tokens.First()
@@ -157,7 +149,7 @@ func (p *Parser) parseSubroutineDecs() (*SubroutineDecs, error) {
 		}
 
 		// サブルーチン用のシンボルテーブルを初期化
-		p.generateSubroutineSymbolTable(subroutineDec.SubroutineName.Value)
+		symbol.GlobalNewSymbolTables.ResetSubroutine(subroutineDec.SubroutineName.Value)
 
 		openingRoundBracket := p.advanceToken()
 		if err := ConstOpeningRoundBracket.Check(openingRoundBracket); err != nil {
