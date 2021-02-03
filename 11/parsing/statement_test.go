@@ -6,6 +6,16 @@ import (
 	"testing"
 )
 
+func SetupTestForToCode() {
+	// デバッグフラグの無効化
+	DebugCode = false
+	symbol.DebugSymbolTables = false
+
+	// シンボルテーブルの初期化
+	symbol.GlobalSymbolTables.Reset("Testing")
+	symbol.GlobalSymbolTables.ResetSubroutine("TestRun")
+}
+
 func TestLetStatementToCode(t *testing.T) {
 	cases := []struct {
 		desc         string
@@ -13,7 +23,7 @@ func TestLetStatementToCode(t *testing.T) {
 		want         []string
 	}{
 		{
-			desc: "VarNameへの代入: let foo = 123",
+			desc: "IntegerConstantの代入: let foo = 123",
 			letStatement: &LetStatement{
 				StatementKeyword: NewStatementKeyword("let"),
 				VarName:          NewVarNameByValue("foo"),
@@ -28,10 +38,46 @@ func TestLetStatementToCode(t *testing.T) {
 				"pop local 0",
 			},
 		},
+		{
+			desc: "引数のVarNameの代入: let foo = argA",
+			letStatement: &LetStatement{
+				StatementKeyword: NewStatementKeyword("let"),
+				VarName:          NewVarNameByValue("foo"),
+				Expression: &Expression{
+					Term: NewVarNameByValue("argA"),
+				},
+				Equal:     ConstEqual,
+				Semicolon: ConstSemicolon,
+			},
+			want: []string{
+				"push argument 0",
+				"pop local 0",
+			},
+		},
+		{
+			desc: "ローカル変数のVarNameの代入: let foo = baz",
+			letStatement: &LetStatement{
+				StatementKeyword: NewStatementKeyword("let"),
+				VarName:          NewVarNameByValue("foo"),
+				Expression: &Expression{
+					Term: NewVarNameByValue("localA"),
+				},
+				Equal:     ConstEqual,
+				Semicolon: ConstSemicolon,
+			},
+			want: []string{
+				"push local 1",
+				"pop local 0",
+			},
+		},
 	}
 
+	// いろいろ初期化
+	SetupTestForToCode()
 	// シンボルテーブルのセットアップ
-	SetupForTestLetStatementToCode()
+	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
+	symbol.GlobalSymbolTables.AddArgSymbol("argA", "int")
+	symbol.GlobalSymbolTables.AddVarSymbol("localA", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -42,12 +88,6 @@ func TestLetStatementToCode(t *testing.T) {
 			}
 		})
 	}
-}
-
-func SetupForTestLetStatementToCode() {
-	symbol.GlobalSymbolTables.Reset("Testing")
-	symbol.GlobalSymbolTables.ResetSubroutine("TestRun")
-	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 }
 
 func TestDoStatementToCode(t *testing.T) {
@@ -77,6 +117,9 @@ func TestDoStatementToCode(t *testing.T) {
 			},
 		},
 	}
+
+	// いろいろ初期化
+	SetupTestForToCode()
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -140,6 +183,9 @@ func TestReturnStatementToCode(t *testing.T) {
 			},
 		},
 	}
+
+	// いろいろ初期化
+	SetupTestForToCode()
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {

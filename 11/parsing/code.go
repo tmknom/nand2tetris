@@ -2,7 +2,7 @@ package parsing
 
 import "fmt"
 
-const DebugCode = true
+var DebugCode = true
 
 type Code struct {
 	Lines      []string
