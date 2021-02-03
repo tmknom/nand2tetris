@@ -57,10 +57,10 @@ func (i *Integrator) integrateFile(file string) error {
 	}
 
 	// デバッグしやすいように生成したコードを標準出力
-	class.PrintCode()
+	parser.PrintDebugCode()
 
 	// コード生成をして書き込み
-	err = dest.WriteCode(class.ToCode())
+	err = dest.WriteCode(parser.CodeLines())
 	if err != nil {
 		return err
 	}
