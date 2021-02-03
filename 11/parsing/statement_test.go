@@ -14,6 +14,9 @@ func SetupTestForToCode() {
 	// シンボルテーブルの初期化
 	symbol.GlobalSymbolTables.Reset("Testing")
 	symbol.GlobalSymbolTables.ResetSubroutine("TestRun")
+
+	// ID生成器の初期化
+	symbol.GlobalIdGenerator.Reset()
 }
 
 func TestLetStatementToCode(t *testing.T) {
@@ -82,6 +85,69 @@ func TestLetStatementToCode(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			got := tc.letStatement.ToCode()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("failed: diff (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestWhileStatementToCode(t *testing.T) {
+	cases := []struct {
+		desc           string
+		whileStatement *WhileStatement
+		want           []string
+	}{
+		{
+			desc: "即座にreturnするだけのwhile文: while (foo > 0) { return ; }",
+			whileStatement: &WhileStatement{
+				Expression: &Expression{
+					Term: NewVarNameByValue("foo"),
+					BinaryOpTerms: &BinaryOpTerms{
+						Items: []*BinaryOpTerm{
+							&BinaryOpTerm{
+								BinaryOp: ConstGreaterThan,
+								Term:     NewIntegerConstantByValue("0"),
+							},
+						},
+					},
+				},
+				Statements: &Statements{
+					Items: []Statement{
+						NewReturnStatement(),
+					},
+				},
+			},
+			want: []string{
+				"label WHILE_START_ID_1",
+
+				// while文のcondition (foo > 0)
+				"push local 0",
+				"push constant 0",
+				"gt",
+
+				"not",
+				"if-goto WHILE_END_ID_1",
+
+				// while文内のstatements
+				"push constant 0",
+				"return",
+
+				"goto WHILE_START_ID_1",
+				"label WHILE_END_ID_1",
+			},
+		},
+	}
+
+	// いろいろ初期化
+	SetupTestForToCode()
+	// シンボルテーブルのセットアップ
+	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got := tc.whileStatement.ToCode()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
 				t.Errorf("failed: diff (-got +want):\n%s", diff)
