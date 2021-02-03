@@ -96,6 +96,34 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "KeywordConstant「true」の定義",
+			expression: &Expression{
+				Term: ConstTrue,
+			},
+			want: []string{
+				"push constant 1",
+				"neg",
+			},
+		},
+		{
+			desc: "KeywordConstant「false」の定義",
+			expression: &Expression{
+				Term: ConstFalse,
+			},
+			want: []string{
+				"push constant 0",
+			},
+		},
+		{
+			desc: "KeywordConstant「null」の定義",
+			expression: &Expression{
+				Term: ConstNull,
+			},
+			want: []string{
+				"push constant 0",
+			},
+		},
+		{
 			desc: "ローカル変数のVarNameをひとつだけ定義",
 			expression: &Expression{
 				Term: NewVarNameByValue("foo"),
