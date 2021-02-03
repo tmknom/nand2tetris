@@ -1387,7 +1387,7 @@ func TestParserParseExpression(t *testing.T) {
 			},
 		},
 		{
-			desc: "カッコを含む複雑なExpressionの定義",
+			desc: "カッコを含むExpressionの定義",
 			tokens: []*token.Token{
 				token.NewToken("2", token.TokenIntConst),
 				token.NewToken("*", token.TokenSymbol),
@@ -1417,6 +1417,70 @@ func TestParserParseExpression(t *testing.T) {
 												BinaryOp: ConstPlus,
 												Term: &IntegerConstant{
 													Token: token.NewToken("3", token.TokenIntConst),
+												},
+											},
+										},
+									},
+								},
+								OpeningRoundBracket: ConstOpeningRoundBracket,
+								ClosingRoundBracket: ConstClosingRoundBracket,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			desc: "カッコが入れ子になっているExpressionの定義: 1 + ( (2 * 3) - 4 )",
+			tokens: []*token.Token{
+				token.NewToken("1", token.TokenIntConst),
+				token.NewToken("+", token.TokenSymbol),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("(", token.TokenSymbol),
+				token.NewToken("2", token.TokenIntConst),
+				token.NewToken("*", token.TokenSymbol),
+				token.NewToken("3", token.TokenIntConst),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken("-", token.TokenSymbol),
+				token.NewToken("4", token.TokenIntConst),
+				token.NewToken(")", token.TokenSymbol),
+				token.NewToken(";", token.TokenSymbol),
+			},
+			want: &Expression{
+				Term: &IntegerConstant{
+					Token: token.NewToken("1", token.TokenIntConst),
+				},
+				BinaryOpTerms: &BinaryOpTerms{
+					Items: []*BinaryOpTerm{
+						&BinaryOpTerm{
+							BinaryOp: ConstPlus,
+							Term: &GroupingExpression{
+								Expression: &Expression{
+									Term: &GroupingExpression{
+										Expression: &Expression{
+											Term: &IntegerConstant{
+												Token: token.NewToken("2", token.TokenIntConst),
+											},
+											BinaryOpTerms: &BinaryOpTerms{
+												Items: []*BinaryOpTerm{
+													&BinaryOpTerm{
+														BinaryOp: ConstAsterisk,
+														Term: &IntegerConstant{
+															Token: token.NewToken("3", token.TokenIntConst),
+														},
+													},
+												},
+											},
+										},
+										OpeningRoundBracket: ConstOpeningRoundBracket,
+										ClosingRoundBracket: ConstClosingRoundBracket,
+									},
+									BinaryOpTerms: &BinaryOpTerms{
+										Items: []*BinaryOpTerm{
+											&BinaryOpTerm{
+												BinaryOp: ConstMinus,
+												Term: &IntegerConstant{
+													Token: token.NewToken("4", token.TokenIntConst),
 												},
 											},
 										},
