@@ -83,7 +83,7 @@ func (s ScopeKind) String() string {
 	case ArgScope:
 		return "argument"
 	case VarScope:
-		return "var"
+		return "local"
 	case ClassScope:
 		return "class"
 	case NoneScope:
