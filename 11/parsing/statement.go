@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"../symbol"
 	"../token"
 	"fmt"
 )
@@ -110,8 +111,33 @@ func (l *LetStatement) ToXML() []string {
 	return result
 }
 
+// 配列以外：let varName = expression ;
+// 配列：let varName[expression] = expression ;
 func (l *LetStatement) ToCode() []string {
-	return []string{"LetStatement_not_implemented"}
+	result := []string{}
+
+	// expressionを計算する
+	result = append(result, l.Expression.ToCode()...)
+
+	// スタックの一番上の値を、左辺(varName)にpopする
+	if l.VarName != nil {
+		findSymbol, err := symbol.GlobalSymbolTables.Find(l.VarName.Value)
+		if err != nil {
+			message := fmt.Sprintf("error LetStatement.ToCode(): GlobalSymbolTables.Find: %v", err)
+			fmt.Println(message)
+			return []string{message}
+		}
+
+		code := fmt.Sprintf("pop %s", findSymbol)
+		result = append(result, code)
+	}
+
+	// TODO 配列への代入は未実装
+	if l.Array != nil {
+		result = append(result, "Array_LetStatement_not_implemented")
+	}
+
+	return result
 }
 
 type IfStatement struct {
