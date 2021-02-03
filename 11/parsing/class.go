@@ -3,7 +3,10 @@ package parsing
 import (
 	"../symbol"
 	"../token"
+	"fmt"
 )
+
+const DebugCode = true
 
 type Class struct {
 	Keyword *Keyword
@@ -76,6 +79,14 @@ func (c *Class) ToCode() []string {
 	//result = append(result, c.ClassVarDecs.ToCode()...)
 	result = append(result, c.SubroutineDecs.ToCode()...)
 	return result
+}
+
+func (c *Class) PrintCode() {
+	if DebugCode {
+		for _, line := range c.ToDebugCode() {
+			fmt.Println(line)
+		}
+	}
 }
 
 type ClassVarDecs struct {

@@ -37,6 +37,16 @@ func (s *SubroutineDecs) ToCode() []string {
 	return result
 }
 
+func (s *SubroutineDecs) ToDebugCode() []string {
+	result := []string{}
+	for _, item := range s.Items {
+		result = append(result, "")
+		result = append(result, "==================")
+		result = append(result, item.ToCode()...)
+	}
+	return result
+}
+
 func (s *SubroutineDecs) hasSubroutineDec(token *token.Token) bool {
 	if token == nil {
 		return false
