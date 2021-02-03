@@ -1,0 +1,11 @@
+class Main {
+    function void main() {
+        do Main.fillMemory(300);
+        return;
+    }
+
+    function void fillMemory(int size) {
+        do Output.printInt(size);
+        return;
+    }
+}
