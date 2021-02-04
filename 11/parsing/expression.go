@@ -46,6 +46,7 @@ func (s *SubroutineCall) ToCode() []string {
 	callName := fmt.Sprintf("call %s", s.SubroutineCallName.ToCode(length))
 
 	result := []string{}
+	result = append(result, s.ExpressionList.ToCode()...)
 
 	// TODO 二回もシンボルテーブルを参照しててわりとヒドい
 	// オブジェクトのメソッドコールの場合、隠れ引数をpushしておく
@@ -57,7 +58,6 @@ func (s *SubroutineCall) ToCode() []string {
 		}
 	}
 
-	result = append(result, s.ExpressionList.ToCode()...)
 	result = append(result, callName)
 	return result
 }
@@ -140,7 +140,7 @@ func (s *SubroutineCallName) ToCode(length int) string {
 		// CallerNameがシンボルテーブルに存在しない場合は、クラス名と判定
 		return fmt.Sprintf("%s.%s %d", s.CallerName.Value, s.SubroutineName.Value, length)
 	} else {
-		// CallerNameがシンボルテーブルに存在しない場合は、オブジェクト名と判定
+		// CallerNameがシンボルテーブルに存在する場合は、オブジェクト名と判定
 		// シンボルテーブルからそのオブジェクトの型名（＝クラス名）を取得して、サブルーチンを呼べるようにする
 		// 隠れ引数として、オブジェクトのベースアドレスをサブルーチンに渡すことに注意
 		// そのためcall実行時に渡す引数は、function定義より一個多くなる

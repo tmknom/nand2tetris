@@ -10,6 +10,7 @@ class Main {
         do Output.printInt(square);
         do Output.println();
         do square.print();
+        do square.printWithArg(9, 8);
         return;
     }
 

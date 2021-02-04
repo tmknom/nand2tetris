@@ -341,12 +341,56 @@ func TestExpressionToCode(t *testing.T) {
 				"call Output.printInt 1",
 			},
 		},
+		{
+			desc: "引数なしのオブジェクトのメソッド呼び出し: obj.run()",
+			expression: &Expression{
+				Term: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						CallerName:     NewCallerNameByValue("obj"),
+						SubroutineName: NewSubroutineNameByValue("run"),
+					},
+					ExpressionList: NewExpressionList(),
+				},
+			},
+			want: []string{
+				"push local 1", // 隠れ引数として呼び出したオブジェクトのアドレスをpush
+				"call Square.run 1",
+			},
+		},
+		{
+			desc: "引数ありのオブジェクトのメソッド呼び出し: obj.run(123, foo)",
+			expression: &Expression{
+				Term: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						CallerName:     NewCallerNameByValue("obj"),
+						SubroutineName: NewSubroutineNameByValue("run"),
+					},
+					ExpressionList: &ExpressionList{
+						First: &Expression{
+							Term: NewIntegerConstantByValue("123"),
+						},
+						CommaAndExpressions: []*CommaAndExpression{
+							NewCommaAndExpression(&Expression{
+								Term: NewVarNameByValue("foo"),
+							}),
+						},
+					},
+				},
+			},
+			want: []string{
+				"push constant 123",
+				"push local 0",
+				"push local 1", // 隠れ引数として呼び出したオブジェクトのアドレスをpush
+				"call Square.run 3",
+			},
+		},
 	}
 
 	// いろいろ初期化
 	SetupTestForToCode()
 	// シンボルテーブルのセットアップ
 	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
+	symbol.GlobalSymbolTables.AddVarSymbol("obj", "Square")
 	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
 	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
 

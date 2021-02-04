@@ -147,6 +147,22 @@ func TestSubroutineDecToCode(t *testing.T) {
 				"pop pointer 0",
 			},
 		},
+		{
+			desc: "引数のないメソッドの定義: method int size()",
+			subroutineDec: &SubroutineDec{
+				ClassName:      NewClassNameByValue("Square"),
+				Subroutine:     NewKeywordByValue("method"),
+				SubroutineType: NewSubroutineTypeByValue("int"),
+				SubroutineName: NewSubroutineNameByValue("size"),
+				ParameterList:  NewParameterList(),
+				SubroutineBody: NewSubroutineBody(),
+			},
+			want: []string{
+				"function Square.size 0",
+				"push argument 0",
+				"pop pointer 0",
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -160,7 +176,7 @@ func TestSubroutineDecToCode(t *testing.T) {
 	}
 }
 
-func TestSubroutineDecToCodeWithField(t *testing.T) {
+func TestSubroutineDecToCodeWithSymbolTable(t *testing.T) {
 	cases := []struct {
 		desc          string
 		subroutineDec *SubroutineDec
@@ -183,6 +199,33 @@ func TestSubroutineDecToCodeWithField(t *testing.T) {
 				"pop pointer 0",
 			},
 		},
+		{
+			desc: "引数のあるメソッドの定義: method int size(foo, bar)",
+			subroutineDec: &SubroutineDec{
+				ClassName:      NewClassNameByValue("Square"),
+				Subroutine:     NewKeywordByValue("method"),
+				SubroutineType: NewSubroutineTypeByValue("int"),
+				SubroutineName: NewSubroutineNameByValue("size"),
+				ParameterList: &ParameterList{
+					First: NewParameterByToken(
+						token.NewToken("int", token.TokenKeyword),
+						token.NewToken("foo", token.TokenIdentifier),
+					),
+					CommaAndParameters: []*CommaAndParameter{
+						NewCommaAndParameterByToken(
+							token.NewToken("int", token.TokenKeyword),
+							token.NewToken("bar", token.TokenIdentifier),
+						),
+					},
+				},
+				SubroutineBody: NewSubroutineBody(),
+			},
+			want: []string{
+				"function Square.size 0",
+				"push argument 2",
+				"pop pointer 0",
+			},
+		},
 	}
 
 	// いろいろ初期化
@@ -190,6 +233,8 @@ func TestSubroutineDecToCodeWithField(t *testing.T) {
 	// シンボルテーブルのセットアップ
 	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
 	symbol.GlobalSymbolTables.AddFieldSymbol("fieldB", "int")
+	symbol.GlobalSymbolTables.AddArgSymbol("foo", "int")
+	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
