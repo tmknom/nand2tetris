@@ -1,6 +1,6 @@
 class Main {
     function void main() {
-        do Main.arrayFunc();
+        do Main.stringFunc();
         return;
     }
 
@@ -57,6 +57,17 @@ class Main {
         let index = 1+2;
         let a[index] = 777;
         do Output.printInt(a[index]);
+        do Output.println();
+        return;
+    }
+
+    function void stringFunc() {
+        var String s;
+        var char c;
+        let s = "Hello";
+        do Output.printString(s);
+        do Output.println();
+        do Output.printString("World!");
         do Output.println();
         return;
     }
