@@ -11,7 +11,7 @@ type Arg struct {
 	files []string
 }
 
-const DefaultArg = "Fixture/Manual/"
+const DefaultArg = "Fixture/Manual/Main.jack"
 
 func NewArg(args []string) *Arg {
 	arg := DefaultArg
