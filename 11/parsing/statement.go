@@ -124,7 +124,6 @@ func (l *LetStatement) ToCode() []string {
 		findSymbol, err := symbol.GlobalSymbolTables.Find(l.VarName.Value)
 		if err != nil {
 			message := fmt.Sprintf("error LetStatement.ToCode(): GlobalSymbolTables.Find: %v", err)
-			fmt.Println(message)
 			return []string{message}
 		}
 
@@ -132,9 +131,22 @@ func (l *LetStatement) ToCode() []string {
 		result = append(result, code)
 	}
 
-	// TODO 配列への代入は未実装
 	if l.Array != nil {
-		result = append(result, "Array_LetStatement_not_implemented")
+		findSymbol, err := symbol.GlobalSymbolTables.Find(l.Array.VarName.Value)
+		if err != nil {
+			message := fmt.Sprintf("error LetStatement.ToCode(): GlobalSymbolTables.Find: %v", err)
+			return []string{message}
+		}
+		// 変数のアドレスをスタックに積む
+		result = append(result, fmt.Sprintf("push %s", findSymbol))
+		// 配列添字のexpressionを計算
+		result = append(result, l.Array.Expression.ToCode()...)
+		// 代入先の配列要素のアドレスを算出
+		result = append(result, "add")
+		// スタックの一番上の値をthatにセット
+		result = append(result, "pop pointer 1")
+		// 配列に値を代入
+		result = append(result, "pop that 0")
 	}
 
 	return result

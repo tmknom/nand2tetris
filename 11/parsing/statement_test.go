@@ -52,7 +52,7 @@ func TestLetStatementToCode(t *testing.T) {
 			},
 		},
 		{
-			desc: "ローカル変数のVarNameの代入: let foo = baz",
+			desc: "ローカル変数のVarNameの代入: let foo = localA",
 			letStatement: &LetStatement{
 				VarName: NewVarNameByValue("foo"),
 				Expression: &Expression{
@@ -64,6 +64,28 @@ func TestLetStatementToCode(t *testing.T) {
 				"pop local 0",
 			},
 		},
+		{
+			desc: "配列へのIntegerConstantの代入: let array[3] = 123",
+			letStatement: &LetStatement{
+				Array: &Array{
+					VarName: NewVarNameByValue("array"),
+					Expression: &Expression{
+						Term: NewIntegerConstantByValue("3"),
+					},
+				},
+				Expression: &Expression{
+					Term: NewIntegerConstantByValue("123"),
+				},
+			},
+			want: []string{
+				"push constant 123", // 代入する値
+				"push local 2",      // ローカル変数「array」
+				"push constant 3",   // 添字
+				"add",               // 代入先の配列要素のアドレス
+				"pop pointer 1",     // thatに代入先の配列要素のアドレスを代入
+				"pop that 0",        // thatに設定されたアドレスに値を代入
+			},
+		},
 	}
 
 	// いろいろ初期化
@@ -72,6 +94,7 @@ func TestLetStatementToCode(t *testing.T) {
 	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 	symbol.GlobalSymbolTables.AddArgSymbol("argA", "int")
 	symbol.GlobalSymbolTables.AddVarSymbol("localA", "int")
+	symbol.GlobalSymbolTables.AddVarSymbol("array", "Array")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
