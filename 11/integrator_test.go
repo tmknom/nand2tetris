@@ -1,12 +1,27 @@
 package main
 
 import (
+	"./parsing"
+	"./symbol"
 	"bufio"
 	"github.com/google/go-cmp/cmp"
 	"os"
 	"strings"
 	"testing"
 )
+
+func SetupTestForIntegrator() {
+	// デバッグフラグの無効化
+	parsing.DebugCode = false
+	symbol.DebugSymbolTables = false
+
+	// シンボルテーブルの初期化
+	symbol.GlobalSymbolTables.Reset("Testing")
+	symbol.GlobalSymbolTables.ResetSubroutine("TestRun")
+
+	// ID生成器の初期化
+	symbol.GlobalIdGenerator.Reset()
+}
 
 func TestIntegratorGenerate(t *testing.T) {
 	cases := []struct {
@@ -39,6 +54,24 @@ func TestIntegratorGenerate(t *testing.T) {
 				"Fixture/ConvertToBin/cmp/Main.vm",
 			},
 		},
+		{
+			desc: "Square",
+			src: []string{
+				"Fixture/Square/Main.jack",
+				"Fixture/Square/Square.jack",
+				"Fixture/Square/SquareGame.jack",
+			},
+			dest: []string{
+				"Fixture/Square/Main.vm",
+				"Fixture/Square/Square.vm",
+				"Fixture/Square/SquareGame.vm",
+			},
+			want: []string{
+				"Fixture/Square/cmp/Main.vm",
+				"Fixture/Square/cmp/Square.vm",
+				"Fixture/Square/cmp/SquareGame.vm",
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -47,6 +80,9 @@ func TestIntegratorGenerate(t *testing.T) {
 		}
 
 		t.Run(tc.desc, func(t *testing.T) {
+			// いろいろ初期化
+			SetupTestForIntegrator()
+
 			integrator := NewIntegrator(tc.src)
 			integrator.Integrate()
 
@@ -74,7 +110,7 @@ func TestIntegratorIntegrate(t *testing.T) {
 		wantParsedXML    []string
 	}{
 		{
-			desc: "Square",
+			desc: "ExpressionLessSquare",
 			src: []string{
 				"Fixture/ExpressionLessSquare/Main.jack",
 				"Fixture/ExpressionLessSquare/Square.jack",
@@ -120,7 +156,7 @@ func TestIntegratorIntegrate(t *testing.T) {
 			},
 		},
 		{
-			desc: "Square",
+			desc: "SquareVersion10",
 			src: []string{
 				"Fixture/SquareVersion10/Main.jack",
 				"Fixture/SquareVersion10/Square.jack",
