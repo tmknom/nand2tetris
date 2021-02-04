@@ -124,6 +124,15 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "KeywordConstant「this」の定義",
+			expression: &Expression{
+				Term: ConstThis,
+			},
+			want: []string{
+				"push pointer 0",
+			},
+		},
+		{
 			desc: "ローカル変数のVarNameをひとつだけ定義",
 			expression: &Expression{
 				Term: NewVarNameByValue("foo"),

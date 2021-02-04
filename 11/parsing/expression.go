@@ -841,6 +841,10 @@ var ConstThis = &ThisKeywordConstant{
 	KeywordConstant: NewKeywordConstant("this"),
 }
 
+func (t *ThisKeywordConstant) ToCode() []string {
+	return []string{"push pointer 0"}
+}
+
 type StringConstant struct {
 	*token.Token
 }
