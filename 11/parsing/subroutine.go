@@ -126,29 +126,37 @@ func (s *SubroutineDec) ToCode() []string {
 	subroutineName := s.SubroutineName.Value
 	varCount := s.SubroutineBody.VarDecsLength()
 	function := fmt.Sprintf("function %s%s %d", classPrefix, subroutineName, varCount)
-	result := []string{function}
 
 	switch s.Subroutine.Value {
 	case "function":
+		result := []string{function}
 		result = append(result, s.SubroutineBody.ToCode()...)
+		return result
 	case "constructor":
+		result := []string{function}
 		// fieldの個数をスタックにプッシュ
 		fieldLength := symbol.GlobalSymbolTables.FieldLength()
 		pushField := fmt.Sprintf("push constant %d", fieldLength)
 		result = append(result, pushField)
 		// スタックの一番上にある値を引数にして、メモリ確保を実行
 		result = append(result, "call Memory.alloc 1")
-		// THISにオブジェクトのベースアドレスを設定
+		// thisにオブジェクトのベースアドレスを設定
 		result = append(result, "pop pointer 0")
 		// オブジェクトのメモリ領域を確保したらあとはfunctionと同じ
 		result = append(result, s.SubroutineBody.ToCode()...)
+		return result
 	case "method":
-		result = append(result, "method_not_implemented")
+		result := []string{function}
+		// call側でセットした隠れ引数this（ベースアドレス）をスタックに積む
+		result = append(result, "push argument 0")
+		// スタックの一番上の値をthis（ベースアドレス）にセット
+		result = append(result, "pop pointer 0")
+		// 隠れ引数のthisをセットしたらあとはfunctionと同じ
+		result = append(result, s.SubroutineBody.ToCode()...)
+		return result
 	default:
-		result = append(result, "error SubroutineDec.ToCode(): invalid keyword: %s", s.Subroutine.Value)
+		return []string{fmt.Sprintf("error SubroutineDec.ToCode(): invalid keyword: %s", s.Subroutine.Value)}
 	}
-
-	return result
 }
 
 type SubroutineType struct {
