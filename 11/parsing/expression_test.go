@@ -378,9 +378,9 @@ func TestExpressionToCode(t *testing.T) {
 				},
 			},
 			want: []string{
-				"push local 1", // 隠れ引数として呼び出したオブジェクトのアドレスをpush
 				"push constant 123",
 				"push local 0",
+				"push local 1", // 隠れ引数として呼び出したオブジェクトのアドレスをpush
 				"call Square.run 3",
 			},
 		},

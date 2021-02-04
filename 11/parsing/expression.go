@@ -46,6 +46,7 @@ func (s *SubroutineCall) ToCode() []string {
 	callName := fmt.Sprintf("call %s", s.SubroutineCallName.ToCode(length))
 
 	result := []string{}
+	result = append(result, s.ExpressionList.ToCode()...)
 
 	// TODO 二回もシンボルテーブルを参照しててわりとヒドい
 	// オブジェクトのメソッドコールの場合、隠れ引数をpushしておく
@@ -57,7 +58,6 @@ func (s *SubroutineCall) ToCode() []string {
 		}
 	}
 
-	result = append(result, s.ExpressionList.ToCode()...)
 	result = append(result, callName)
 	return result
 }
