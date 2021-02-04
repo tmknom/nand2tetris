@@ -18,11 +18,11 @@ func TestNewArg(t *testing.T) {
 		},
 		{
 			desc: "ディレクトリの指定",
-			args: []string{"dummy", "Fixture/Square/"},
+			args: []string{"dummy", "Fixture/SquareVersion10/"},
 			want: []string{
-				"Fixture/Square/Main.jack",
-				"Fixture/Square/Square.jack",
-				"Fixture/Square/SquareGame.jack",
+				"Fixture/SquareVersion10/Main.jack",
+				"Fixture/SquareVersion10/Square.jack",
+				"Fixture/SquareVersion10/SquareGame.jack",
 			},
 		},
 	}

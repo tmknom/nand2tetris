@@ -17,7 +17,16 @@ func NewSymbolItem(name string, symbolType string, symbolScope *SymbolScope) *Sy
 }
 
 func (s *SymbolItem) ToCode() string {
-	return fmt.Sprintf("%s %d", s.ScopeKind, s.ScopeIndex)
+	switch s.ScopeKind {
+	case VarScope, ArgScope:
+		return fmt.Sprintf("%s %d", s.ScopeKind, s.ScopeIndex)
+	case FieldScope:
+		return fmt.Sprintf("this %d", s.ScopeIndex)
+	case StaticScope:
+		return fmt.Sprintf("StaticScope_not_implemented: index = %d", s.ScopeIndex)
+	default:
+		return fmt.Sprintf("error SymbolItem.ToCode(): invalid ScopeKind = %d (%s)", s.ScopeIndex, s.String())
+	}
 }
 
 func (s *SymbolItem) String() string {

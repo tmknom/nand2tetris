@@ -1,5 +1,19 @@
 class Main {
     function void main() {
+        do Main.object();
+        return;
+    }
+
+    function void object() {
+        var Square square;
+        let square = Square.new(10, 200, 3000);
+        do Output.printInt(square);
+        do Output.println();
+        do square.print();
+        return;
+    }
+
+    function void statements() {
         do Main.ifFunc(300);
         do Main.whileFunc(3);
         do Main.letFunc(3);

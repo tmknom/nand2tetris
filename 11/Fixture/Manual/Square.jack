@@ -1,0 +1,22 @@
+class Square {
+
+    field int x, y;
+    field int size;
+
+    constructor Square new(int Ax, int Ay, int Asize) {
+        let x = Ax;
+        let y = Ay;
+        let size = Asize;
+        return this;
+    }
+
+    method void print() {
+        do Output.printInt(x);
+        do Output.println();
+        do Output.printInt(y);
+        do Output.println();
+        do Output.printInt(size);
+        do Output.println();
+        return;
+    }
+}

@@ -22,18 +22,26 @@ func NewSymbolTables(className string) *SymbolTables {
 }
 
 func (s *SymbolTables) Find(name string) (string, error) {
+	symbolItem, err := s.FindSymbolItem(name)
+	if err != nil {
+		return "", err
+	}
+	return symbolItem.ToCode(), nil
+}
+
+func (s *SymbolTables) FindSymbolItem(name string) (*SymbolItem, error) {
 	subroutineSymbolItem, err := s.SubroutineSymbolTable.Find(name)
 	if err == nil {
-		return subroutineSymbolItem.ToCode(), nil
+		return subroutineSymbolItem, nil
 	}
 
 	classSymbolItem, err := s.ClassSymbolTable.Find(name)
 	if err == nil {
-		return classSymbolItem.ToCode(), nil
+		return classSymbolItem, nil
 	}
 
 	message := fmt.Sprintf("not found at %s and %s: name = %s", s.SubroutineSymbolTable.TableName(), s.ClassSymbolTable.TableName(), name)
-	return "", errors.New(message)
+	return nil, errors.New(message)
 }
 
 func (s *SymbolTables) Reset(className string) {

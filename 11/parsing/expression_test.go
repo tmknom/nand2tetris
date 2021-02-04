@@ -124,6 +124,15 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "KeywordConstant「this」の定義",
+			expression: &Expression{
+				Term: ConstThis,
+			},
+			want: []string{
+				"push pointer 0",
+			},
+		},
+		{
 			desc: "ローカル変数のVarNameをひとつだけ定義",
 			expression: &Expression{
 				Term: NewVarNameByValue("foo"),
@@ -139,6 +148,15 @@ func TestExpressionToCode(t *testing.T) {
 			},
 			want: []string{
 				"push argument 0",
+			},
+		},
+		{
+			desc: "クラスのフィールド変数のVarNameをひとつだけ定義",
+			expression: &Expression{
+				Term: NewVarNameByValue("fieldA"),
+			},
+			want: []string{
+				"push this 0",
 			},
 		},
 		{
@@ -330,6 +348,7 @@ func TestExpressionToCode(t *testing.T) {
 	// シンボルテーブルのセットアップ
 	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
+	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
