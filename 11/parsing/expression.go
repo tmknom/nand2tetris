@@ -343,7 +343,13 @@ func (a *Array) ToXML() []string {
 }
 
 func (a *Array) ToCode() []string {
-	return []string{"Array_not_implemented"}
+	result := []string{}
+	result = append(result, a.VarName.ToCode()...)
+	result = append(result, a.Expression.ToCode()...)
+	result = append(result, "add")
+	result = append(result, "pop pointer 1")
+	result = append(result, "push that 0")
+	return result
 }
 
 type Expression struct {

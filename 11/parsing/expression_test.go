@@ -160,6 +160,24 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "ローカル変数のArray要素の定義",
+			expression: &Expression{
+				Term: &Array{
+					VarName: NewVarNameByValue("array"),
+					Expression: &Expression{
+						Term: NewIntegerConstantByValue("3"),
+					},
+				},
+			},
+			want: []string{
+				"push local 2",    // 配列のアドレス
+				"push constant 3", // 配列の添字
+				"add",             // 配列要素のアドレスの算出
+				"pop pointer 1",   // thatにアドレスをセット
+				"push that 0",     // 配列要素に値を代入
+			},
+		},
+		{
 			desc: "GroupingExpressionをひとつだけ定義: (6 / 3)",
 			expression: &Expression{
 				Term: &GroupingExpression{
@@ -395,6 +413,7 @@ func TestExpressionToCode(t *testing.T) {
 	// シンボルテーブルのセットアップ
 	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 	symbol.GlobalSymbolTables.AddVarSymbol("obj", "Square")
+	symbol.GlobalSymbolTables.AddVarSymbol("array", "Array")
 	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
 	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
 
