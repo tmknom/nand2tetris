@@ -24,6 +24,14 @@ func (s *ClassSymbolTable) AddFieldSymbol(name string, symbolType string) {
 	s.Add(item)
 }
 
+func (s *ClassSymbolTable) StaticLength() int {
+	return s.ClassScopeIndexer.StaticIndex
+}
+
+func (s *ClassSymbolTable) FieldLength() int {
+	return s.ClassScopeIndexer.FieldIndex
+}
+
 type ClassScopeIndexer struct {
 	StaticIndex int
 	FieldIndex  int
