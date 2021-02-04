@@ -58,6 +58,10 @@ func (s *SubroutineCall) ToCode() []string {
 		}
 	}
 
+	if s.SubroutineCallName.CallerName == nil {
+		result = append(result, "push pointer 0")
+	}
+
 	result = append(result, callName)
 	return result
 }
@@ -78,6 +82,7 @@ func (s *SubroutineCall) TermType() TermType {
 }
 
 type SubroutineCallName struct {
+	*ClassName // 自身のクラスのメソッド呼び出しで必要になる場合がある
 	*CallerName
 	*Period
 	*SubroutineName
@@ -109,6 +114,10 @@ func (s *SubroutineCallName) SetCallerName(token *token.Token) error {
 	return nil
 }
 
+func (s *SubroutineCallName) SetClassName(className *ClassName) {
+	s.ClassName = className
+}
+
 func (s *SubroutineCallName) Check() error {
 	return s.SubroutineName.Check()
 }
@@ -125,7 +134,9 @@ func (s *SubroutineCallName) ToXML() []string {
 
 func (s *SubroutineCallName) ToCode(length int) string {
 	if s.CallerName == nil {
-		return fmt.Sprintf("%s %d", s.SubroutineName.Value, length)
+		// s.CallerNameがnilの場合、自身のクラスに定義されているメソッドを呼び出そうとしていると判定
+		// その場合はClassNameをCallerNameだとみなす
+		return fmt.Sprintf("%s.%s %d", s.ClassName.Value, s.SubroutineName.Value, length+1)
 	}
 
 	// CallerNameに値が設定されている場合、二パターン存在する

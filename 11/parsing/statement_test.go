@@ -277,12 +277,14 @@ func TestDoStatementToCode(t *testing.T) {
 				SubroutineCall: &SubroutineCall{
 					SubroutineCallName: &SubroutineCallName{
 						SubroutineName: NewSubroutineNameByValue("max"),
+						ClassName:      NewClassNameByValue("Square"),
 					},
 					ExpressionList: NewExpressionList(),
 				},
 			},
 			want: []string{
-				"call max 0",
+				"push pointer 0",
+				"call Square.max 1",
 				"pop temp 0",
 			},
 		},
@@ -292,6 +294,7 @@ func TestDoStatementToCode(t *testing.T) {
 				SubroutineCall: &SubroutineCall{
 					SubroutineCallName: &SubroutineCallName{
 						SubroutineName: NewSubroutineNameByValue("max"),
+						ClassName:      NewClassNameByValue("Square"),
 					},
 					ExpressionList: &ExpressionList{
 						First: &Expression{
@@ -308,7 +311,8 @@ func TestDoStatementToCode(t *testing.T) {
 			want: []string{
 				"push constant 123",
 				"push local 0",
-				"call max 2",
+				"push pointer 0",
+				"call Square.max 3",
 				"pop temp 0",
 			},
 		},

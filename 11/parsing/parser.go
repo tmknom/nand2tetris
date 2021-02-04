@@ -594,6 +594,9 @@ func (p *Parser) parseSubroutineCallName() (*SubroutineCallName, error) {
 		return nil, err
 	}
 
+	// method呼び出しのコード生成でクラス名が必要になるケースがあるため、ココで渡しておく
+	subroutineCallName.SetClassName(p.Class.ClassName)
+
 	return subroutineCallName, nil
 }
 

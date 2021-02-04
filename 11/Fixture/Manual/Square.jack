@@ -23,10 +23,7 @@ class Square {
     method void printWithArg(int Ax, int Ay) {
         let x = Ax;
         let y = Ay;
-        do Output.printInt(x);
-        do Output.println();
-        do Output.printInt(y);
-        do Output.println();
+        do print();
         return;
     }
 }
