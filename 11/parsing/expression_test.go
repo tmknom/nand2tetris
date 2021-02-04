@@ -357,6 +357,33 @@ func TestExpressionToCode(t *testing.T) {
 				"call Square.run 1",
 			},
 		},
+		{
+			desc: "引数ありのオブジェクトのメソッド呼び出し: obj.run(123, foo)",
+			expression: &Expression{
+				Term: &SubroutineCall{
+					SubroutineCallName: &SubroutineCallName{
+						CallerName:     NewCallerNameByValue("obj"),
+						SubroutineName: NewSubroutineNameByValue("run"),
+					},
+					ExpressionList: &ExpressionList{
+						First: &Expression{
+							Term: NewIntegerConstantByValue("123"),
+						},
+						CommaAndExpressions: []*CommaAndExpression{
+							NewCommaAndExpression(&Expression{
+								Term: NewVarNameByValue("foo"),
+							}),
+						},
+					},
+				},
+			},
+			want: []string{
+				"push local 1", // 隠れ引数として呼び出したオブジェクトのアドレスをpush
+				"push constant 123",
+				"push local 0",
+				"call Square.run 3",
+			},
+		},
 	}
 
 	// いろいろ初期化
