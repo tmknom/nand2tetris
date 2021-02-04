@@ -147,6 +147,22 @@ func TestSubroutineDecToCode(t *testing.T) {
 				"pop pointer 0",
 			},
 		},
+		{
+			desc: "ローカル変数のないメソッドの定義: method int size()",
+			subroutineDec: &SubroutineDec{
+				ClassName:      NewClassNameByValue("Square"),
+				Subroutine:     NewKeywordByValue("method"),
+				SubroutineType: NewSubroutineTypeByValue("int"),
+				SubroutineName: NewSubroutineNameByValue("size"),
+				ParameterList:  NewParameterList(),
+				SubroutineBody: NewSubroutineBody(),
+			},
+			want: []string{
+				"function Square.size 0",
+				"push argument 0",
+				"pop pointer 0",
+			},
+		},
 	}
 
 	for _, tc := range cases {
