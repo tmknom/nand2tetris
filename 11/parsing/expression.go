@@ -140,7 +140,7 @@ func (s *SubroutineCallName) ToCode(length int) string {
 		// CallerNameがシンボルテーブルに存在しない場合は、クラス名と判定
 		return fmt.Sprintf("%s.%s %d", s.CallerName.Value, s.SubroutineName.Value, length)
 	} else {
-		// CallerNameがシンボルテーブルに存在しない場合は、オブジェクト名と判定
+		// CallerNameがシンボルテーブルに存在する場合は、オブジェクト名と判定
 		// シンボルテーブルからそのオブジェクトの型名（＝クラス名）を取得して、サブルーチンを呼べるようにする
 		// 隠れ引数として、オブジェクトのベースアドレスをサブルーチンに渡すことに注意
 		// そのためcall実行時に渡す引数は、function定義より一個多くなる
