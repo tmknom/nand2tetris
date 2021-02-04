@@ -151,6 +151,15 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "クラスのフィールド変数のVarNameをひとつだけ定義",
+			expression: &Expression{
+				Term: NewVarNameByValue("fieldA"),
+			},
+			want: []string{
+				"push this 0",
+			},
+		},
+		{
 			desc: "GroupingExpressionをひとつだけ定義: (6 / 3)",
 			expression: &Expression{
 				Term: &GroupingExpression{
@@ -339,6 +348,7 @@ func TestExpressionToCode(t *testing.T) {
 	// シンボルテーブルのセットアップ
 	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
+	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
