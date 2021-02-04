@@ -148,7 +148,10 @@ func (s *SubroutineDec) ToCode() []string {
 	case "method":
 		result := []string{function}
 		// call側でセットした隠れ引数this（ベースアドレス）をスタックに積む
-		result = append(result, "push argument 0")
+		// なおthisは、methodの引数の後ろにつける最後の要素なので注意
+		argLength := symbol.GlobalSymbolTables.ArgLength()
+		pushArg := fmt.Sprintf("push argument %d", argLength)
+		result = append(result, pushArg)
 		// スタックの一番上の値をthis（ベースアドレス）にセット
 		result = append(result, "pop pointer 0")
 		// 隠れ引数のthisをセットしたらあとはfunctionと同じ
