@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"../symbol"
 	"../token"
 	"fmt"
 	"github.com/pkg/errors"
@@ -42,9 +43,20 @@ func (s *SubroutineCall) ToXML() []string {
 
 func (s *SubroutineCall) ToCode() []string {
 	length := s.ExpressionListLength()
-	callName := fmt.Sprintf("call %s %d", s.SubroutineCallName.ToCode(), length)
+	callName := fmt.Sprintf("call %s", s.SubroutineCallName.ToCode(length))
 
 	result := []string{}
+
+	// TODO 二回もシンボルテーブルを参照しててわりとヒドい
+	// オブジェクトのメソッドコールの場合、隠れ引数をpushしておく
+	if s.SubroutineCallName.CallerName != nil {
+		symbolItem, _ := symbol.GlobalSymbolTables.FindSymbolItem(s.SubroutineCallName.CallerName.Value)
+		if symbolItem != nil {
+			code := fmt.Sprintf("push %s", symbolItem.ToCode())
+			result = append(result, code)
+		}
+	}
+
 	result = append(result, s.ExpressionList.ToCode()...)
 	result = append(result, callName)
 	return result
@@ -111,13 +123,29 @@ func (s *SubroutineCallName) ToXML() []string {
 	return result
 }
 
-func (s *SubroutineCallName) ToCode() string {
-	result := ""
-	if s.CallerName != nil {
-		result = fmt.Sprintf("%s.", s.CallerName.Value)
+func (s *SubroutineCallName) ToCode(length int) string {
+	if s.CallerName == nil {
+		return fmt.Sprintf("%s %d", s.SubroutineName.Value, length)
 	}
-	result += s.SubroutineName.Value
-	return result
+
+	// CallerNameに値が設定されている場合、二パターン存在する
+	//
+	// 1. Main.main() のようにクラス名＋サブルーチン名
+	// 2. obj.run() のようにオブジェクト名（＝変数名）＋サブルーチン名
+	//
+	// そこでCallerNameをシンボルテーブルで検索し、
+	// シンボルテーブルに値が存在するか否かで、クラス名かオブジェクト名か判定する
+	symbolItem, err := symbol.GlobalSymbolTables.FindSymbolItem(s.CallerName.Value)
+	if err != nil {
+		// CallerNameがシンボルテーブルに存在しない場合は、クラス名と判定
+		return fmt.Sprintf("%s.%s %d", s.CallerName.Value, s.SubroutineName.Value, length)
+	} else {
+		// CallerNameがシンボルテーブルに存在しない場合は、オブジェクト名と判定
+		// シンボルテーブルからそのオブジェクトの型名（＝クラス名）を取得して、サブルーチンを呼べるようにする
+		// 隠れ引数として、オブジェクトのベースアドレスをサブルーチンに渡すことに注意
+		// そのためcall実行時に渡す引数は、function定義より一個多くなる
+		return fmt.Sprintf("%s.%s %d", symbolItem.SymbolType.Value, s.SubroutineName.Value, length+1)
+	}
 }
 
 func (s *SubroutineCallName) Debug(baseIndent int) string {
