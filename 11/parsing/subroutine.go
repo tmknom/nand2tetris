@@ -126,10 +126,28 @@ func (s *SubroutineDec) ToCode() []string {
 	subroutineName := s.SubroutineName.Value
 	varCount := s.SubroutineBody.VarDecsLength()
 	function := fmt.Sprintf("function %s%s %d", classPrefix, subroutineName, varCount)
+	result := []string{function}
 
-	result := []string{}
-	result = append(result, function)
-	result = append(result, s.SubroutineBody.ToCode()...)
+	switch s.Subroutine.Value {
+	case "function":
+		result = append(result, s.SubroutineBody.ToCode()...)
+	case "constructor":
+		// fieldの個数をスタックにプッシュ
+		fieldLength := symbol.GlobalSymbolTables.FieldLength()
+		pushField := fmt.Sprintf("push constant %d", fieldLength)
+		result = append(result, pushField)
+		// スタックの一番上にある値を引数にして、メモリ確保を実行
+		result = append(result, "call Memory.alloc 1")
+		// THISにオブジェクトのベースアドレスを設定
+		result = append(result, "pop pointer 0")
+		// オブジェクトのメモリ領域を確保したらあとはfunctionと同じ
+		result = append(result, s.SubroutineBody.ToCode()...)
+	case "method":
+		result = append(result, "method_not_implemented")
+	default:
+		result = append(result, "error SubroutineDec.ToCode(): invalid keyword: %s", s.Subroutine.Value)
+	}
+
 	return result
 }
 
