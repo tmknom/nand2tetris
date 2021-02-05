@@ -1,6 +1,6 @@
 class Main {
     function void main() {
-        do Main.object();
+        do Output.printString("foo; bar; baz");
         return;
     }
 
@@ -47,6 +47,45 @@ class Main {
             do Output.printInt(-999);
             do Output.println();
         }
+        return;
+    }
+
+    function void arrayFunc() {
+        var Array a;
+        var int index;
+        let a = Array.new(10);
+        let index = 1+2;
+        let a[index] = 777;
+        do Output.printInt(a[index]);
+        do Output.println();
+        return;
+    }
+
+    function void stringFunc() {
+        var String s;
+        var char c;
+        let s = "Hello";
+        do Output.printString(s);
+        do Output.println();
+        do Output.printString("World!");
+        do Output.println();
+        return;
+    }
+
+    function void staticFunc() {
+        var Square square1, square2;
+        var int result;
+        let square1 = Square.new(10, 200, 3000);
+        let square2 = Square.new(1, 20, 300);
+        do square1.initStaticValue();
+        do square2.incrementStaticValue();
+        do square1.incrementStaticValue();
+        do square2.incrementStaticValue();
+        do square2.incrementStaticValue();
+        do square1.incrementStaticValue();
+        let result = square2.getStaticValue();
+        do Output.printInt(result);
+        do Output.println();
         return;
     }
 }

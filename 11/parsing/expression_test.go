@@ -96,6 +96,26 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "StringConstantをひとつだけ定義",
+			expression: &Expression{
+				Term: NewStringConstantByValue("Hello"),
+			},
+			want: []string{
+				"push constant 5",          // 文字列長maxLength
+				"call String.new 1",        // maxLengthを指定してStringオブジェクトを生成
+				"push constant 72",         // 'H'
+				"call String.appendChar 2", // 'H' を引数にappendCharを実行
+				"push constant 101",        // 'e'
+				"call String.appendChar 2", // 'e' を引数にappendCharを実行
+				"push constant 108",        // 'l'
+				"call String.appendChar 2", // 'l' を引数にappendCharを実行
+				"push constant 108",        // 'l'
+				"call String.appendChar 2", // 'l' を引数にappendCharを実行
+				"push constant 111",        // 'o'
+				"call String.appendChar 2", // 'o' を引数にappendCharを実行
+			},
+		},
+		{
 			desc: "KeywordConstant「true」の定義",
 			expression: &Expression{
 				Term: ConstTrue,
@@ -157,6 +177,33 @@ func TestExpressionToCode(t *testing.T) {
 			},
 			want: []string{
 				"push this 0",
+			},
+		},
+		{
+			desc: "クラスのStatic変数のVarNameをひとつだけ定義",
+			expression: &Expression{
+				Term: NewVarNameByValue("staticA"),
+			},
+			want: []string{
+				"push static 0",
+			},
+		},
+		{
+			desc: "ローカル変数のArray要素の定義",
+			expression: &Expression{
+				Term: &Array{
+					VarName: NewVarNameByValue("array"),
+					Expression: &Expression{
+						Term: NewIntegerConstantByValue("3"),
+					},
+				},
+			},
+			want: []string{
+				"push local 2",    // 配列のアドレス
+				"push constant 3", // 配列の添字
+				"add",             // 配列要素のアドレスの算出
+				"pop pointer 1",   // thatにアドレスをセット
+				"push that 0",     // 配列要素に値を代入
 			},
 		},
 		{
@@ -395,8 +442,10 @@ func TestExpressionToCode(t *testing.T) {
 	// シンボルテーブルのセットアップ
 	symbol.GlobalSymbolTables.AddVarSymbol("foo", "int")
 	symbol.GlobalSymbolTables.AddVarSymbol("obj", "Square")
+	symbol.GlobalSymbolTables.AddVarSymbol("array", "Array")
 	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
 	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
+	symbol.GlobalSymbolTables.AddStaticSymbol("staticA", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {

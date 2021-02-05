@@ -343,7 +343,13 @@ func (a *Array) ToXML() []string {
 }
 
 func (a *Array) ToCode() []string {
-	return []string{"Array_not_implemented"}
+	result := []string{}
+	result = append(result, a.VarName.ToCode()...)
+	result = append(result, a.Expression.ToCode()...)
+	result = append(result, "add")
+	result = append(result, "pop pointer 1")
+	result = append(result, "push that 0")
+	return result
 }
 
 type Expression struct {
@@ -896,6 +902,10 @@ func NewStringConstant(token *token.Token) *StringConstant {
 	}
 }
 
+func NewStringConstantByValue(value string) *StringConstant {
+	return NewStringConstant(token.NewToken(value, token.TokenStringConst))
+}
+
 func (s *StringConstant) Check() error {
 	return s.Token.CheckStringConstant()
 }
@@ -909,7 +919,23 @@ func (s *StringConstant) ToXML() []string {
 }
 
 func (s *StringConstant) ToCode() []string {
-	return []string{"StringConstant_not_implemented"}
+	result := []string{}
+	// 文字列の最大長maxLengthを計算してスタックに積む
+	result = append(result, fmt.Sprintf("push constant %d", len(s.Value)))
+	// スタックの一番上にある値（maxLength）を引数にして、Stringオブジェクトを生成
+	// 「call String.new」を実行したあとに、スタックの一番上には作成したStringオブジェクトのアドレスが積まれる
+	result = append(result, "call String.new 1")
+	// 一文字ずつ文字をStringにセットしていく
+	for _, rune := range s.Value {
+		// runeにはint32の文字コードが入っているので、それをそのままスタックに積む
+		result = append(result, fmt.Sprintf("push constant %d", rune))
+		// 「call String.appendChar」実行時には、隠れ引数としてStringオブジェクトのアドレスを渡す必要がある
+		// 最初は「call String.new」が生成したアドレスを使用する
+		// 二回目以降は「call String.appendChar」の返り値として、
+		// Stringオブジェクトのアドレスがスタックに積まれるのでそれを使う
+		result = append(result, "call String.appendChar 2")
+	}
+	return result
 }
 
 type IntegerConstant struct {

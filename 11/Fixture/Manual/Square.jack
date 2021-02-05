@@ -2,6 +2,7 @@ class Square {
 
     field int x, y;
     field int size;
+    static int staticValue;
 
     constructor Square new(int Ax, int Ay, int Asize) {
         let x = Ax;
@@ -25,5 +26,19 @@ class Square {
         let y = Ay;
         do print();
         return;
+    }
+
+    method void initStaticValue() {
+        let staticValue = 10;
+        return;
+    }
+
+    method void incrementStaticValue() {
+        let staticValue = staticValue + 1;
+        return;
+    }
+
+    method int getStaticValue() {
+        return staticValue;
     }
 }
