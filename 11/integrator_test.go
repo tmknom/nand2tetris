@@ -84,6 +84,27 @@ func TestIntegratorGenerate(t *testing.T) {
 				"Fixture/Average/cmp/Main.vm",
 			},
 		},
+		{
+			desc: "Pong",
+			src: []string{
+				"Fixture/Pong/Ball.jack",
+				"Fixture/Pong/Bat.jack",
+				"Fixture/Pong/Main.jack",
+				"Fixture/Pong/PongGame.jack",
+			},
+			dest: []string{
+				"Fixture/Pong/Ball.vm",
+				"Fixture/Pong/Bat.vm",
+				"Fixture/Pong/Main.vm",
+				"Fixture/Pong/PongGame.vm",
+			},
+			want: []string{
+				"Fixture/Pong/cmp/Ball.vm",
+				"Fixture/Pong/cmp/Bat.vm",
+				"Fixture/Pong/cmp/Main.vm",
+				"Fixture/Pong/cmp/PongGame.vm",
+			},
+		},
 	}
 
 	for _, tc := range cases {
