@@ -180,6 +180,15 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "クラスのStatic変数のVarNameをひとつだけ定義",
+			expression: &Expression{
+				Term: NewVarNameByValue("staticA"),
+			},
+			want: []string{
+				"push static 0",
+			},
+		},
+		{
 			desc: "ローカル変数のArray要素の定義",
 			expression: &Expression{
 				Term: &Array{
@@ -436,6 +445,7 @@ func TestExpressionToCode(t *testing.T) {
 	symbol.GlobalSymbolTables.AddVarSymbol("array", "Array")
 	symbol.GlobalSymbolTables.AddArgSymbol("bar", "int")
 	symbol.GlobalSymbolTables.AddFieldSymbol("fieldA", "int")
+	symbol.GlobalSymbolTables.AddStaticSymbol("staticA", "int")
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
