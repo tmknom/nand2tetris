@@ -62,6 +62,13 @@ func (t *Tokenizer) splitBySpaces(line string) []string {
 
 func (t *Tokenizer) splitBySymbols(line string) []string {
 	result := []string{line}
+
+	// StringConstの場合はシンボルで分割しない
+	if strings.HasPrefix(line, stringConstMarker) {
+		return result
+	}
+
+	// シンボルが含まれない場合は即終了
 	if !t.containSymbol(line) {
 		return result
 	}

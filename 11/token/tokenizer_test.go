@@ -91,6 +91,13 @@ func TestTokenizerTokenizeLine(t *testing.T) {
 			},
 		},
 		{
+			desc: "セミコロンを含む文字列定値をひとつだけ含む",
+			line: "\"foo; bar; baz;\"",
+			want: []*Token{
+				NewToken("foo; bar; baz;", TokenStringConst),
+			},
+		},
+		{
 			desc: "識別子をひとつだけ含む",
 			line: "Array",
 			want: []*Token{
