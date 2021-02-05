@@ -96,6 +96,26 @@ func TestExpressionToCode(t *testing.T) {
 			},
 		},
 		{
+			desc: "StringConstantをひとつだけ定義",
+			expression: &Expression{
+				Term: NewStringConstantByValue("Hello"),
+			},
+			want: []string{
+				"push constant 5",          // 文字列長maxLength
+				"call String.new 1",        // maxLengthを指定してStringオブジェクトを生成
+				"push constant 72",         // 'H'
+				"call String.appendChar 2", // 'H' を引数にappendCharを実行
+				"push constant 101",        // 'e'
+				"call String.appendChar 2", // 'e' を引数にappendCharを実行
+				"push constant 108",        // 'l'
+				"call String.appendChar 2", // 'l' を引数にappendCharを実行
+				"push constant 108",        // 'l'
+				"call String.appendChar 2", // 'l' を引数にappendCharを実行
+				"push constant 111",        // 'o'
+				"call String.appendChar 2", // 'o' を引数にappendCharを実行
+			},
+		},
+		{
 			desc: "KeywordConstant「true」の定義",
 			expression: &Expression{
 				Term: ConstTrue,
