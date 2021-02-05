@@ -72,6 +72,18 @@ func TestIntegratorGenerate(t *testing.T) {
 				"Fixture/Square/cmp/SquareGame.vm",
 			},
 		},
+		{
+			desc: "Average",
+			src: []string{
+				"Fixture/Average/Main.jack",
+			},
+			dest: []string{
+				"Fixture/Average/Main.vm",
+			},
+			want: []string{
+				"Fixture/Average/cmp/Main.vm",
+			},
+		},
 	}
 
 	for _, tc := range cases {
