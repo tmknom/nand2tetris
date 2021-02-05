@@ -105,6 +105,18 @@ func TestIntegratorGenerate(t *testing.T) {
 				"Fixture/Pong/cmp/PongGame.vm",
 			},
 		},
+		{
+			desc: "ComplexArrays",
+			src: []string{
+				"Fixture/ComplexArrays/Main.jack",
+			},
+			dest: []string{
+				"Fixture/ComplexArrays/Main.vm",
+			},
+			want: []string{
+				"Fixture/ComplexArrays/cmp/Main.vm",
+			},
+		},
 	}
 
 	for _, tc := range cases {
